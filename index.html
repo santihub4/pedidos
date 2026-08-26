@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
@@ -276,6 +276,16 @@
     .expense-actions { display:flex; gap:6px; align-items:center; }
     .profit-positive { color:var(--green); }
     .profit-negative { color:var(--red); }
+    /* ── DASHBOARD CONFIGURABLE ── */
+    .dash-grid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; }
+    .dash-grid > div { min-width:0; }
+    @media (max-width:900px) { .dash-grid { grid-template-columns:1fr; } }
+    /* ── TOASTS ── */
+    .toast-wrap { position:fixed; bottom:70px; right:16px; z-index:3000; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:#1a1d2e; color:#fff; border-radius:8px; padding:10px 14px; font-size:.82rem; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transform:translateY(8px); transition:all .25s; max-width:320px; }
+    .toast.show { opacity:1; transform:none; }
+    .toast.err { background:#b91c1c; }
+    .toast.ok { background:#15803d; }
     /* ── CREADOR DE ESTADISTICAS ── */
     .formula-display { min-height:44px; height:auto; max-height:none; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:5px; align-items:center; font-size:.85rem; color:var(--text-muted); overflow:visible; }
     .formula-chip { background:var(--blue-light); color:var(--accent); border-radius:6px; padding:3px 8px; font-weight:600; font-size:.78rem; }
@@ -471,7 +481,18 @@
       <div class="page-title">Dashboard</div>
       <div class="page-sub">Resumen general de tu negocio</div>
 
+      <div class="stats-toolbar">
+        <div class="card-title">Resumen configurable</div>
+        <button class="btn-primary" onclick="toggleDashConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+      </div>
+      <div class="stats-config" id="dash-config">
+        <div class="card-title">Que mostrar y en que orden</div>
+        <div class="card-sub" style="margin-bottom:0">Los cambios se guardan en este navegador.</div>
+        <div class="stats-config-list" id="dash-config-list"></div>
+      </div>
+      <div class="dash-grid" id="dash-grid">
       <!-- MÉTRICAS -->
+      <div id="dash-sec-metricas" style="grid-column:1/-1">
       <div class="metrics">
         <div class="metric-card">
           <div class="metric-header">
@@ -506,10 +527,10 @@
           <div class="metric-sub" id="m-productos-sub"></div>
         </div>
       </div>
+      </div>
 
-      <!-- CHARTS ROW -->
-      <div class="charts-row">
-        <!-- Grafico de linea: facturacion mensual -->
+      <!-- GRAFICO DE LINEA -->
+      <div id="dash-sec-linea">
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
             <div>
@@ -519,8 +540,10 @@
           </div>
           <svg id="line-chart" width="100%" height="180" style="overflow:visible"></svg>
         </div>
+      </div>
 
-        <!-- Donut: estado de pedidos -->
+      <!-- DONUT -->
+      <div id="dash-sec-donut">
         <div class="card" style="display:flex;flex-direction:column">
           <div class="card-title">Estado de pedidos</div>
           <div class="card-sub">Como se distribuye tu trabajo actual</div>
@@ -537,21 +560,23 @@
         </div>
       </div>
 
-      <!-- BOTTOM ROW: top productos + actividad reciente -->
-      <div class="charts-row" style="margin-bottom:0">
-        <!-- Top productos -->
+      <!-- TOP PRODUCTOS -->
+      <div id="dash-sec-top">
         <div class="card">
           <div class="card-title" style="margin-bottom:4px">Productos mas vendidos</div>
           <div class="card-sub">Ordenados por unidades pedidas</div>
           <div id="top-productos"></div>
         </div>
+      </div>
 
-        <!-- Actividad reciente -->
+      <!-- ACTIVIDAD RECIENTE -->
+      <div id="dash-sec-actividad">
         <div class="card">
           <div class="card-title" style="margin-bottom:4px">Actividad reciente</div>
           <div class="card-sub">Ultimos movimientos registrados</div>
           <div id="actividad-reciente"></div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -672,9 +697,12 @@
 
       <!-- TABLA FILAMENTOS -->
       <div class="card" style="padding:0;margin-bottom:20px">
-        <div style="padding:20px 20px 0">
-          <div class="card-title">Filamentos comprados</div>
-          <div class="card-sub">El promedio $/kg usa las compras del mes actual.</div>
+        <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div>
+            <div class="card-title">Filamentos comprados</div>
+            <div class="card-sub">El promedio $/kg usa las compras del mes actual.</div>
+          </div>
+          <button class="btn-icon" onclick="exportarFilamentosCSV()" title="Exportar CSV"><i data-lucide="download" width="14" height="14"></i></button>
         </div>
         <div class="table-wrap">
           <table>
@@ -686,8 +714,13 @@
 
       <!-- TABLA GASTOS GENERALES -->
       <div class="card" style="padding:0">
-        <div style="padding:20px 20px 0">
+        <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
           <div class="card-title">Gastos generales</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="filtro-gasto" placeholder="Buscar gasto..." oninput="renderGastos()"
+              style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:.85rem;color:var(--text);outline:none;font-family:inherit;width:200px"/>
+            <button class="btn-icon" onclick="exportarGastosCSV()" title="Exportar CSV"><i data-lucide="download" width="14" height="14"></i></button>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -740,6 +773,9 @@
           </div>
           <input type="hidden" id="filtro-orden" value="nuevo"/>
         </div>
+        <button class="btn-icon" onclick="exportarPedidosCSV()" title="Exportar CSV" style="width:38px;height:38px;flex-shrink:0">
+          <i data-lucide="download" width="15" height="15"></i>
+        </button>
         <button class="btn-primary" onclick="abrirNuevo()">
           <i data-lucide="plus" width="14" height="14"></i> Nuevo pedido
         </button>
@@ -1345,6 +1381,24 @@
   // ── UTILS ──
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function fmt(n) { return '$' + (n||0).toLocaleString('es-AR'); }
+  function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
+
+  // ── TOASTS ──
+  let ultimoToast = { msg: '', t: 0 };
+  function toast(msg, tipo) {
+    const ahora = Date.now();
+    const ventana = tipo === 'err' ? 60000 : 5000;
+    if (ultimoToast.msg === msg && ahora - ultimoToast.t < ventana) return;
+    ultimoToast = { msg, t: ahora };
+    let wrap = document.querySelector('.toast-wrap');
+    if (!wrap) { wrap = document.createElement('div'); wrap.className = 'toast-wrap'; document.body.appendChild(wrap); }
+    const t = document.createElement('div');
+    t.className = 'toast ' + (tipo || '');
+    t.textContent = msg;
+    wrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+  }
   function fmtFecha(f) { if (!f) return '—'; const [y,m,d] = f.split('-'); return `${d}/${m}/${y}`; }
   function badgeClass(e) {
     return {'Pendiente':'badge-pendiente','Impreso':'badge-impreso','Listo para retirar':'badge-listo','Entregado':'badge-entregado','Cancelado':'badge-cancelado'}[e]||'badge-default';
@@ -1363,13 +1417,89 @@
       if (paginaActual === 'pedidos') renderTabla();
       if (paginaActual === 'estadisticas') renderEstadisticas();
       if (paginaActual === 'gastos') renderGastos();
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error(e); toast('Error al cargar pedidos: ' + e.message, 'err'); }
   }
 
 
 
+  // ── DASHBOARD CONFIGURABLE ──
+  const dashDefaultConfig = {
+    order: ['metricas', 'linea', 'donut', 'top', 'actividad'],
+    visible: { metricas: true, linea: true, donut: true, top: true, actividad: true }
+  };
+  const dashNombres = { metricas: 'Metricas', linea: 'Facturacion mensual', donut: 'Estado de pedidos', top: 'Productos mas vendidos', actividad: 'Actividad reciente' };
+  let dashConfig = (function () {
+    try {
+      const guardada = JSON.parse(localStorage.getItem('dashboard_config'));
+      if (guardada?.order && guardada?.visible) {
+        const faltan = dashDefaultConfig.order.filter(k => !guardada.order.includes(k));
+        return { order: [...guardada.order, ...faltan], visible: { ...dashDefaultConfig.visible, ...guardada.visible } };
+      }
+    } catch { }
+    return JSON.parse(JSON.stringify(dashDefaultConfig));
+  })();
+
+  function guardarDashConfig() { localStorage.setItem('dashboard_config', JSON.stringify(dashConfig)); }
+
+  function toggleDashConfig() {
+    document.getElementById('dash-config').classList.toggle('open');
+    renderDashConfig();
+  }
+
+  function renderDashConfig() {
+    const lista = document.getElementById('dash-config-list');
+    if (!lista) return;
+    lista.innerHTML = dashConfig.order.map((key, index) => `
+      <div class="stats-config-item">
+        <label><input type="checkbox" ${dashConfig.visible[key] ? 'checked' : ''} onchange="cambiarVisibilidadDash('${key}', this.checked)"/> ${dashNombres[key]}</label>
+        <div class="stats-order">
+          <button type="button" title="Subir" onclick="moverDash('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" title="Bajar" onclick="moverDash('${key}', 1)" ${index === dashConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function cambiarVisibilidadDash(key, visible) {
+    dashConfig.visible[key] = visible;
+    guardarDashConfig();
+    aplicarDashLayout();
+  }
+
+  function moverDash(key, direction) {
+    const index = dashConfig.order.indexOf(key);
+    const next = index + direction;
+    if (index < 0 || next < 0 || next >= dashConfig.order.length) return;
+    [dashConfig.order[index], dashConfig.order[next]] = [dashConfig.order[next], dashConfig.order[index]];
+    guardarDashConfig();
+    renderDashConfig();
+    aplicarDashLayout();
+  }
+
+  function aplicarDashLayout() {
+    const grid = document.getElementById('dash-grid');
+    if (!grid) return;
+    dashConfig.order.forEach(key => {
+      const el = document.getElementById('dash-sec-' + key);
+      if (!el) return;
+      el.style.display = dashConfig.visible[key] ? '' : 'none';
+      grid.appendChild(el);
+    });
+    // Si la seccion companera de columna esta oculta, la visible ocupa todo el ancho
+    const pares = [['linea', 'donut'], ['top', 'actividad']];
+    pares.forEach(([a, b]) => {
+      const elA = document.getElementById('dash-sec-' + a);
+      const elB = document.getElementById('dash-sec-' + b);
+      if (!elA || !elB) return;
+      const spanA = dashConfig.visible[a] && !dashConfig.visible[b];
+      const spanB = dashConfig.visible[b] && !dashConfig.visible[a];
+      elA.style.gridColumn = spanA ? '1 / -1' : '';
+      elB.style.gridColumn = spanB ? '1 / -1' : '';
+    });
+  }
+
   // ── DASHBOARD ──
   function renderDashboard() {
+    aplicarDashLayout();
     if (!pedidos.length) return;
 
     const entregadosList = pedidos.filter(p => p.estado === 'Entregado');
@@ -1436,7 +1566,7 @@
     );
     const svgEl = document.getElementById('line-chart');
     if (svgEl) {
-      const W = svgEl.parentElement.clientWidth - 40 || 400;
+      const W = Math.max(300, (svgEl.parentElement.clientWidth || 400) - 40);
       const H = 160;
       const pad = { top: 16, right: 16, bottom: 28, left: 52 };
       const iW = W - pad.left - pad.right;
@@ -1710,15 +1840,19 @@
     ['pedidos', 'Pedidos totales'],
     ['pedidos_entregados', 'Pedidos entregados'],
     ['pedidos_pendientes', 'Pedidos pendientes'],
+    ['pedidos_en_progreso', 'Pedidos impresos (en progreso)'],
+    ['pedidos_listos', 'Pedidos listos para retirar'],
+    ['pedidos_cancelados', 'Pedidos cancelados'],
     ['unidades', 'Unidades vendidas'],
+    ['unidades_entregadas', 'Unidades entregadas'],
     ['ticket', 'Ticket promedio'],
     ['gastos', 'Gastos generales'],
     ['gastos_filamento', 'Gastos en filamento'],
     ['kg_comprados', 'Kg de filamento comprados'],
     ['prom_kg', 'Promedio $/kg'],
+    ['ganancia_neta', 'Ganancia neta'],
+    ['margen_pct', 'Margen %'],
   ];
-
-  function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
 
   async function cargarEstadisticasCustom() {
     try {
@@ -1770,6 +1904,8 @@
     const fils = filamentos.filter(f => enRango(f.fecha));
     const kg = fils.reduce((s, f) => s + (Number(f.kg) || 0), 0);
     const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
+    const gastosGenerales = gs.reduce((s, g) => s + (Number(g.monto) || 0), 0);
+    const gananciaNeta = fact - gastosGenerales - precioFil;
     const vars = {
       facturacion: fact,
       ingresos_mensuales: mes ? fact : (() => {
@@ -1779,12 +1915,18 @@
       pedidos: peds.length,
       pedidos_entregados: ents.length,
       pedidos_pendientes: peds.filter(p => p.estado === 'Pendiente').length,
+      pedidos_en_progreso: peds.filter(p => p.estado === 'Impreso').length,
+      pedidos_listos: peds.filter(p => p.estado === 'Listo para retirar').length,
+      pedidos_cancelados: peds.filter(p => p.estado === 'Cancelado').length,
       unidades: peds.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
+      unidades_entregadas: ents.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
       ticket: ents.length ? fact / ents.length : 0,
-      gastos: gs.reduce((s, g) => s + (Number(g.monto) || 0), 0),
+      gastos: gastosGenerales,
       gastos_filamento: precioFil,
       kg_comprados: kg,
       prom_kg: kg > 0 ? precioFil / kg : 0,
+      ganancia_neta: gananciaNeta,
+      margen_pct: fact > 0 ? (gananciaNeta / fact) * 100 : 0,
     };
     return resolverCustoms(vars);
   }
@@ -1807,6 +1949,7 @@
     const visibles = estadisticasCustom.filter(est => est.vista !== 'variable');
     if (!visibles.length) return '';
     const meses = ultimos6Meses();
+    const formulaTexto = (est) => (est.formula || []).map(tokenLabel).join(' ') || '—';
     const acciones = (est) => `<div style="display:flex;gap:6px;flex-shrink:0">
       <button class="btn-icon" onclick="abrirEditarEst(${est.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
       <button class="btn-icon del" onclick="borrarEst(${est.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
@@ -1815,10 +1958,10 @@
       if (est.vista === 'barras') {
         const vals = meses.map(m => evaluarTokens(est.formula, valoresStats(m)) ?? 0);
         const max = Math.max(...vals.map(Math.abs), 1);
-        return `<div class="card stats-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada · ultimos 6 meses</div></div>${acciones(est)}</div><div class="stats-month-list">${meses.map((m, i) => `<div class="stats-month-row"><span>${m.label}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.max(0, Math.round(vals[i] / max * 100))}%"></div></div><strong>${fmtNum(vals[i])}</strong></div>`).join('')}</div></div>`;
+        return `<div class="card stats-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">${esc(formulaTexto(est))} · ultimos 6 meses</div></div>${acciones(est)}</div><div class="stats-month-list">${meses.map((m, i) => `<div class="stats-month-row"><span>${m.label}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.max(0, Math.round(vals[i] / max * 100))}%"></div></div><strong>${fmtNum(vals[i])}</strong></div>`).join('')}</div></div>`;
       }
       const val = evaluarTokens(est.formula, valoresStats(null));
-      return `<div class="card stats-section" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada</div></div><div style="display:flex;align-items:center;gap:12px"><div style="font-size:1.8rem;font-weight:700">${val === null ? '—' : fmtNum(val)}</div>${acciones(est)}</div></div>`;
+      return `<div class="card stats-section" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">${esc(formulaTexto(est))}</div></div><div style="display:flex;align-items:center;gap:12px"><div style="font-size:1.8rem;font-weight:700">${val === null ? '—' : fmtNum(val)}</div>${acciones(est)}</div></div>`;
     }).join('')}</div>`;
   }
 
@@ -2005,7 +2148,7 @@
     try {
       gastos = await apiFetch('gastos?order=fecha.desc,id.desc');
       if (paginaActual === 'gastos') renderGastos();
-    } catch (e) { console.error('Error cargando gastos:', e); }
+    } catch (e) { console.error('Error cargando gastos:', e); toast('Error al cargar gastos: ' + e.message, 'err'); }
   }
 
   function esMesActual(fecha) {
@@ -2048,7 +2191,9 @@
 
     const tbody = document.getElementById('tbody-gastos');
     if (!tbody) return;
-    tbody.innerHTML = gastos.length ? gastos.map(gasto => `
+    const fg = (document.getElementById('filtro-gasto')?.value || '').toLowerCase();
+    const listaG = gastos.filter(g => !fg || [g.concepto, g.categoria, g.descripcion].some(x => (x || '').toLowerCase().includes(fg)));
+    tbody.innerHTML = listaG.length ? listaG.map(gasto => `
       <tr>
         <td>${fmtFecha(gasto.fecha)}</td>
         <td class="td-cliente">${esc(gasto.concepto)}</td>
@@ -2057,7 +2202,7 @@
         <td class="td-monto">${fmt(Number(gasto.monto || 0))}</td>
         <td style="font-size:.8rem;color:var(--text-muted)">${esc(gasto.descripcion || '')}</td>
         <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarGasto(${gasto.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
-      </tr>`).join('') : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>';
+      </tr>`).join('') : (gastos.length ? '<tr><td colspan="7" class="empty-state">Sin resultados para la busqueda.</td></tr>' : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>');
     lucide.createIcons();
   }
 
@@ -2156,7 +2301,7 @@
     try {
       filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc');
       if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
-    } catch (e) { console.error('Error cargando filamentos:', e); }
+    } catch (e) { console.error('Error cargando filamentos:', e); toast('Error al cargar filamentos: ' + e.message, 'err'); }
   }
 
   function renderFilamentos() {
@@ -2284,6 +2429,7 @@
         default:           return 0;
       }
     });
+    pedidosFiltradosActual = data;
 
     // Tabla desktop
     const tbody = document.getElementById('tbody-pedidos');
@@ -2301,7 +2447,9 @@
           <td><span class="badge ${badgeClass(p.estado)}">${esc(p.estado||'—')}</span></td>
           <td>${fmtFecha(p.fecha)}</td>
           <td><div class="acciones">
+            <button class="btn-icon" onclick="avanzarEstado(${p.id})" title="Avanzar estado"><i data-lucide="chevron-right" width="13" height="13"></i></button>
             <button class="btn-icon" onclick="abrirEditar(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
+            <button class="btn-icon" onclick="duplicarPedido(${p.id})" title="Duplicar"><i data-lucide="copy" width="13" height="13"></i></button>
             <button class="btn-icon del" onclick="borrarPedido(${p.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
           </div></td>
         </tr>`).join('');
@@ -2320,7 +2468,9 @@
               <span class="badge ${badgeClass(p.estado)}">${esc(p.estado||'—')}</span>
             </div>
             <div class="pcm-acciones">
+              <button class="btn-icon" onclick="avanzarEstado(${p.id})" title="Avanzar estado"><i data-lucide="chevron-right" width="13" height="13"></i></button>
               <button class="btn-icon" onclick="abrirEditar(${p.id})"><i data-lucide="pencil" width="13" height="13"></i></button>
+              <button class="btn-icon" onclick="duplicarPedido(${p.id})" title="Duplicar"><i data-lucide="copy" width="13" height="13"></i></button>
               <button class="btn-icon del" onclick="borrarPedido(${p.id})"><i data-lucide="trash-2" width="13" height="13"></i></button>
             </div>
           </div>
@@ -2445,7 +2595,80 @@
       pedidos=pedidos.filter(p=>p.id!==id);
       renderTabla();
       if(paginaActual==='dashboard') renderDashboard();
-    } catch(e){alert('Error: '+e.message);}
+    } catch(e){toast('Error: '+e.message,'err');}
+  }
+
+  // ── ACCIONES RAPIDAS ──
+  const ESTADOS_FLUJO = ['Pendiente', 'Impreso', 'Listo para retirar', 'Entregado'];
+  let pedidosFiltradosActual = [];
+
+  async function avanzarEstado(id) {
+    const p = pedidos.find(x => x.id === id);
+    if (!p) return;
+    const idx = ESTADOS_FLUJO.indexOf(p.estado);
+    if (idx < 0 || idx >= ESTADOS_FLUJO.length - 1) { toast('Este pedido no puede avanzar mas.', 'err'); return; }
+    const nuevo = ESTADOS_FLUJO[idx + 1];
+    try {
+      await apiFetch(`${TABLA}?id=eq.${id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ estado: nuevo }) });
+      p.estado = nuevo;
+      renderTabla();
+      if (paginaActual === 'dashboard') renderDashboard();
+      toast(`Pedido #${id} → ${nuevo}`, 'ok');
+    } catch (e) { toast('Error: ' + e.message, 'err'); }
+  }
+
+  async function duplicarPedido(id) {
+    const p = pedidos.find(x => x.id === id);
+    if (!p) return;
+    const copia = {
+      cliente: p.cliente, producto: p.producto,
+      cantidad: p.cantidad || 1, precio_unitario: p.precio_unitario || 0, precio_final: p.precio_final || 0,
+      estado: 'Pendiente', descripcion: p.descripcion || '',
+      fecha: new Date().toISOString().split('T')[0]
+    };
+    try {
+      await apiFetch(TABLA, { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(copia) });
+      toast(`Pedido #${id} duplicado.`, 'ok');
+      await cargarPedidos();
+    } catch (e) { toast('Error: ' + e.message, 'err'); }
+  }
+
+  // ── EXPORTAR CSV ──
+  function descargarCSV(nombre, filas) {
+    const csv = '\ufeff' + filas.map(f => f.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function exportarPedidosCSV() {
+    if (!pedidosFiltradosActual.length) { toast('No hay pedidos para exportar.', 'err'); return; }
+    descargarCSV('pedidos.csv', [
+      ['ID', 'Cliente', 'Producto', 'Cantidad', 'Precio unitario', 'Precio final', 'Estado', 'Fecha', 'Descripcion'],
+      ...pedidosFiltradosActual.map(p => [p.id, p.cliente, p.producto, p.cantidad || 1, p.precio_unitario, p.precio_final, p.estado, p.fecha, p.descripcion])
+    ]);
+    toast('Pedidos exportados.', 'ok');
+  }
+
+  function exportarGastosCSV() {
+    if (!gastos.length) { toast('No hay gastos para exportar.', 'err'); return; }
+    descargarCSV('gastos.csv', [
+      ['ID', 'Fecha', 'Concepto', 'Categoria', 'Cantidad', 'Unidad', 'Monto', 'Notas'],
+      ...gastos.map(g => [g.id, g.fecha, g.concepto, g.categoria, g.cantidad, g.unidad, g.monto, g.descripcion])
+    ]);
+    toast('Gastos exportados.', 'ok');
+  }
+
+  function exportarFilamentosCSV() {
+    if (!filamentos.length) { toast('No hay filamentos para exportar.', 'err'); return; }
+    descargarCSV('filamentos.csv', [
+      ['ID', 'Fecha', 'Marca', 'Color', 'Kg', 'Precio', '$/kg'],
+      ...filamentos.map(f => [f.id, f.fecha, f.marca, f.color, f.kg, f.precio, Number(f.kg) > 0 ? (Number(f.precio) / Number(f.kg)).toFixed(2) : ''])
+    ]);
+    toast('Filamentos exportados.', 'ok');
   }
 
 
@@ -2534,6 +2757,20 @@
     }
   });
 
+  // Cerrar modal con Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.cd-menu').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.cd-trigger').forEach(t => t.classList.remove('open'));
+    editandoId = null;
+    editandoProductoId = null;
+    editandoGastoId = null;
+    editandoFilamentoId = null;
+    editandoCatNombre = null;
+    editandoEstId = null;
+  });
+
   // ── PRODUCTOS ──
   let productos = [];
   let editandoProductoId = null;
@@ -2551,7 +2788,7 @@
       if (paginaActual === 'estadisticas') renderEstadisticas();
       // Actualizar dropdown de producto en modales
       renderDropdownProductos();
-    } catch(e) { console.error('Error cargando productos:', e); }
+    } catch(e) { console.error('Error cargando productos:', e); toast('Error al cargar productos: ' + e.message, 'err'); }
   }
 
   // Costo de produccion: filamento (promedio $/kg) + luz + desgaste + margen de error (config de la calculadora)
@@ -2617,7 +2854,7 @@
             <td>${esc(p.categoria||'—')}</td>
             <td class="td-monto">${p.precio_base ? fmt(p.precio_base) : '—'}</td>
             <td style="white-space:nowrap">${p.gramos ? `${Number(p.gramos).toLocaleString('es-AR')} g` : '—'}<div style="font-size:.75rem;color:#8b90a7">${p.tiempo_horas ? `${p.tiempo_horas} hs` : ''}</div></td>
-            <td class="td-monto" style="color:var(--accent)">${costo !== null ? fmt(Math.round(costo)) : '—'}</td>
+            <td class="td-monto" style="color:var(--accent)">${costo !== null ? fmt(Math.round(costo)) : '—'}${costo !== null ? `<div style="font-size:.72rem;color:#8b90a7;font-weight:500">sugerido ${fmt(Math.round(costo * ((calcConfigGlobal || calculatorDefaults).multiplicador || 1)))}</div>` : ''}</td>
             <td style="font-size:0.8rem;color:#8b90a7;max-width:200px">${esc(p.descripcion||'')}</td>
             <td><div class="acciones">
               <button class="btn-icon" onclick="abrirEditarProducto(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
@@ -2661,6 +2898,7 @@
               <div class="pcm-stat">
                 <div class="pcm-stat-label">Costo prod.</div>
                 <div class="pcm-stat-value highlight">${costo !== null ? fmt(Math.round(costo)) : '—'}</div>
+                ${costo !== null ? `<div style="font-size:.68rem;color:#8b90a7">sugerido ${fmt(Math.round(costo * ((calcConfigGlobal || calculatorDefaults).multiplicador || 1)))}</div>` : ''}
               </div>
             </div>` : ''}
             ${p.descripcion ? `<div class="pcm-desc">${esc(p.descripcion)}</div>` : ''}
@@ -2941,7 +3179,12 @@
     } catch(e) { alert('Error: ' + e.message); }
   }
 
-  setInterval(cargarPedidos, 30000);
+  setInterval(() => { cargarPedidos(); cargarGastos(); cargarFilamentos(); }, 30000);
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (paginaActual === 'dashboard') renderDashboard(); }, 250);
+  });
   iniciarApp();
   window.addEventListener('load', () => lucide.createIcons());
 </script>
