@@ -1498,8 +1498,8 @@
   }
 
   const statsDefaultConfig = {
-    order: ['summary', 'monthly', 'states', 'top', 'activity'],
-    visible: { summary: true, monthly: true, states: true, top: true, activity: true }
+    order: ['summary', 'monthly', 'states', 'top', 'rentabilidad', 'activity'],
+    visible: { summary: true, monthly: true, states: true, top: true, rentabilidad: true, activity: true }
   };
   let statsConfig = JSON.parse(JSON.stringify(statsDefaultConfig));
 
@@ -1507,7 +1507,13 @@
     try {
       const filas = await apiFetch('configuracion_estadisticas?select=orden,visibles&limit=1');
       const guardada = filas?.[0];
-      if (guardada?.orden && guardada?.visibles) statsConfig = { order: guardada.orden, visible: guardada.visibles };
+      if (guardada?.orden && guardada?.visibles) {
+        const faltan = statsDefaultConfig.order.filter(k => !guardada.orden.includes(k));
+        statsConfig = {
+          order: [...guardada.orden, ...faltan],
+          visible: { ...statsDefaultConfig.visible, ...guardada.visibles }
+        };
+      }
     } catch (e) { console.warn('No se pudo cargar la configuracion de estadisticas:', e); }
     return statsConfig;
   }
@@ -1528,7 +1534,7 @@
   }
 
   function renderStatsConfig() {
-    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', activity: 'Actividad reciente' };
+    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', rentabilidad: 'Productos mas rentables', activity: 'Actividad reciente' };
     const lista = document.getElementById('stats-config-list');
     if (!lista) return;
     lista.innerHTML = statsConfig.order.map((key, index) => `
@@ -1591,6 +1597,30 @@
       monthly: `<div class="card stats-section"><div class="card-title">Facturacion mensual</div><div class="card-sub">Pedidos entregados en los ultimos 6 meses</div><div class="stats-month-list">${meses.map(m => `<div class="stats-month-row"><span>${m.nombre}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.round(m.total / maxMes * 100)}%"></div></div><strong>${fmt(m.total)}</strong></div>`).join('')}</div></div>`,
       states: `<div class="card stats-section"><div class="card-title">Estado de pedidos</div><div class="card-sub">Distribucion actual del trabajo</div><div class="estado-list">${conteos.map(s => `<div class="estado-row"><div class="estado-top"><span class="estado-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${s.color};margin-right:7px"></span>${s.estado}</span><span class="estado-count">${s.total}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pedidos.length ? Math.round(s.total / pedidos.length * 100) : 0}%;background:${s.color}"></div></div></div>`).join('')}</div></div>`,
       top: `<div class="card stats-section"><div class="card-title">Productos mas vendidos</div><div class="card-sub">Ordenados por unidades pedidas</div>${top.map(([nombre, total], i) => `<div class="top-prod-row"><div class="top-prod-rank" style="background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i]}">${i + 1}</div><div class="top-prod-info"><div class="top-prod-name">${esc(nombre)}</div><div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.round(total / (top[0]?.[1] || 1) * 100)}%;background:var(--accent)"></div></div></div><div class="top-prod-units">${total} u.</div></div>`).join('') || '<div class="empty-state">Sin datos</div>'}</div>`,
+      rentabilidad: (() => {
+        const filas = productos
+          .map(p => {
+            const costo = calcularCostoProduccion(p);
+            const precio = Number(p.precio_base) || 0;
+            if (!costo || !precio) return null;
+            return { nombre: p.nombre, ganancia: precio - costo, pct: (precio - costo) / precio * 100 };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.pct - a.pct)
+          .slice(0, 5);
+        if (!filas.length) return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen entre precio base y costo de produccion</div><div class="empty-state">Completa precio base, gramos y tiempo de impresion en tus productos.</div></div>`;
+        const maxPct = filas[0].pct || 1;
+        return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen % entre precio base y costo de produccion</div>${filas.map((r, i) => `
+          <div class="top-prod-row">
+            <div class="top-prod-rank" style="background:${['#22c55e', '#3b6ef6', '#f97316', '#a855f7', '#ef4444'][i]}">${i + 1}</div>
+            <div class="top-prod-info">
+              <div class="top-prod-name">${esc(r.nombre)}</div>
+              <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.max(4, Math.round(r.pct / maxPct * 100))}%;background:#22c55e"></div></div>
+            </div>
+            <div class="top-prod-units">${Math.round(r.pct)}%</div>
+            <div class="top-prod-monto">${fmt(Math.round(r.ganancia))}</div>
+          </div>`).join('')}</div>`;
+      })(),
       activity: `<div class="card stats-section"><div class="card-title">Actividad reciente</div><div class="card-sub">Ultimos pedidos registrados</div>${pedidos.slice(0, 8).map(p => `<div class="act-row"><div class="act-info"><div class="act-cliente">${esc(p.cliente)}</div><div class="act-detalle">${esc(p.producto)} · ${fmtFecha(p.fecha)}</div></div><div class="act-right"><div class="act-monto">${fmt(p.precio_final)}</div><span class="badge ${badgeClass(p.estado)}">${esc(p.estado || '—')}</span></div></div>`).join('') || '<div class="empty-state">Sin pedidos</div>'}</div>`
     };
     content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
