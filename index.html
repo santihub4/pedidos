@@ -4,6 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Pedidos 3D</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b6ef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z'/%3E%3Cpath d='M12 22V12'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3C/svg%3E"/>
+  <meta name="theme-color" content="#3b6ef6"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -68,7 +70,7 @@
     .page-sub { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 24px; }
 
     /* ── METRICS ── */
-    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .metric-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
     .metric-header { display: flex; align-items: center; justify-content: space-between; }
     .metric-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -101,7 +103,6 @@
     .act-monto { font-size: 0.875rem; font-weight: 700; white-space: nowrap; }
 
     /* ── CHARTS ── */
-    .charts-row { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 24px; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
     .card-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
@@ -327,7 +328,6 @@
 
     @media (max-width: 900px) {
       .metrics { grid-template-columns: 1fr 1fr; }
-      .charts-row { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
@@ -349,7 +349,6 @@
       .metric-sub { font-size: 0.68rem; }
 
       /* Charts: una columna, gráfico más bajo */
-      .charts-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
       .card { padding: 14px; border-radius: 10px; }
       .card-title { font-size: 0.88rem; }
       .bar-chart { height: 110px; gap: 6px; }
@@ -370,7 +369,6 @@
       .mobile-nav-item.active { color: var(--accent); }
       .mobile-nav-item svg { flex-shrink: 0; }
       .modal { padding: 20px 16px; border-radius: 10px; }
-      .charts-row { grid-template-columns: 1fr; }
       .top-prod-monto { display: none; }
       .top-prod-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; }
       .top-prod-units { min-width: 0; max-width: 3.5em; overflow: hidden; text-overflow: ellipsis; }
@@ -468,6 +466,15 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="user-session" id="user-session" style="display:none">
+      <button class="btn-icon" onclick="recargar()" id="btn-reload" title="Recargar datos" style="width:34px;height:34px">
+        <i data-lucide="refresh-cw" width="15" height="15"></i>
+      </button>
+      <button class="btn-icon" onclick="exportarBackup()" title="Descargar backup (JSON)" style="width:34px;height:34px">
+        <i data-lucide="database-backup" width="15" height="15"></i>
+      </button>
+      <button class="btn-icon" onclick="importarBackup()" title="Importar backup (JSON)" style="width:34px;height:34px">
+        <i data-lucide="upload" width="15" height="15"></i>
+      </button>
       <span class="user-avatar" id="user-avatar"></span>
       <span class="user-email" id="user-email"></span>
       <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
@@ -525,6 +532,14 @@
           </div>
           <div class="metric-value" id="m-productos">—</div>
           <div class="metric-sub" id="m-productos-sub"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Ganancia del mes</div>
+            <div class="metric-icon green"><i data-lucide="piggy-bank" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-ganancia">—</div>
+          <div class="metric-sub" id="m-ganancia-sub"></div>
         </div>
       </div>
       </div>
@@ -657,6 +672,11 @@
         <div class="metric-card"><div class="metric-label">Gastos acumulados</div><div class="metric-value" id="gastos-total">$0</div><div class="metric-sub">Todos los registros</div></div>
       </div>
       <div class="card" style="margin-bottom:20px">
+        <div class="card-title">Gastos por categoria</div>
+        <div class="card-sub">Distribucion de los gastos del mes actual (incluye filamento)</div>
+        <div class="estado-list" id="gastos-categorias"></div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
         <div class="page-tabs" style="margin-bottom:16px">
           <button class="page-tab active" id="gtab-btn-general" onclick="switchGastoTab('general')">Gasto general</button>
           <button class="page-tab" id="gtab-btn-filamento" onclick="switchGastoTab('filamento')">Filamento</button>
@@ -773,6 +793,10 @@
           </div>
           <input type="hidden" id="filtro-orden" value="nuevo"/>
         </div>
+        <input type="date" id="filtro-desde" title="Fecha desde" onchange="renderTabla()"
+          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit"/>
+        <input type="date" id="filtro-hasta" title="Fecha hasta" onchange="renderTabla()"
+          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit"/>
         <button class="btn-icon" onclick="exportarPedidosCSV()" title="Exportar CSV" style="width:38px;height:38px;flex-shrink:0">
           <i data-lucide="download" width="15" height="15"></i>
         </button>
@@ -832,6 +856,15 @@
                 <div class="cd-option" onclick="selectFiltro('fordm','cliente_za','Cliente Z→A')"><i data-lucide="arrow-up-a-z" width="12" height="12"></i> Cliente Z→A</div>
               </div>
               <input type="hidden" id="filtro-orden-m" value="nuevo"/>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px">Fechas</div>
+            <div style="display:flex;gap:8px">
+              <input type="date" id="filtro-desde-m" onchange="renderTabla()" title="Desde"
+                style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:0"/>
+              <input type="date" id="filtro-hasta-m" onchange="renderTabla()" title="Hasta"
+                style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:0"/>
             </div>
           </div>
         </div>
@@ -1382,6 +1415,8 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function fmt(n) { return '$' + (n||0).toLocaleString('es-AR'); }
   function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
+  // Parsea 'YYYY-MM-DD' en horario local (new Date() directo lo interpreta UTC y corre el dia en UTC-3)
+  function parseFecha(f) { if (!f) return null; const [y, m, d] = String(f).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); }
 
   // ── TOASTS ──
   let ultimoToast = { msg: '', t: 0 };
@@ -1425,7 +1460,8 @@
   // ── DASHBOARD CONFIGURABLE ──
   const dashDefaultConfig = {
     order: ['metricas', 'linea', 'donut', 'top', 'actividad'],
-    visible: { metricas: true, linea: true, donut: true, top: true, actividad: true }
+    visible: { metricas: true, linea: true, donut: true, top: true, actividad: true },
+    meta: 0
   };
   const dashNombres = { metricas: 'Metricas', linea: 'Facturacion mensual', donut: 'Estado de pedidos', top: 'Productos mas vendidos', actividad: 'Actividad reciente' };
   let dashConfig = (function () {
@@ -1433,7 +1469,7 @@
       const guardada = JSON.parse(localStorage.getItem('dashboard_config'));
       if (guardada?.order && guardada?.visible) {
         const faltan = dashDefaultConfig.order.filter(k => !guardada.order.includes(k));
-        return { order: [...guardada.order, ...faltan], visible: { ...dashDefaultConfig.visible, ...guardada.visible } };
+        return { ...dashDefaultConfig, order: [...guardada.order, ...faltan], visible: { ...dashDefaultConfig.visible, ...guardada.visible }, meta: Number(guardada.meta) || 0 };
       }
     } catch { }
     return JSON.parse(JSON.stringify(dashDefaultConfig));
@@ -1456,7 +1492,19 @@
           <button type="button" title="Subir" onclick="moverDash('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
           <button type="button" title="Bajar" onclick="moverDash('${key}', 1)" ${index === dashConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
         </div>
-      </div>`).join('');
+      </div>`).join('')
+      + `<div class="stats-config-item" style="grid-column:1/-1">
+          <label for="dash-meta-input">Meta mensual de ganancia ($)</label>
+          <input type="number" id="dash-meta-input" min="0" step="1000" value="${dashConfig.meta || ''}" placeholder="Sin meta"
+            style="background:var(--card-bg);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:.82rem;color:var(--text);outline:none;font-family:inherit;width:140px"
+            onchange="guardarMetaDash(this.value)"/>
+        </div>`;
+  }
+
+  function guardarMetaDash(valor) {
+    dashConfig.meta = Math.max(0, parseFloat(valor) || 0);
+    guardarDashConfig();
+    if (paginaActual === 'dashboard') renderDashboard();
   }
 
   function cambiarVisibilidadDash(key, visible) {
@@ -1520,8 +1568,8 @@
     const mesActual  = ahora.getMonth(), anioActual = ahora.getFullYear();
     const mesPasado  = mesActual === 0 ? 11 : mesActual - 1;
     const anioPasado = mesActual === 0 ? anioActual - 1 : anioActual;
-    const esEsteMes = p => { if (!p.fecha) return false; const d = new Date(p.fecha); return d.getMonth()===mesActual && d.getFullYear()===anioActual; };
-    const esMesAnt  = p => { if (!p.fecha) return false; const d = new Date(p.fecha); return d.getMonth()===mesPasado && d.getFullYear()===anioPasado; };
+    const esEsteMes = p => { if (!p.fecha) return false; const d = parseFecha(p.fecha); return d.getMonth()===mesActual && d.getFullYear()===anioActual; };
+    const esMesAnt  = p => { if (!p.fecha) return false; const d = parseFecha(p.fecha); return d.getMonth()===mesPasado && d.getFullYear()===anioPasado; };
 
     const ingEM = pedidos.filter(p => p.estado==='Entregado' && esEsteMes(p)).reduce((s,p)=>s+(p.precio_final||0),0);
     const ingMA = pedidos.filter(p => p.estado==='Entregado' && esMesAnt(p)).reduce((s,p)=>s+(p.precio_final||0),0);
@@ -1549,6 +1597,16 @@
     document.getElementById('m-total-sub').innerHTML    = `<span style="color:var(--green);font-size:0.75rem;font-weight:600">(${pedEM} pedidos este mes)</span>`;
     document.getElementById('m-ticket-sub').innerHTML   = subPct(pctTick);
     document.getElementById('m-productos-sub').innerHTML = `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">${cats} categoría${cats!==1?'s':''}</span>`;
+    const gastosGeneralesMes = gastos.filter(g => esMesActual(g.fecha)).reduce((s, g) => s + (Number(g.monto) || 0), 0);
+    const gastosFilamentoMes = filamentos.filter(f => esMesActual(f.fecha)).reduce((s, f) => s + (Number(f.precio) || 0), 0);
+    const gananciaMes = ingEM - gastosGeneralesMes - gastosFilamentoMes;
+    const mGanancia = document.getElementById('m-ganancia');
+    mGanancia.textContent = fmt(gananciaMes);
+    mGanancia.className = 'metric-value' + (gananciaMes < 0 ? ' profit-negative' : '');
+    const meta = Number(dashConfig.meta) || 0;
+    document.getElementById('m-ganancia-sub').innerHTML = meta > 0
+      ? `<span style="font-size:0.75rem;font-weight:600;color:${gananciaMes >= meta ? 'var(--green)' : 'var(--text-muted)'}">${Math.round(gananciaMes / meta * 100)}% de la meta (${fmt(meta)})</span>`
+      : `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">Gastos del mes: ${fmt(gastosGeneralesMes + gastosFilamentoMes)}</span>`;
     lucide.createIcons();
 
     // ── GRÁFICO DE LÍNEA (facturación mensual) ──
@@ -1560,7 +1618,7 @@
     const facturacion = meses6.map(m =>
       pedidos.filter(p => {
         if (!p.fecha || p.estado !== 'Entregado') return false;
-        const pd = new Date(p.fecha);
+        const pd = parseFecha(p.fecha);
         return pd.getFullYear() === m.year && pd.getMonth() === m.month;
       }).reduce((s, p) => s + (p.precio_final||0), 0)
     );
@@ -1780,7 +1838,7 @@
       const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
       const lista = pedidos.filter(p => {
         if (!p.fecha) return false;
-        const fechaPedido = new Date(p.fecha);
+        const fechaPedido = parseFecha(p.fecha);
         return fechaPedido.getFullYear() === fecha.getFullYear() && fechaPedido.getMonth() === fecha.getMonth() && p.estado === 'Entregado';
       });
       meses.push({ nombre: fecha.toLocaleString('es-AR', { month: 'short' }), total: lista.reduce((sum, p) => sum + (p.precio_final || 0), 0) });
@@ -1795,7 +1853,7 @@
     const bloques = {
       summary: `<div class="stats-section stats-summary">
         <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value">${fmt(facturacion)}</div><div class="metric-sub">Total acumulado</div></div>
-        <div class="metric-card"><div class="metric-label">Pedidos totales</div><div class="metric-value">${pedidos.length}</div><div class="metric-sub">${pedidos.filter(p => p.fecha && new Date(p.fecha).getMonth() === ahora.getMonth() && new Date(p.fecha).getFullYear() === ahora.getFullYear()).length} este mes</div></div>
+        <div class="metric-card"><div class="metric-label">Pedidos totales</div><div class="metric-value">${pedidos.length}</div><div class="metric-sub">${pedidos.filter(p => p.fecha && parseFecha(p.fecha).getMonth() === ahora.getMonth() && parseFecha(p.fecha).getFullYear() === ahora.getFullYear()).length} este mes</div></div>
         <div class="metric-card"><div class="metric-label">Ticket promedio</div><div class="metric-value">${fmt(Math.round(ticket))}</div><div class="metric-sub">Por pedido entregado</div></div>
         <div class="metric-card"><div class="metric-label">Productos activos</div><div class="metric-value">${productos.length}</div><div class="metric-sub">${new Set(productos.map(p => p.categoria).filter(Boolean)).size} categorias</div></div>
       </div>`,
@@ -1894,7 +1952,7 @@
   function valoresStats(mes) {
     const enRango = (fecha) => {
       if (!mes || !fecha) return !mes;
-      const d = new Date(fecha);
+      const d = parseFecha(fecha);
       return d.getFullYear() === mes.year && d.getMonth() === mes.month;
     };
     const peds = pedidos.filter(p => enRango(p.fecha));
@@ -1910,7 +1968,7 @@
       facturacion: fact,
       ingresos_mensuales: mes ? fact : (() => {
         const ahora = new Date();
-        return pedidos.filter(p => p.estado === 'Entregado' && p.fecha && new Date(p.fecha).getFullYear() === ahora.getFullYear() && new Date(p.fecha).getMonth() === ahora.getMonth()).reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
+        return pedidos.filter(p => p.estado === 'Entregado' && p.fecha && parseFecha(p.fecha).getFullYear() === ahora.getFullYear() && parseFecha(p.fecha).getMonth() === ahora.getMonth()).reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
       })(),
       pedidos: peds.length,
       pedidos_entregados: ents.length,
@@ -2153,7 +2211,7 @@
 
   function esMesActual(fecha) {
     if (!fecha) return false;
-    const fechaGasto = new Date(fecha);
+    const fechaGasto = parseFecha(fecha);
     const ahora = new Date();
     return fechaGasto.getMonth() === ahora.getMonth() && fechaGasto.getFullYear() === ahora.getFullYear();
   }
@@ -2188,6 +2246,29 @@
     const promKg = obtenerPromedioKg();
     document.getElementById('gastos-prom-kg').textContent = promKg !== null ? fmt(Math.round(promKg * 100) / 100) + '/kg' : '—';
     document.getElementById('gastos-prom-kg-sub').textContent = filamentos.some(f => esMesActual(f.fecha)) ? '$/kg segun compras del mes' : (filamentos.length ? '$/kg segun todas las compras' : 'Sin compras registradas');
+
+    // Gastos por categoria (mes actual, incluye filamento)
+    const porCategoria = {};
+    gastos.filter(g => esMesActual(g.fecha)).forEach(g => {
+      const cat = (g.categoria || '').trim() || 'Sin categoria';
+      porCategoria[cat] = (porCategoria[cat] || 0) + (Number(g.monto) || 0);
+    });
+    if (gastosFilamentoMes > 0) porCategoria['Filamento'] = (porCategoria['Filamento'] || 0) + gastosFilamentoMes;
+    const catsGastos = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]);
+    const maxCat = catsGastos[0]?.[1] || 1;
+    const coloresCat = ['#3b6ef6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#0ea5e9', '#eab308', '#ec4899'];
+    const totalGastosMes = gastosMes + gastosFilamentoMes;
+    const catEl = document.getElementById('gastos-categorias');
+    if (catEl) {
+      catEl.innerHTML = catsGastos.length ? catsGastos.map(([cat, total], i) => `
+        <div class="estado-row">
+          <div class="estado-top">
+            <span class="estado-name">${esc(cat)}</span>
+            <span class="estado-count">${fmt(total)} (${Math.round(total / totalGastosMes * 100)}%)</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total / maxCat * 100)}%;background:${coloresCat[i % coloresCat.length]}"></div></div>
+        </div>`).join('') : '<div class="empty-state" style="padding:20px 0">Sin gastos este mes.</div>';
+    }
 
     const tbody = document.getElementById('tbody-gastos');
     if (!tbody) return;
@@ -2412,10 +2493,13 @@
     const filtroCliente = isMobile ? (document.getElementById('filtro-cliente-m')?.value||'').toLowerCase() : (document.getElementById('filtro-cliente')?.value||'').toLowerCase();
     const filtroEstado  = isMobile ? (document.getElementById('filtro-estado-m')?.value||'') : (document.getElementById('filtro-estado')?.value||'');
     const filtroOrden = isMobile ? (document.getElementById('filtro-orden-m')?.value||'nuevo') : (document.getElementById('filtro-orden')?.value||'nuevo');
+    const desde = isMobile ? (document.getElementById('filtro-desde-m')?.value||'') : (document.getElementById('filtro-desde')?.value||'');
+    const hasta = isMobile ? (document.getElementById('filtro-hasta-m')?.value||'') : (document.getElementById('filtro-hasta')?.value||'');
     let data = (lista||pedidos).filter(p=>{
       const okC = !filtroCliente||(p.cliente||'').toLowerCase().includes(filtroCliente)||(p.producto||'').toLowerCase().includes(filtroCliente);
       const okE = !filtroEstado||p.estado===filtroEstado;
-      return okC&&okE;
+      const okF = (!desde||(p.fecha||'')>=desde)&&(!hasta||(p.fecha||'')<=hasta);
+      return okC&&okE&&okF;
     });
     // Ordenamiento
     data = [...data].sort((a, b) => {
@@ -2432,9 +2516,11 @@
     pedidosFiltradosActual = data;
 
     // Tabla desktop
+    const hayFiltros = !!(filtroCliente || filtroEstado || desde || hasta);
+    const msgVacio = hayFiltros ? 'Sin resultados para los filtros.' : 'No hay pedidos.';
     const tbody = document.getElementById('tbody-pedidos');
     if (!data.length) {
-      tbody.innerHTML='<tr><td colspan="9" class="empty-state">No hay pedidos.</td></tr>';
+      tbody.innerHTML=`<tr><td colspan="9" class="empty-state">${msgVacio}</td></tr>`;
     } else {
       tbody.innerHTML = data.map(p=>`
         <tr id="row-${p.id}">
@@ -2458,7 +2544,7 @@
     // Cards mobile
     const mobile = document.getElementById('cards-pedidos-mobile');
     if (!data.length) {
-      mobile.innerHTML = '<div class="empty-state">No hay pedidos.</div>';
+      mobile.innerHTML = `<div class="empty-state">${msgVacio}</div>`;
     } else {
       mobile.innerHTML = data.map(p=>`
         <div class="pedido-card-mobile">
@@ -2544,7 +2630,6 @@
     editandoId=id;
     document.getElementById('e-cliente').value         =p.cliente||'';
     document.getElementById('e-producto-display').textContent = p.producto||'Seleccionar producto...';
-    document.getElementById('e-producto').value = '';
     document.getElementById('e-producto').value        =p.producto||'';
     document.getElementById('e-cantidad').value        =p.cantidad||1;
     document.getElementById('e-precio-unitario').value =p.precio_unitario||'';
@@ -2669,6 +2754,54 @@
       ...filamentos.map(f => [f.id, f.fecha, f.marca, f.color, f.kg, f.precio, Number(f.kg) > 0 ? (Number(f.precio) / Number(f.kg)).toFixed(2) : ''])
     ]);
     toast('Filamentos exportados.', 'ok');
+  }
+
+  // ── BACKUP COMPLETO (JSON) ──
+  function exportarBackup() {
+    const backup = {
+      _app: 'Pedidos 3D', _exportado: new Date().toISOString(),
+      pedidos, productos, categorias, gastos, filamentos,
+      estadisticas_personalizadas: estadisticasCustom,
+      configuracion_calculadora: calcConfigGlobal,
+      configuracion_estadisticas: statsConfig,
+      dashboard_config: dashConfig,
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pedidos3d_backup_' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Backup descargado.', 'ok');
+  }
+
+  function importarBackup() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      try {
+        const datos = JSON.parse(await file.text());
+        if (datos._app !== 'Pedidos 3D') { toast('El archivo no es un backup de Pedidos 3D.', 'err'); return; }
+        const resumen = `${(datos.pedidos || []).length} pedidos, ${(datos.productos || []).length} productos, ${(datos.gastos || []).length} gastos, ${(datos.filamentos || []).length} filamentos, ${(datos.categorias || []).length} categorias`;
+        if (!confirm(`Importar backup?\n\n${resumen}\n\nSe agregaran como registros nuevos (no se borra nada).`)) return;
+        const sinId = ({ id, user_id, created_at, ...resto }) => resto;
+        const postear = async (tabla, filas) => {
+          for (const fila of filas) await apiFetch(tabla, { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(sinId(fila)) });
+        };
+        await postear('categorias', datos.categorias || []);
+        await postear('productos', datos.productos || []);
+        await postear(TABLA, datos.pedidos || []);
+        await postear('gastos', datos.gastos || []);
+        await postear('filamentos', datos.filamentos || []);
+        await postear('estadisticas_personalizadas', datos.estadisticas_personalizadas || []);
+        toast('Backup importado. Recargando...', 'ok');
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (e) { toast('Error importando: ' + e.message, 'err'); }
+    };
+    input.click();
   }
 
 
