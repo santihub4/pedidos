@@ -270,6 +270,14 @@
     .calculator-total-label { font-size:.75rem; font-weight:700; text-transform:uppercase; }
     .calculator-total-value { font-size:1.8rem; font-weight:700; margin-top:5px; }
     .calculator-save-state { min-height:18px; margin-top:10px; color:var(--text-muted); font-size:.75rem; }
+    .expenses-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    .expense-form-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:12px; align-items:end; }
+    .expense-form-grid .form-group.full { grid-column:1 / -1; }
+    .expense-actions { display:flex; gap:6px; align-items:center; }
+    .profit-positive { color:var(--green); }
+    .profit-negative { color:var(--red); }
+    @media (max-width:900px) { .expenses-summary { grid-template-columns:1fr 1fr; } .expense-form-grid { grid-template-columns:1fr 1fr; } }
+    @media (max-width:640px) { .expenses-summary { gap:8px; } .expense-form-grid { grid-template-columns:1fr; } .expense-form-grid .form-group.full { grid-column:1; } }
     @media (max-width:900px) { .stats-summary { grid-template-columns:1fr 1fr; } }
     @media (max-width:900px) { .calculator-layout { grid-template-columns:1fr; } .calculator-results { position:static; } }
     @media (max-width:640px) { .stats-summary { gap:8px; } .stats-month-row { grid-template-columns:52px 1fr auto; gap:6px; } .calculator-grid { grid-template-columns:1fr; gap:12px; } }
@@ -425,6 +433,9 @@
     </button>
     <button class="nav-item" onclick="navegarA('calculadora')">
       <i data-lucide="calculator" width="16" height="16"></i> Calculadora
+    </button>
+    <button class="nav-item" onclick="navegarA('gastos')">
+      <i data-lucide="receipt" width="16" height="16"></i> Gastos
     </button>
   </nav>
 </aside>
@@ -589,6 +600,41 @@
           <div class="calculator-result-row"><span>Margen de error</span><strong id="calc-resultado-error">$0</strong></div>
           <div class="calculator-result-row"><span>Insumos extra</span><strong id="calc-resultado-insumos">$0</strong></div>
           <div class="calculator-total"><div class="calculator-total-label">Total a cobrar</div><div class="calculator-total-value" id="calc-resultado-total">$0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GASTOS -->
+    <div class="page" id="page-gastos">
+      <div class="page-title">Gastos</div>
+      <div class="page-sub">Registra tus compras y analiza la rentabilidad del negocio</div>
+      <div class="expenses-summary">
+        <div class="metric-card"><div class="metric-label">Gastos acumulados</div><div class="metric-value" id="gastos-total">$0</div><div class="metric-sub">Todos los registros</div></div>
+        <div class="metric-card"><div class="metric-label">Gastos este mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Compras del mes actual</div></div>
+        <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados</div></div>
+        <div class="metric-card"><div class="metric-label">Rentabilidad estimada</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos</div></div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">Registrar gasto</div>
+        <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
+        <div class="expense-form-grid">
+          <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
+          <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
+          <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
+          <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
+          <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
+          <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
+        </div>
+        <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
+        <div class="calculator-save-state" id="gasto-save-state"></div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Cantidad</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead>
+            <tbody id="tbody-gastos"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -794,6 +840,9 @@
   </button>
   <button class="mobile-nav-item" id="mnav-calculadora" onclick="navegarA('calculadora')">
     <i data-lucide="calculator" width="20" height="20"></i> Calculadora
+  </button>
+  <button class="mobile-nav-item" id="mnav-gastos" onclick="navegarA('gastos')">
+    <i data-lucide="receipt" width="20" height="20"></i> Gastos
   </button>
   <button class="mobile-nav-item" onclick="abrirNuevo()" style="color:var(--accent)">
     <i data-lucide="plus-circle" width="22" height="22"></i> Nuevo
@@ -1003,6 +1052,7 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdWdldmFxdXBtcHd3YWJ3eG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNzU3MzQsImV4cCI6MjEwMjk1MTczNH0.kef8gHucLVGZgCb0H04_ygC-7DlI5LClaoRHn1rgXtE';
   const TABLA = 'pedidos';
   let pedidos = [];
+  let gastos = [];
   let paginaActual = 'dashboard';
   let editandoId = null;
 
@@ -1055,7 +1105,7 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora()]);
+    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos()]);
     navegarA('dashboard');
     cargarProductos();
     cargarPedidos();
@@ -1065,7 +1115,7 @@
   async function recargar() {
     const btn = document.getElementById('btn-reload');
     btn.classList.add('spinning');
-    await Promise.all([cargarPedidos(), cargarProductos()]);
+    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos()]);
     setTimeout(() => btn.classList.remove('spinning'), 600);
   }
 
@@ -1088,7 +1138,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
-    const idx = { dashboard: 0, pedidos: 1, productos: 2, estadisticas: 3, calculadora: 4 };
+    const idx = { dashboard: 0, pedidos: 1, productos: 2, estadisticas: 3, calculadora: 4, gastos: 5 };
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems[idx[pagina]]) navItems[idx[pagina]].classList.add('active');
     const mnavId = 'mnav-' + pagina;
@@ -1100,6 +1150,7 @@
     if (pagina === 'productos') renderProductos();
     if (pagina === 'estadisticas') renderEstadisticas();
     if (pagina === 'calculadora') calcularPrecio();
+    if (pagina === 'gastos') renderGastos();
   }
 
   // ── UTILS ──
@@ -1122,6 +1173,7 @@
       if (paginaActual === 'dashboard') renderDashboard();
       if (paginaActual === 'pedidos') renderTabla();
       if (paginaActual === 'estadisticas') renderEstadisticas();
+      if (paginaActual === 'gastos') renderGastos();
     } catch(e) { console.error(e); }
   }
 
@@ -1487,6 +1539,92 @@
       state.textContent = 'No se pudo guardar: ' + e.message;
       state.style.color = 'var(--red)';
     }
+  }
+
+  async function cargarGastos() {
+    try {
+      gastos = await apiFetch('gastos?order=fecha.desc,id.desc');
+      if (paginaActual === 'gastos') renderGastos();
+    } catch (e) { console.error('Error cargando gastos:', e); }
+  }
+
+  function esMesActual(fecha) {
+    if (!fecha) return false;
+    const fechaGasto = new Date(fecha);
+    const ahora = new Date();
+    return fechaGasto.getMonth() === ahora.getMonth() && fechaGasto.getFullYear() === ahora.getFullYear();
+  }
+
+  function renderGastos() {
+    const fechaInput = document.getElementById('gasto-fecha');
+    if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
+    const totalGastos = gastos.reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
+    const gastosMes = gastos.filter(gasto => esMesActual(gasto.fecha)).reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
+    const facturacion = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
+    const rentabilidad = facturacion - totalGastos;
+    document.getElementById('gastos-total').textContent = fmt(totalGastos);
+    document.getElementById('gastos-mes').textContent = fmt(gastosMes);
+    document.getElementById('gastos-facturacion').textContent = fmt(facturacion);
+    const rentabilidadEl = document.getElementById('gastos-rentabilidad');
+    rentabilidadEl.textContent = fmt(rentabilidad);
+    rentabilidadEl.className = 'metric-value ' + (rentabilidad >= 0 ? 'profit-positive' : 'profit-negative');
+
+    const tbody = document.getElementById('tbody-gastos');
+    if (!tbody) return;
+    tbody.innerHTML = gastos.length ? gastos.map(gasto => `
+      <tr>
+        <td>${fmtFecha(gasto.fecha)}</td>
+        <td class="td-cliente">${esc(gasto.concepto)}</td>
+        <td>${esc(gasto.categoria || '—')}</td>
+        <td>${Number(gasto.cantidad || 0).toLocaleString('es-AR')} ${esc(gasto.unidad || '')}</td>
+        <td class="td-monto">${fmt(Number(gasto.monto || 0))}</td>
+        <td style="font-size:.8rem;color:var(--text-muted)">${esc(gasto.descripcion || '')}</td>
+        <td><div class="expense-actions"><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
+      </tr>`).join('') : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>';
+    lucide.createIcons();
+  }
+
+  async function guardarGasto() {
+    const state = document.getElementById('gasto-save-state');
+    const concepto = document.getElementById('gasto-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('gasto-monto').value);
+    if (!concepto || !Number.isFinite(monto) || monto < 0) {
+      state.textContent = 'Completa el concepto y un monto valido.';
+      state.style.color = 'var(--red)';
+      return;
+    }
+    const datos = {
+      concepto,
+      categoria: document.getElementById('gasto-categoria').value.trim(),
+      monto,
+      cantidad: parseFloat(document.getElementById('gasto-cantidad').value) || 1,
+      unidad: document.getElementById('gasto-unidad').value.trim() || 'unidad',
+      fecha: document.getElementById('gasto-fecha').value || new Date().toISOString().split('T')[0],
+      descripcion: document.getElementById('gasto-descripcion').value.trim()
+    };
+    const btn = document.getElementById('btn-guardar-gasto');
+    btn.disabled = true;
+    try {
+      await apiFetch('gastos', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      state.textContent = 'Gasto guardado en Supabase.';
+      state.style.color = 'var(--green)';
+      document.getElementById('gasto-concepto').value = '';
+      document.getElementById('gasto-monto').value = '';
+      document.getElementById('gasto-descripcion').value = '';
+      await cargarGastos();
+    } catch (e) {
+      state.textContent = 'No se pudo guardar: ' + e.message;
+      state.style.color = 'var(--red)';
+    } finally { btn.disabled = false; }
+  }
+
+  async function borrarGasto(id) {
+    if (!confirm('Borrar este gasto?')) return;
+    try {
+      await apiFetch(`gastos?id=eq.${id}`, { method: 'DELETE' });
+      gastos = gastos.filter(gasto => gasto.id !== id);
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
   }
 
   // ── TABLA / CARDS ──
