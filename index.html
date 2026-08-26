@@ -276,6 +276,18 @@
     .expense-actions { display:flex; gap:6px; align-items:center; }
     .profit-positive { color:var(--green); }
     .profit-negative { color:var(--red); }
+    /* ── CREADOR DE ESTADISTICAS ── */
+    .formula-display { min-height:44px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-wrap:wrap; gap:5px; align-items:center; font-size:.85rem; color:var(--text-muted); }
+    .formula-chip { background:var(--blue-light); color:var(--accent); border-radius:6px; padding:3px 8px; font-weight:600; font-size:.78rem; }
+    .formula-chip.op { background:#fff; border:1px solid var(--border); color:var(--text); }
+    .est-btn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:6px; }
+    .est-btn-grid button, .ops-row button { border:1px solid var(--border); background:var(--card-bg); border-radius:7px; padding:6px 8px; font-size:.78rem; cursor:pointer; font-family:inherit; color:var(--text); transition:all .12s; }
+    .est-btn-grid button:hover, .ops-row button:hover { border-color:#c7d7fd; background:var(--blue-light); color:var(--accent); }
+    .ops-row { display:flex; gap:6px; flex-wrap:wrap; }
+    .ops-row button { font-weight:700; min-width:36px; }
+    .est-preview { margin-top:14px; padding:12px 14px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .est-preview-label { font-size:.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+    .est-preview-value { font-size:1.3rem; font-weight:700; }
     @media (max-width:900px) { .expenses-summary { grid-template-columns:1fr 1fr; } .expense-form-grid { grid-template-columns:1fr 1fr; } }
     @media (max-width:640px) { .expenses-summary { gap:8px; } .expense-form-grid { grid-template-columns:1fr; } .expense-form-grid .form-group.full { grid-column:1; } }
     @media (max-width:900px) { .stats-summary { grid-template-columns:1fr 1fr; } }
@@ -549,7 +561,10 @@
       <div class="page-sub">Organiza y consulta los datos importantes de tu negocio</div>
       <div class="stats-toolbar">
         <div class="card-title">Resumen configurable</div>
-        <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="abrirNuevaEst()" style="background:var(--green)"><i data-lucide="plus" width="14" height="14"></i> Nueva estadistica</button>
+          <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+        </div>
       </div>
       <div class="stats-config" id="stats-config">
         <div class="card-title">Que mostrar y en que orden</div>
@@ -1154,6 +1169,62 @@
   </div>
 </div>
 
+<!-- MODAL CREADOR DE ESTADISTICAS -->
+<div class="modal-overlay" id="modal-estadistica">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="est-modal-titulo">Nueva estadistica</span>
+      <button class="modal-close" onclick="cerrarModalEst()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input type="text" id="est-nombre" placeholder="Ej: Ganancia neta"/></div>
+      <div class="form-group"><label>Vista</label>
+        <select id="est-vista" class="custom-select" style="width:100%" onchange="actualizarPreviewEst()">
+          <option value="numero">Numero</option>
+          <option value="barras">Barras por mes (ultimos 6)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:16px">
+      <label>Formula</label>
+      <div class="formula-display" id="est-formula-display"></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Operadores</label>
+      <div class="ops-row">
+        <button type="button" onclick="insertarToken({t:'op',v:'+'})">+</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'-'})">−</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'*'})">×</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'/'})">÷</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'('})">(</button>
+        <button type="button" onclick="insertarToken({t:'op',v:')'})">)</button>
+        <button type="button" onclick="borrarUltimoToken()" title="Borrar ultimo">←</button>
+        <button type="button" onclick="limpiarFormula()" title="Limpiar todo">Limpiar</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Variables (toca para insertar)</label>
+      <div class="est-btn-grid" id="est-vars-grid"></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Numero</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="est-num" step="any" placeholder="Ej: 100" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.9rem;color:var(--text);outline:none;font-family:inherit;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();insertarNumero();}"/>
+        <button type="button" class="btn-primary" onclick="insertarNumero()">Insertar</button>
+      </div>
+    </div>
+    <div class="est-preview">
+      <span class="est-preview-label">Vista previa</span>
+      <span class="est-preview-value" id="est-preview-value">—</span>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEstadistica()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar estadistica
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = window.supabase.createClient(
     'https://ydugevaqupmpwwabwxno.supabase.co',
@@ -1165,6 +1236,8 @@
   let pedidos = [];
   let gastos = [];
   let filamentos = [];
+  let estadisticasCustom = [];
+  let editandoEstId = null;
   let editandoGastoId = null;
   let editandoFilamentoId = null;
   let paginaActual = 'dashboard';
@@ -1219,7 +1292,7 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos()]);
+    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos(), cargarEstadisticasCustom()]);
     navegarA('dashboard');
     cargarProductos();
     cargarPedidos();
@@ -1610,7 +1683,7 @@
           .slice(0, 5);
         if (!filas.length) return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen entre precio base y costo de produccion</div><div class="empty-state">Completa precio base, gramos y tiempo de impresion en tus productos.</div></div>`;
         const maxPct = filas[0].pct || 1;
-        return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen % entre precio base y costo de produccion</div>${filas.map((r, i) => `
+        return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">El porcentaje indica cuanto de cada venta queda como ganancia: si un producto muestra 60%, de cada $100 que cobras, $60 quedan para vos despues de descontar el costo de produccion (materiales, luz y desgaste de maquina).</div>${filas.map((r, i) => `
           <div class="top-prod-row">
             <div class="top-prod-rank" style="background:${['#22c55e', '#3b6ef6', '#f97316', '#a855f7', '#ef4444'][i]}">${i + 1}</div>
             <div class="top-prod-info">
@@ -1623,9 +1696,210 @@
       })(),
       activity: `<div class="card stats-section"><div class="card-title">Actividad reciente</div><div class="card-sub">Ultimos pedidos registrados</div>${pedidos.slice(0, 8).map(p => `<div class="act-row"><div class="act-info"><div class="act-cliente">${esc(p.cliente)}</div><div class="act-detalle">${esc(p.producto)} · ${fmtFecha(p.fecha)}</div></div><div class="act-right"><div class="act-monto">${fmt(p.precio_final)}</div><span class="badge ${badgeClass(p.estado)}">${esc(p.estado || '—')}</span></div></div>`).join('') || '<div class="empty-state">Sin pedidos</div>'}</div>`
     };
-    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
+    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') + renderCustomStats() || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
     renderStatsConfig();
     lucide.createIcons();
+  }
+
+  // ── ESTADISTICAS PERSONALIZADAS ──
+  const VARIABLES_STATS = [
+    ['facturacion', 'Facturacion entregada'],
+    ['pedidos', 'Pedidos totales'],
+    ['pedidos_entregados', 'Pedidos entregados'],
+    ['pedidos_pendientes', 'Pedidos pendientes'],
+    ['unidades', 'Unidades vendidas'],
+    ['ticket', 'Ticket promedio'],
+    ['gastos', 'Gastos generales'],
+    ['gastos_filamento', 'Gastos en filamento'],
+    ['kg_comprados', 'Kg de filamento comprados'],
+    ['prom_kg', 'Promedio $/kg'],
+  ];
+
+  function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
+
+  async function cargarEstadisticasCustom() {
+    try {
+      estadisticasCustom = await apiFetch('estadisticas_personalizadas?order=id.asc');
+    } catch (e) { console.error('Error cargando estadisticas personalizadas:', e); }
+  }
+
+  function ultimos6Meses() {
+    const meses = [];
+    const ahora = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      meses.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('es-AR', { month: 'short' }) });
+    }
+    return meses;
+  }
+
+  // Valores de las variables, opcionalmente filtrados a un mes {year, month}
+  function valoresStats(mes) {
+    const enRango = (fecha) => {
+      if (!mes || !fecha) return !mes;
+      const d = new Date(fecha);
+      return d.getFullYear() === mes.year && d.getMonth() === mes.month;
+    };
+    const peds = pedidos.filter(p => enRango(p.fecha));
+    const ents = peds.filter(p => p.estado === 'Entregado');
+    const fact = ents.reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
+    const gs = gastos.filter(g => enRango(g.fecha));
+    const fils = filamentos.filter(f => enRango(f.fecha));
+    const kg = fils.reduce((s, f) => s + (Number(f.kg) || 0), 0);
+    const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
+    return {
+      facturacion: fact,
+      pedidos: peds.length,
+      pedidos_entregados: ents.length,
+      pedidos_pendientes: peds.filter(p => p.estado === 'Pendiente').length,
+      unidades: peds.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
+      ticket: ents.length ? fact / ents.length : 0,
+      gastos: gs.reduce((s, g) => s + (Number(g.monto) || 0), 0),
+      gastos_filamento: precioFil,
+      kg_comprados: kg,
+      prom_kg: kg > 0 ? precioFil / kg : 0,
+    };
+  }
+
+  function evaluarTokens(tokens, valores) {
+    if (!tokens || !tokens.length) return null;
+    const expr = tokens.map(t => {
+      if (t.t === 'var') return '(' + (valores[t.v] ?? 0) + ')';
+      if (t.t === 'num') return '(' + t.v + ')';
+      return t.v;
+    }).join(' ');
+    if (!/^[\d\s+\-*/().]+$/.test(expr)) return null;
+    try {
+      const r = Function('"use strict";return (' + expr + ')')();
+      return Number.isFinite(r) ? r : null;
+    } catch { return null; }
+  }
+
+  function renderCustomStats() {
+    if (!estadisticasCustom.length) return '';
+    const meses = ultimos6Meses();
+    const acciones = (est) => `<div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="btn-icon" onclick="abrirEditarEst(${est.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
+      <button class="btn-icon del" onclick="borrarEst(${est.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
+    </div>`;
+    return `<div class="stats-section"><div class="card-title" style="margin-bottom:10px">Estadisticas personalizadas</div>${estadisticasCustom.map(est => {
+      if (est.vista === 'barras') {
+        const vals = meses.map(m => evaluarTokens(est.formula, valoresStats(m)) ?? 0);
+        const max = Math.max(...vals.map(Math.abs), 1);
+        return `<div class="card stats-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada · ultimos 6 meses</div></div>${acciones(est)}</div><div class="stats-month-list">${meses.map((m, i) => `<div class="stats-month-row"><span>${m.label}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.max(0, Math.round(vals[i] / max * 100))}%"></div></div><strong>${fmtNum(vals[i])}</strong></div>`).join('')}</div></div>`;
+      }
+      const val = evaluarTokens(est.formula, valoresStats(null));
+      return `<div class="card stats-section" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada</div></div><div style="display:flex;align-items:center;gap:12px"><div style="font-size:1.8rem;font-weight:700">${val === null ? '—' : fmtNum(val)}</div>${acciones(est)}</div></div>`;
+    }).join('')}</div>`;
+  }
+
+  // ── MODAL CREADOR ──
+  let formulaEditando = [];
+
+  function abrirNuevaEst() {
+    editandoEstId = null;
+    formulaEditando = [];
+    document.getElementById('est-modal-titulo').textContent = 'Nueva estadistica';
+    document.getElementById('est-nombre').value = '';
+    document.getElementById('est-vista').value = 'numero';
+    renderGridVariables();
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+    document.getElementById('modal-estadistica').classList.add('open');
+    lucide.createIcons();
+  }
+
+  function abrirEditarEst(id) {
+    const est = estadisticasCustom.find(x => x.id === id);
+    if (!est) return;
+    editandoEstId = id;
+    formulaEditando = JSON.parse(JSON.stringify(est.formula || []));
+    document.getElementById('est-modal-titulo').textContent = 'Editar estadistica';
+    document.getElementById('est-nombre').value = est.nombre || '';
+    document.getElementById('est-vista').value = est.vista || 'numero';
+    renderGridVariables();
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+    document.getElementById('modal-estadistica').classList.add('open');
+    lucide.createIcons();
+  }
+
+  function cerrarModalEst() { document.getElementById('modal-estadistica').classList.remove('open'); editandoEstId = null; formulaEditando = []; }
+  document.getElementById('modal-estadistica').addEventListener('click', function(e) { if(e.target===this) cerrarModalEst(); });
+
+  function renderGridVariables() {
+    const grid = document.getElementById('est-vars-grid');
+    if (!grid) return;
+    grid.innerHTML = VARIABLES_STATS.map(([key, label]) => `<button type="button" onclick="insertarToken({t:'var',v:'${key}'})">${label}</button>`).join('');
+  }
+
+  function insertarToken(token) {
+    const ultimo = formulaEditando[formulaEditando.length - 1];
+    const esValor = t => t && (t.t === 'var' || t.t === 'num' || t.v === ')');
+    if (token.t === 'op') {
+      if (token.v === '(') { if (esValor(ultimo)) return; }
+      else if (token.v === ')') { if (!ultimo || ultimo.t === 'op' || ultimo.v === '(') return; }
+      else { if (!ultimo || ultimo.t === 'op') return; }
+    } else if (esValor({ t: token.t, v: token.v }) && esValor(ultimo)) return;
+    formulaEditando.push(token);
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+  }
+
+  function insertarNumero() {
+    const v = parseFloat(document.getElementById('est-num').value);
+    if (!Number.isFinite(v)) return;
+    insertarToken({ t: 'num', v });
+    document.getElementById('est-num').value = '';
+  }
+
+  function borrarUltimoToken() { formulaEditando.pop(); renderFormulaDisplay(); actualizarPreviewEst(); }
+  function limpiarFormula() { formulaEditando = []; renderFormulaDisplay(); actualizarPreviewEst(); }
+
+  function tokenLabel(t) {
+    if (t.t === 'var') return (VARIABLES_STATS.find(([k]) => k === t.v) || [t.v, t.v])[1];
+    if (t.t === 'num') return String(t.v);
+    return { '*': '×', '/': '÷' }[t.v] || t.v;
+  }
+
+  function renderFormulaDisplay() {
+    const el = document.getElementById('est-formula-display');
+    if (!el) return;
+    el.innerHTML = formulaEditando.length
+      ? formulaEditando.map(t => `<span class="formula-chip ${t.t === 'op' ? 'op' : ''}">${esc(tokenLabel(t))}</span>`).join('')
+      : 'Toca las variables y operadores para armar la formula.';
+  }
+
+  function actualizarPreviewEst() {
+    const val = evaluarTokens(formulaEditando, valoresStats(null));
+    document.getElementById('est-preview-value').textContent = val === null ? 'Formula incompleta' : fmtNum(val);
+  }
+
+  async function guardarEstadistica() {
+    const nombre = document.getElementById('est-nombre').value.trim();
+    if (!nombre) { alert('Ponle un nombre a la estadistica.'); return; }
+    const val = evaluarTokens(formulaEditando, valoresStats(null));
+    if (val === null) { alert('La formula esta incompleta o invalida.'); return; }
+    const datos = { nombre, formula: formulaEditando, vista: document.getElementById('est-vista').value };
+    try {
+      if (editandoEstId) {
+        await apiFetch(`estadisticas_personalizadas?id=eq.${editandoEstId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      } else {
+        await apiFetch('estadisticas_personalizadas', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      }
+      cerrarModalEst();
+      await cargarEstadisticasCustom();
+      if (paginaActual === 'estadisticas') renderEstadisticas();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  async function borrarEst(id) {
+    if (!confirm('Borrar esta estadistica?')) return;
+    try {
+      await apiFetch(`estadisticas_personalizadas?id=eq.${id}`, { method: 'DELETE' });
+      estadisticasCustom = estadisticasCustom.filter(x => x.id !== id);
+      if (paginaActual === 'estadisticas') renderEstadisticas();
+    } catch (e) { alert('Error: ' + e.message); }
   }
 
   const calculatorFields = ['filamento', 'kwh', 'consumo', 'vida', 'repuestos', 'error', 'horas', 'minutos', 'gramos', 'insumos', 'multiplicador'];
