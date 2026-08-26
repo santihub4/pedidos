@@ -544,18 +544,35 @@
       </div>
       </div>
 
-      <!-- GRAFICO DE LINEA -->
-      <div id="dash-sec-linea">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-            <div>
-              <div class="card-title">Facturacion mensual</div>
-              <div class="card-sub">Pedidos entregados en los ultimos 6 meses</div>
+<div id="dash-sec-linea">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap">
+              <div>
+                <div class="card-title">Facturacion mensual</div>
+                <div class="card-sub">Pedidos entregados - granularidad diaria</div>
+              </div>
+              <div class="cd-wrap" id="cd-rango-fact-wrap" style="width:160px;flex-shrink:0">
+                <button type="button" class="cd-trigger" id="cd-rango-fact-trigger" onclick="toggleCd('rango-fact')" style="padding:8px 36px 8px 12px;font-size:0.8rem">
+                  <span id="cd-rango-fact-label">6 meses</span>
+                  <i data-lucide="chevron-down" width="12" height="12"></i>
+                </button>
+                <div class="cd-menu" id="cd-rango-fact-menu">
+                  <div class="cd-option selected" onclick="seleccionarRangoFact('all')">Todo el historial</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1y')">1 año</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('6m')">6 meses</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('3m')">3 meses</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1m')">1 mes</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1w')">1 semana</div>
+                </div>
+                <input type="hidden" id="rango-facturacion" value="6m"/>
+              </div>
+            </div>
+            <div style="position:relative;height:220px;touch-action:pan-y">
+              <svg id="stock-chart" width="100%" height="100%" style="display:block;touch-action:none"></svg>
+              <div id="stock-tooltip" style="position:absolute;pointer-events:none;background:#1a1d2e;color:#fff;padding:8px 12px;border-radius:8px;font-size:.75rem;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .15s;z-index:10;white-space:nowrap"></div>
             </div>
           </div>
-          <svg id="line-chart" width="100%" height="180" style="overflow:visible"></svg>
         </div>
-      </div>
 
       <!-- DONUT -->
       <div id="dash-sec-donut">
@@ -1457,7 +1474,190 @@
 
 
 
-  // ── DASHBOARD CONFIGURABLE ──
+  // ── RANGO FACTURACIÓN (stock chart) ──
+  let rangoFacturacionActual = '6m';
+
+  function seleccionarRangoFact(key) {
+    const labels = { all: 'Todo el historial', '1y': '1 año', '6m': '6 meses', '3m': '3 meses', '1m': '1 mes', '1w': '1 semana' };
+    document.getElementById('cd-rango-fact-label').textContent = labels[key];
+    document.getElementById('rango-facturacion').value = key;
+    document.querySelectorAll('#cd-rango-fact-menu .cd-option').forEach(opt => opt.classList.remove('selected'));
+    document.querySelector(`#cd-rango-fact-menu .cd-option[onclick*="${key}"]`)?.classList.add('selected');
+    document.getElementById('cd-rango-fact-menu').classList.remove('open');
+    document.getElementById('cd-rango-fact-trigger').classList.remove('open');
+    rangoFacturacionActual = key;
+    if (paginaActual === 'dashboard') renderDashboard();
+    lucide.createIcons();
+  }
+
+  function obtenerRangoFechasFact(rango) {
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+    let inicio;
+    switch (rango) {
+      case '1w': inicio = new Date(hoy.getTime() - 6*24*60*60*1000); break;
+      case '1m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-1, hoy.getDate()); break;
+      case '3m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-3, hoy.getDate()); break;
+      case '6m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-6, hoy.getDate()); break;
+      case '1y': inicio = new Date(hoy.getFullYear()-1, hoy.getMonth(), hoy.getDate()); break;
+      case 'all': 
+      default: inicio = null; break;
+    }
+    return { inicio, fin: hoy };
+  }
+
+  function renderStockChart() {
+    const svg = document.getElementById('stock-chart');
+    const tooltip = document.getElementById('stock-tooltip');
+    if (!svg || !tooltip) return;
+    const rect = svg.getBoundingClientRect ? svg.getBoundingClientRect() : { width: 800, height: 220 };
+    const W = rect.width || svg.parentElement?.clientWidth || 800;
+    const H = rect.height || 220;
+    const { inicio, fin } = obtenerRangoFechasFact(rangoFacturacionActual);
+    
+    // Filtrar pedidos entregados en rango
+    const entregados = pedidos.filter(p => {
+      if (p.estado !== 'Entregado' || !p.fecha) return false;
+      const d = parseFecha(p.fecha);
+      return (!inicio || d >= inicio) && d <= fin;
+    });
+    
+    // Agrupar por día
+    const porDia = {};
+    entregados.forEach(p => {
+      const dia = p.fecha;
+      porDia[dia] = (porDia[dia] || 0) + (Number(p.precio_final) || 0);
+    });
+    
+    // Generar serie continua de días
+    const serie = [];
+    const cursor = inicio ? new Date(inicio) : new Date(Math.min(...Object.keys(porDia).map(k => new Date(k))));
+    cursor.setHours(0,0,0,0);
+    const finCursor = new Date(fin);
+    while (cursor <= finCursor) {
+      const key = cursor.toISOString().split('T')[0];
+      serie.push({ fecha: key, valor: porDia[key] || 0, rawDate: new Date(cursor) });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    
+    if (serie.length === 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#8b90a7" font-size="14">Sin datos para este rango</text>';
+      return;
+    }
+    
+    // Configuración del gráfico
+    const padding = { top: 20, right: 60, bottom: 30, left: 60 };
+    const iW = W - padding.left - padding.right;
+    const iH = H - padding.top - padding.bottom;
+    
+    // Escalas
+    const maxV = Math.max(...serie.map(s => s.valor), 1);
+    const minV = Math.min(...serie.filter(s => s.valor > 0).map(s => s.valor), 0);
+    const rangeV = maxV - minV || maxV;
+    
+    // Generar path suave (Catmull-Rom spline para suavizado)
+    const points = serie.map((s, i) => ({
+      x: padding.left + (i / (serie.length - 1)) * iW,
+      y: padding.top + iH - ((s.valor - minV) / rangeV) * iH,
+      valor: s.valor,
+      fecha: s.fecha
+    }));
+    
+    // Catmull-Rom spline
+    function getSplinePath(pts) {
+      if (pts.length < 2) return `M${pts[0]?.x},${pts[0]?.y}`;
+      let path = `M${pts[0].x},${pts[0].y}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i - 1] || pts[0];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[i + 2] || pts[pts.length - 1];
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+      }
+      return path;
+    }
+    
+    const linePath = getSplinePath(points);
+    const areaPath = linePath + ` L${points[points.length-1].x},${padding.top + iH} L${points[0].x},${padding.top + iH} Z`;
+    
+    // Eje Y labels (4 ticks)
+    const yTicks = 4;
+    let yLabels = '';
+    for (let i = 0; i <= yTicks; i++) {
+      const v = maxV - (i / yTicks) * rangeV;
+      const y = padding.top + (i / yTicks) * iH;
+      yLabels += `
+        <line x1="${padding.left}" y1="${y}" x2="${W - padding.right}" y2="${y}" stroke="#e8eaf0" stroke-width="0.5"/>
+        <text x="${padding.left - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#8b90a7">${v >= 1000000 ? '$' + (v/1000000).toFixed(1) + 'M' : v >= 1000 ? '$' + (v/1000).toFixed(0) + 'k' : '$' + Math.round(v)}</text>
+      `;
+    }
+    
+    // Eje X labels (adaptativos según rango)
+    const xLabelsCount = Math.min(6, serie.length);
+    let xLabels = '';
+    for (let i = 0; i < xLabelsCount; i++) {
+      const idx = Math.round(i * (serie.length - 1) / (xLabelsCount - 1));
+      const p = points[idx];
+      const d = new Date(serie[idx].fecha);
+      let label;
+      if (rangoFacturacionActual === '1w') label = d.toLocaleString('es-AR', { weekday: 'short' });
+      else if (rangoFacturacionActual === '1m') label = d.getDate();
+      else label = d.toLocaleString('es-AR', { month: 'short', day: 'numeric' });
+      xLabels += `<text x="${p.x}" y="${H - padding.bottom + 16}" text-anchor="middle" font-size="10" fill="#8b90a7">${label}</text>`;
+    }
+    
+    // Gradiente
+    const gradId = `stock-grad-${Math.random().toString(36).slice(2)}`;
+    
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#22c55e" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${yLabels}
+      ${xLabels}
+      <!-- Área -->
+      <path d="${areaPath}" fill="url(#${gradId})"/>
+      <!-- Línea -->
+      <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    `;
+    
+    // Interacción hover/touch
+    const container = svg.parentElement;
+    let currentPoint = null;
+    
+    function showTooltip(e) {
+      const rect = svg.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      // Encontrar punto más cercano
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      points.forEach((p, i) => {
+        const d = Math.abs(p.x - (x - padding.left));
+        if (d < bestDist) { bestDist = d; bestIdx = i; }
+      });
+      if (bestDist > 30) { tooltip.style.opacity = '0'; return; }
+      const pt = points[bestIdx];
+      tooltip.innerHTML = `<strong>${fmt(pt.valor)}</strong><br>${pt.fecha}`;
+      tooltip.style.left = `${p.x + padding.left + 10}px`;
+      tooltip.style.top = `${p.y + padding.top - 10}px`;
+      tooltip.style.opacity = '1';
+      currentPoint = bestIdx;
+    }
+    
+    function hideTooltip() { tooltip.style.opacity = '0'; currentPoint = null; }
+    
+    container.onmousemove = showTooltip;
+    container.onmouseleave = hideTooltip;
+    container.ontouchmove = (e) => { e.preventDefault(); showTooltip(e); };
+    container.ontouchend = hideTooltip;
+  }
   const dashDefaultConfig = {
     order: ['metricas', 'linea', 'donut', 'top', 'actividad'],
     visible: { metricas: true, linea: true, donut: true, top: true, actividad: true },
@@ -1607,68 +1807,10 @@
     document.getElementById('m-ganancia-sub').innerHTML = meta > 0
       ? `<span style="font-size:0.75rem;font-weight:600;color:${gananciaMes >= meta ? 'var(--green)' : 'var(--text-muted)'}">${Math.round(gananciaMes / meta * 100)}% de la meta (${fmt(meta)})</span>`
       : `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">Gastos del mes: ${fmt(gastosGeneralesMes + gastosFilamentoMes)}</span>`;
-    lucide.createIcons();
+lucide.createIcons();
 
-    // ── GRÁFICO DE LÍNEA (facturación mensual) ──
-    const meses6 = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-      meses6.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('es-AR', { month: 'short' }) });
-    }
-    const facturacion = meses6.map(m =>
-      pedidos.filter(p => {
-        if (!p.fecha || p.estado !== 'Entregado') return false;
-        const pd = parseFecha(p.fecha);
-        return pd.getFullYear() === m.year && pd.getMonth() === m.month;
-      }).reduce((s, p) => s + (p.precio_final||0), 0)
-    );
-    const svgEl = document.getElementById('line-chart');
-    if (svgEl) {
-      const W = Math.max(300, (svgEl.parentElement.clientWidth || 400) - 40);
-      const H = 160;
-      const pad = { top: 16, right: 16, bottom: 28, left: 52 };
-      const iW = W - pad.left - pad.right;
-      const iH = H - pad.top - pad.bottom;
-      const maxF = Math.max(...facturacion, 1);
-      const pts = meses6.map((m, i) => {
-        const x = pad.left + (i / (meses6.length - 1)) * iW;
-        const y = pad.top + iH - (facturacion[i] / maxF) * iH;
-        return { x, y, v: facturacion[i], label: m.label };
-      });
-      const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-      const areaD = pathD + ` L${pts[pts.length-1].x.toFixed(1)},${(pad.top+iH).toFixed(1)} L${pts[0].x.toFixed(1)},${(pad.top+iH).toFixed(1)} Z`;
-      // Eje Y labels
-      const yLabels = [0, 0.5, 1].map(f => ({
-        v: Math.round(maxF * f),
-        y: pad.top + iH - f * iH,
-      }));
-      svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
-      svgEl.innerHTML = `
-        <defs>
-          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#22c55e" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
-          </linearGradient>
-        </defs>
-        <!-- Grid lines -->
-        ${yLabels.map(l => `
-          <line x1="${pad.left}" y1="${l.y.toFixed(1)}" x2="${(pad.left+iW).toFixed(1)}" y2="${l.y.toFixed(1)}" stroke="#e8eaf0" stroke-width="1"/>
-          <text x="${(pad.left-6).toFixed(1)}" y="${(l.y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#8b90a7">${l.v >= 1000 ? '$'+(l.v/1000).toFixed(0)+'k' : '$'+l.v}</text>
-        `).join('')}
-        <!-- Area -->
-        <path d="${areaD}" fill="url(#lineGrad)"/>
-        <!-- Line -->
-        <path d="${pathD}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- Points -->
-        ${pts.map(p => `
-          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#fff" stroke="#22c55e" stroke-width="2"/>
-        `).join('')}
-        <!-- X labels -->
-        ${pts.map(p => `
-          <text x="${p.x.toFixed(1)}" y="${(pad.top+iH+16).toFixed(1)}" text-anchor="middle" font-size="10" fill="#8b90a7">${p.label}</text>
-        `).join('')}
-      `;
-    }
+    // ── STOCK CHART FACTURACIÓN ──
+    renderStockChart();
 
     // ── DONUT ──
     const donutStates = [
