@@ -1704,6 +1704,7 @@
   // ── ESTADISTICAS PERSONALIZADAS ──
   const VARIABLES_STATS = [
     ['facturacion', 'Facturacion entregada'],
+    ['ingresos_mensuales', 'Ingresos mensuales'],
     ['pedidos', 'Pedidos totales'],
     ['pedidos_entregados', 'Pedidos entregados'],
     ['pedidos_pendientes', 'Pedidos pendientes'],
@@ -1749,6 +1750,10 @@
     const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
     return {
       facturacion: fact,
+      ingresos_mensuales: mes ? fact : (() => {
+        const ahora = new Date();
+        return pedidos.filter(p => p.estado === 'Entregado' && p.fecha && new Date(p.fecha).getFullYear() === ahora.getFullYear() && new Date(p.fecha).getMonth() === ahora.getMonth()).reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
+      })(),
       pedidos: peds.length,
       pedidos_entregados: ents.length,
       pedidos_pendientes: peds.filter(p => p.estado === 'Pendiente').length,
