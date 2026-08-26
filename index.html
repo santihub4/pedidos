@@ -1529,14 +1529,17 @@
       porDia[dia] = (porDia[dia] || 0) + (Number(p.precio_final) || 0);
     });
     
-    // Generar serie continua de días
+    // Generar serie continua de días ACUMULADA (running total)
     const serie = [];
     const cursor = inicio ? new Date(inicio) : new Date(Math.min(...Object.keys(porDia).map(k => new Date(k))));
     cursor.setHours(0,0,0,0);
     const finCursor = new Date(fin);
+    let acumulado = 0;
     while (cursor <= finCursor) {
       const key = cursor.toISOString().split('T')[0];
-      serie.push({ fecha: key, valor: porDia[key] || 0, rawDate: new Date(cursor) });
+      const delDia = porDia[key] || 0;
+      acumulado += delDia;
+      serie.push({ fecha: key, valor: acumulado, delDia, rawDate: new Date(cursor) });
       cursor.setDate(cursor.getDate() + 1);
     }
     
@@ -1644,7 +1647,8 @@
       });
       if (bestDist > 30) { tooltip.style.opacity = '0'; return; }
       const pt = points[bestIdx];
-      tooltip.innerHTML = `<strong>${fmt(pt.valor)}</strong><br>${pt.fecha}`;
+      const seriePt = serie[bestIdx];
+      tooltip.innerHTML = `<strong>${fmt(pt.valor)}</strong> (acumulado)<br><span style="font-size:.7rem;color:#8b90a7">${fmt(seriePt.delDia)} hoy</span><br>${pt.fecha}`;
       tooltip.style.left = `${p.x + padding.left + 10}px`;
       tooltip.style.top = `${p.y + padding.top - 10}px`;
       tooltip.style.opacity = '1';
