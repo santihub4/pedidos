@@ -1870,8 +1870,8 @@
     const esValor = t => t && (t.t === 'var' || t.t === 'num' || t.v === ')');
     if (token.t === 'op') {
       if (token.v === '(') { if (esValor(ultimo)) return; }
-      else if (token.v === ')') { if (!ultimo || ultimo.t === 'op' || ultimo.v === '(') return; }
-      else { if (!ultimo || ultimo.t === 'op') return; }
+      else if (token.v === ')') { if (!ultimo || ultimo.v === '(' || (ultimo.t === 'op' && ultimo.v !== ')')) return; }
+      else { if (!ultimo || (ultimo.t === 'op' && ultimo.v !== ')')) return; }
     } else if (esValor({ t: token.t, v: token.v }) && esValor(ultimo)) return;
     formulaEditando.push(token);
     renderFormulaDisplay();
