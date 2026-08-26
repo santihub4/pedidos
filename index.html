@@ -270,7 +270,7 @@
     .calculator-total-label { font-size:.75rem; font-weight:700; text-transform:uppercase; }
     .calculator-total-value { font-size:1.8rem; font-weight:700; margin-top:5px; }
     .calculator-save-state { min-height:18px; margin-top:10px; color:var(--text-muted); font-size:.75rem; }
-    .expenses-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    .expenses-summary { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
     .expense-form-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:12px; align-items:end; }
     .expense-form-grid .form-group.full { grid-column:1 / -1; }
     .expense-actions { display:flex; gap:6px; align-items:center; }
@@ -609,27 +609,70 @@
       <div class="page-title">Gastos</div>
       <div class="page-sub">Registra tus compras y analiza la rentabilidad del negocio</div>
       <div class="expenses-summary">
+        <div class="metric-card"><div class="metric-label">Gastos del mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Gastos generales + filamento</div></div>
+        <div class="metric-card"><div class="metric-label">Facturacion del mes</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados este mes</div></div>
+        <div class="metric-card"><div class="metric-label">Rentabilidad del mes</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos (mes actual)</div></div>
+        <div class="metric-card"><div class="metric-label">Promedio filamento</div><div class="metric-value" id="gastos-prom-kg">—</div><div class="metric-sub" id="gastos-prom-kg-sub">$/kg segun compras del mes</div></div>
         <div class="metric-card"><div class="metric-label">Gastos acumulados</div><div class="metric-value" id="gastos-total">$0</div><div class="metric-sub">Todos los registros</div></div>
-        <div class="metric-card"><div class="metric-label">Gastos este mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Compras del mes actual</div></div>
-        <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados</div></div>
-        <div class="metric-card"><div class="metric-label">Rentabilidad estimada</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos</div></div>
       </div>
       <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Registrar gasto</div>
-        <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
-        <div class="expense-form-grid">
-          <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
-          <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
-          <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
-          <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
-          <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
-          <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
-          <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
+        <div class="page-tabs" style="margin-bottom:16px">
+          <button class="page-tab active" id="gtab-btn-general" onclick="switchGastoTab('general')">Gasto general</button>
+          <button class="page-tab" id="gtab-btn-filamento" onclick="switchGastoTab('filamento')">Filamento</button>
         </div>
-        <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
-        <div class="calculator-save-state" id="gasto-save-state"></div>
+
+        <!-- Form: gasto general -->
+        <div id="form-gasto-general">
+          <div class="card-title">Registrar gasto general</div>
+          <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
+          <div class="expense-form-grid">
+            <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
+            <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
+            <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
+            <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
+            <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
+            <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
+          </div>
+          <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
+          <div class="calculator-save-state" id="gasto-save-state"></div>
+        </div>
+
+        <!-- Form: filamento -->
+        <div id="form-gasto-filamento" style="display:none">
+          <div class="card-title">Registrar compra de filamento</div>
+          <div class="card-sub">Estas compras alimentan el promedio de $/kg y el costo de produccion.</div>
+          <div class="expense-form-grid">
+            <div class="form-group"><label>Marca</label><input type="text" id="fil-marca" placeholder="Grilon3, BQ, etc."/></div>
+            <div class="form-group"><label>Color</label><input type="text" id="fil-color" placeholder="Blanco, negro..."/></div>
+            <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="fil-kg" min="0.01" step="0.01" placeholder="1"/></div>
+            <div class="form-group"><label>Precio total ($)</label><input type="number" id="fil-precio" min="0" step="0.01" placeholder="20000"/></div>
+            <div class="form-group"><label>Fecha</label><input type="date" id="fil-fecha"/></div>
+          </div>
+          <button class="btn-primary" id="btn-guardar-filamento" onclick="guardarFilamento()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar filamento</button>
+          <div class="calculator-save-state" id="filamento-save-state"></div>
+        </div>
       </div>
+
+      <!-- TABLA FILAMENTOS -->
+      <div class="card" style="padding:0;margin-bottom:20px">
+        <div style="padding:20px 20px 0">
+          <div class="card-title">Filamentos comprados</div>
+          <div class="card-sub">El promedio $/kg usa las compras del mes actual.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Marca</th><th>Color</th><th>Kg</th><th>Precio</th><th>$/kg</th><th>Acciones</th></tr></thead>
+            <tbody id="tbody-filamentos"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLA GASTOS GENERALES -->
       <div class="card" style="padding:0">
+        <div style="padding:20px 20px 0">
+          <div class="card-title">Gastos generales</div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Cantidad</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead>
@@ -780,8 +823,8 @@
         <div class="card tabla-desktop" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Descripcion</th><th>Acciones</th></tr></thead>
-              <tbody id="tbody-productos"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Gramos / Tiempo</th><th>Costo prod.</th><th>Descripcion</th><th>Acciones</th></tr></thead>
+              <tbody id="tbody-productos"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -971,6 +1014,8 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="np-nombre" placeholder="Nombre del producto"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="np-categoria" placeholder="Ej: Herramientas"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="np-precio" placeholder="0" step="0.01"/></div>
+      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="np-gramos" min="0" step="0.1" placeholder="0"/></div>
+      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="np-tiempo" min="0" step="0.1" placeholder="0"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="np-descripcion" placeholder="Descripcion opcional..."></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -993,6 +1038,8 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="ep-nombre"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="ep-categoria"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="ep-precio" step="0.01"/></div>
+      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="ep-gramos" min="0" step="0.1"/></div>
+      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="ep-tiempo" min="0" step="0.1"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="ep-descripcion"></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -1043,6 +1090,52 @@
   </div>
 </div>
 
+<!-- MODAL EDITAR GASTO -->
+<div class="modal-overlay" id="modal-editar-gasto">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar gasto</span>
+      <button class="modal-close" onclick="cerrarModalEditarGasto()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Concepto</label><input type="text" id="eg-concepto"/></div>
+      <div class="form-group"><label>Categoria</label><input type="text" id="eg-categoria"/></div>
+      <div class="form-group"><label>Monto total ($)</label><input type="number" id="eg-monto" min="0" step="0.01"/></div>
+      <div class="form-group"><label>Cantidad</label><input type="number" id="eg-cantidad" min="0.01" step="0.01"/></div>
+      <div class="form-group"><label>Unidad</label><input type="text" id="eg-unidad"/></div>
+      <div class="form-group full"><label>Fecha</label><input type="date" id="eg-fecha"/></div>
+      <div class="form-group full"><label>Notas</label><input type="text" id="eg-descripcion"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEdicionGasto()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR FILAMENTO -->
+<div class="modal-overlay" id="modal-editar-filamento">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar filamento</span>
+      <button class="modal-close" onclick="cerrarModalEditarFilamento()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Marca</label><input type="text" id="ef-marca"/></div>
+      <div class="form-group"><label>Color</label><input type="text" id="ef-color"/></div>
+      <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="ef-kg" min="0.01" step="0.01"/></div>
+      <div class="form-group"><label>Precio total ($)</label><input type="number" id="ef-precio" min="0" step="0.01"/></div>
+      <div class="form-group full"><label>Fecha</label><input type="date" id="ef-fecha"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEdicionFilamento()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = window.supabase.createClient(
     'https://ydugevaqupmpwwabwxno.supabase.co',
@@ -1053,6 +1146,9 @@
   const TABLA = 'pedidos';
   let pedidos = [];
   let gastos = [];
+  let filamentos = [];
+  let editandoGastoId = null;
+  let editandoFilamentoId = null;
   let paginaActual = 'dashboard';
   let editandoId = null;
 
@@ -1105,7 +1201,7 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos()]);
+    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos()]);
     navegarA('dashboard');
     cargarProductos();
     cargarPedidos();
@@ -1115,7 +1211,7 @@
   async function recargar() {
     const btn = document.getElementById('btn-reload');
     btn.classList.add('spinning');
-    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos()]);
+    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos(), cargarFilamentos()]);
     setTimeout(() => btn.classList.remove('spinning'), 600);
   }
 
@@ -1486,6 +1582,7 @@
 
   const calculatorFields = ['filamento', 'kwh', 'consumo', 'vida', 'repuestos', 'error', 'horas', 'minutos', 'gramos', 'insumos', 'multiplicador'];
   const calculatorDefaults = { filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, horas: 0, minutos: 0, gramos: 0, insumos: 0, multiplicador: 4 };
+  let calcConfigGlobal = null;
 
   function obtenerDatosCalculadora() {
     return Object.fromEntries(calculatorFields.map(key => [key, parseFloat(document.getElementById(`calc-${key}`)?.value) || 0]));
@@ -1502,11 +1599,12 @@
   async function cargarConfiguracionCalculadora() {
     try {
       const filas = await apiFetch('configuracion_calculadora?select=configuracion&limit=1');
-      aplicarDatosCalculadora({ ...calculatorDefaults, ...(filas?.[0]?.configuracion || {}) });
+      calcConfigGlobal = { ...calculatorDefaults, ...(filas?.[0]?.configuracion || {}) };
     } catch (e) {
-      aplicarDatosCalculadora(calculatorDefaults);
+      calcConfigGlobal = { ...calculatorDefaults };
       console.warn('No se pudo cargar la configuracion de la calculadora:', e);
     }
+    aplicarDatosCalculadora(calcConfigGlobal);
   }
 
   function calcularPrecio() {
@@ -1533,6 +1631,8 @@
         prefer: 'resolution=merge-duplicates,return=minimal',
         body: JSON.stringify({ configuracion: obtenerDatosCalculadora() })
       });
+      calcConfigGlobal = { ...obtenerDatosCalculadora() };
+      if (paginaActual === 'productos') renderProductos();
       state.textContent = 'Configuracion guardada en Supabase.';
       state.style.color = 'var(--green)';
     } catch (e) {
@@ -1555,19 +1655,36 @@
     return fechaGasto.getMonth() === ahora.getMonth() && fechaGasto.getFullYear() === ahora.getFullYear();
   }
 
+  function obtenerPromedioKg() {
+    const delMes = filamentos.filter(f => esMesActual(f.fecha));
+    const lista = delMes.length ? delMes : filamentos;
+    const kg = lista.reduce((s, f) => s + Number(f.kg || 0), 0);
+    const precio = lista.reduce((s, f) => s + Number(f.precio || 0), 0);
+    if (kg > 0) return precio / kg;
+    const v = parseFloat(document.getElementById('calc-filamento')?.value);
+    return Number.isFinite(v) && v > 0 ? v : null;
+  }
+
   function renderGastos() {
     const fechaInput = document.getElementById('gasto-fecha');
     if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
+    const filFechaInput = document.getElementById('fil-fecha');
+    if (filFechaInput && !filFechaInput.value) filFechaInput.value = new Date().toISOString().split('T')[0];
     const totalGastos = gastos.reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
     const gastosMes = gastos.filter(gasto => esMesActual(gasto.fecha)).reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
-    const facturacion = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
-    const rentabilidad = facturacion - totalGastos;
+    const gastosFilamentoMes = filamentos.filter(f => esMesActual(f.fecha)).reduce((sum, f) => sum + Number(f.precio || 0), 0);
+    const facturacionTotal = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
+    const facturacionMes = pedidos.filter(pedido => pedido.estado === 'Entregado' && esMesActual(pedido.fecha)).reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
     document.getElementById('gastos-total').textContent = fmt(totalGastos);
-    document.getElementById('gastos-mes').textContent = fmt(gastosMes);
-    document.getElementById('gastos-facturacion').textContent = fmt(facturacion);
+    document.getElementById('gastos-mes').textContent = fmt(gastosMes + gastosFilamentoMes);
+    document.getElementById('gastos-facturacion').textContent = fmt(facturacionMes);
+    const rentabilidad = facturacionMes - (gastosMes + gastosFilamentoMes);
     const rentabilidadEl = document.getElementById('gastos-rentabilidad');
     rentabilidadEl.textContent = fmt(rentabilidad);
     rentabilidadEl.className = 'metric-value ' + (rentabilidad >= 0 ? 'profit-positive' : 'profit-negative');
+    const promKg = obtenerPromedioKg();
+    document.getElementById('gastos-prom-kg').textContent = promKg !== null ? fmt(Math.round(promKg * 100) / 100) + '/kg' : '—';
+    document.getElementById('gastos-prom-kg-sub').textContent = filamentos.some(f => esMesActual(f.fecha)) ? '$/kg segun compras del mes' : (filamentos.length ? '$/kg segun todas las compras' : 'Sin compras registradas');
 
     const tbody = document.getElementById('tbody-gastos');
     if (!tbody) return;
@@ -1579,7 +1696,7 @@
         <td>${Number(gasto.cantidad || 0).toLocaleString('es-AR')} ${esc(gasto.unidad || '')}</td>
         <td class="td-monto">${fmt(Number(gasto.monto || 0))}</td>
         <td style="font-size:.8rem;color:var(--text-muted)">${esc(gasto.descripcion || '')}</td>
-        <td><div class="expense-actions"><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
+        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarGasto(${gasto.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
       </tr>`).join('') : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>';
     lucide.createIcons();
   }
@@ -1623,6 +1740,163 @@
     try {
       await apiFetch(`gastos?id=eq.${id}`, { method: 'DELETE' });
       gastos = gastos.filter(gasto => gasto.id !== id);
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  function abrirEditarGasto(id) {
+    const gasto = gastos.find(g => g.id === id);
+    if (!gasto) return;
+    editandoGastoId = id;
+    document.getElementById('eg-concepto').value = gasto.concepto || '';
+    document.getElementById('eg-categoria').value = gasto.categoria || '';
+    document.getElementById('eg-monto').value = gasto.monto ?? '';
+    document.getElementById('eg-cantidad').value = gasto.cantidad ?? 1;
+    document.getElementById('eg-unidad').value = gasto.unidad || 'unidad';
+    document.getElementById('eg-fecha').value = gasto.fecha || '';
+    document.getElementById('eg-descripcion').value = gasto.descripcion || '';
+    document.getElementById('modal-editar-gasto').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalEditarGasto() { document.getElementById('modal-editar-gasto').classList.remove('open'); editandoGastoId = null; }
+  document.getElementById('modal-editar-gasto').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarGasto(); });
+
+  async function guardarEdicionGasto() {
+    if (!editandoGastoId) return;
+    const concepto = document.getElementById('eg-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('eg-monto').value);
+    if (!concepto || !Number.isFinite(monto) || monto < 0) { alert('Completa el concepto y un monto valido.'); return; }
+    const datos = {
+      concepto,
+      categoria: document.getElementById('eg-categoria').value.trim(),
+      monto,
+      cantidad: parseFloat(document.getElementById('eg-cantidad').value) || 1,
+      unidad: document.getElementById('eg-unidad').value.trim() || 'unidad',
+      fecha: document.getElementById('eg-fecha').value || new Date().toISOString().split('T')[0],
+      descripcion: document.getElementById('eg-descripcion').value.trim()
+    };
+    try {
+      await apiFetch(`gastos?id=eq.${editandoGastoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      const idx = gastos.findIndex(g => g.id === editandoGastoId);
+      if (idx >= 0) gastos[idx] = { ...gastos[idx], ...datos };
+      cerrarModalEditarGasto();
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  // ── FILAMENTOS ──
+  function switchGastoTab(tab) {
+    document.getElementById('gtab-btn-general').classList.toggle('active', tab === 'general');
+    document.getElementById('gtab-btn-filamento').classList.toggle('active', tab === 'filamento');
+    document.getElementById('form-gasto-general').style.display = tab === 'general' ? '' : 'none';
+    document.getElementById('form-gasto-filamento').style.display = tab === 'filamento' ? '' : 'none';
+  }
+
+  async function cargarFilamentos() {
+    try {
+      filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc');
+      if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
+    } catch (e) { console.error('Error cargando filamentos:', e); }
+  }
+
+  function renderFilamentos() {
+    const tbody = document.getElementById('tbody-filamentos');
+    if (!tbody) return;
+    tbody.innerHTML = filamentos.length ? filamentos.map(f => {
+      const kg = Number(f.kg || 0);
+      const precio = Number(f.precio || 0);
+      return `
+      <tr>
+        <td>${fmtFecha(f.fecha)}</td>
+        <td class="td-cliente">${esc(f.marca || '—')}</td>
+        <td>${esc(f.color || '—')}</td>
+        <td>${kg.toLocaleString('es-AR')} kg</td>
+        <td class="td-monto">${fmt(precio)}</td>
+        <td>${kg > 0 ? fmt(Math.round((precio / kg) * 100) / 100) : '—'}</td>
+        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarFilamento(${f.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarFilamento(${f.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="7" class="empty-state">No hay filamentos registrados.</td></tr>';
+    lucide.createIcons();
+  }
+
+  async function guardarFilamento() {
+    const state = document.getElementById('filamento-save-state');
+    const marca = document.getElementById('fil-marca').value.trim();
+    const kg = parseFloat(document.getElementById('fil-kg').value);
+    const precio = parseFloat(document.getElementById('fil-precio').value);
+    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) {
+      state.textContent = 'Completa marca, kg (mayor a 0) y precio.';
+      state.style.color = 'var(--red)';
+      return;
+    }
+    const datos = {
+      marca,
+      color: document.getElementById('fil-color').value.trim(),
+      kg,
+      precio,
+      fecha: document.getElementById('fil-fecha').value || new Date().toISOString().split('T')[0]
+    };
+    const btn = document.getElementById('btn-guardar-filamento');
+    btn.disabled = true;
+    try {
+      await apiFetch('filamentos', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      state.textContent = 'Filamento guardado en Supabase.';
+      state.style.color = 'var(--green)';
+      document.getElementById('fil-marca').value = '';
+      document.getElementById('fil-color').value = '';
+      document.getElementById('fil-kg').value = '';
+      document.getElementById('fil-precio').value = '';
+      await cargarFilamentos();
+    } catch (e) {
+      state.textContent = 'No se pudo guardar: ' + e.message;
+      state.style.color = 'var(--red)';
+    } finally { btn.disabled = false; }
+  }
+
+  async function borrarFilamento(id) {
+    if (!confirm('Borrar este filamento?')) return;
+    try {
+      await apiFetch(`filamentos?id=eq.${id}`, { method: 'DELETE' });
+      filamentos = filamentos.filter(f => f.id !== id);
+      renderFilamentos();
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  function abrirEditarFilamento(id) {
+    const f = filamentos.find(x => x.id === id);
+    if (!f) return;
+    editandoFilamentoId = id;
+    document.getElementById('ef-marca').value = f.marca || '';
+    document.getElementById('ef-color').value = f.color || '';
+    document.getElementById('ef-kg').value = f.kg ?? '';
+    document.getElementById('ef-precio').value = f.precio ?? '';
+    document.getElementById('ef-fecha').value = f.fecha || '';
+    document.getElementById('modal-editar-filamento').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalEditarFilamento() { document.getElementById('modal-editar-filamento').classList.remove('open'); editandoFilamentoId = null; }
+  document.getElementById('modal-editar-filamento').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarFilamento(); });
+
+  async function guardarEdicionFilamento() {
+    if (!editandoFilamentoId) return;
+    const marca = document.getElementById('ef-marca').value.trim();
+    const kg = parseFloat(document.getElementById('ef-kg').value);
+    const precio = parseFloat(document.getElementById('ef-precio').value);
+    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) { alert('Completa marca, kg (mayor a 0) y precio.'); return; }
+    const datos = {
+      marca,
+      color: document.getElementById('ef-color').value.trim(),
+      kg,
+      precio,
+      fecha: document.getElementById('ef-fecha').value || new Date().toISOString().split('T')[0]
+    };
+    try {
+      await apiFetch(`filamentos?id=eq.${editandoFilamentoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      const idx = filamentos.findIndex(x => x.id === editandoFilamentoId);
+      if (idx >= 0) filamentos[idx] = { ...filamentos[idx], ...datos };
+      cerrarModalEditarFilamento();
+      renderFilamentos();
       renderGastos();
     } catch (e) { alert('Error: ' + e.message); }
   }
@@ -1920,6 +2194,20 @@
     } catch(e) { console.error('Error cargando productos:', e); }
   }
 
+  // Costo de produccion: filamento (promedio $/kg) + luz + desgaste + margen de error (config de la calculadora)
+  function calcularCostoProduccion(prod) {
+    const cfg = calcConfigGlobal || calculatorDefaults;
+    const promKg = obtenerPromedioKg();
+    const gramos = Number(prod?.gramos) || 0;
+    const horas = Number(prod?.tiempo_horas) || 0;
+    if (!gramos && !horas) return null;
+    const material = gramos / 1000 * (promKg || 0);
+    const luz = horas * (Number(cfg.consumo) || 0) / 1000 * (Number(cfg.kwh) || 0);
+    const desgaste = (Number(cfg.vida) || 0) > 0 ? horas * (Number(cfg.repuestos) || 0) / cfg.vida : 0;
+    const subtotal = material + luz + desgaste;
+    return subtotal * (1 + (Number(cfg.error) || 0) / 100);
+  }
+
   function renderProductos(lista) {
     const filtro = (document.getElementById('filtro-producto')?.value||'').toLowerCase();
     const data = (lista||productos).filter(p =>
@@ -1930,19 +2218,24 @@
     const tbody = document.getElementById('tbody-productos');
     if (tbody) {
       tbody.innerHTML = !data.length
-        ? '<tr><td colspan="6" class="empty-state">No hay productos.</td></tr>'
-        : data.map(p => `
+        ? '<tr><td colspan="7" class="empty-state">No hay productos.</td></tr>'
+        : data.map(p => {
+            const costo = calcularCostoProduccion(p);
+            return `
           <tr>
             <td class="td-id">${p.id}</td>
             <td class="td-cliente">${esc(p.nombre)}</td>
             <td>${esc(p.categoria||'—')}</td>
             <td class="td-monto">${p.precio_base ? fmt(p.precio_base) : '—'}</td>
+            <td style="white-space:nowrap">${p.gramos ? `${Number(p.gramos).toLocaleString('es-AR')} g` : '—'}<div style="font-size:.75rem;color:#8b90a7">${p.tiempo_horas ? `${p.tiempo_horas} hs` : ''}</div></td>
+            <td class="td-monto" style="color:var(--accent)">${costo !== null ? fmt(Math.round(costo)) : '—'}</td>
             <td style="font-size:0.8rem;color:#8b90a7;max-width:200px">${esc(p.descripcion||'')}</td>
             <td><div class="acciones">
               <button class="btn-icon" onclick="abrirEditarProducto(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
               <button class="btn-icon del" onclick="borrarProducto(${p.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
             </div></td>
-          </tr>`).join('');
+          </tr>`;
+          }).join('');
     }
 
     // Cards mobile
@@ -1950,7 +2243,9 @@
     if (mobile) {
       mobile.innerHTML = !data.length
         ? '<div class="empty-state">No hay productos.</div>'
-        : data.map(p => `
+        : data.map(p => {
+            const costo = calcularCostoProduccion(p);
+            return `
           <div class="pedido-card-mobile">
             <div class="pcm-top">
               <div class="pcm-top-left">
@@ -1964,8 +2259,24 @@
             </div>
             <div class="pcm-cliente">${esc(p.nombre)}</div>
             ${p.precio_base ? `<div class="pcm-producto">${fmt(p.precio_base)}</div>` : ''}
+            ${costo !== null || p.gramos || p.tiempo_horas ? `
+            <div class="pcm-stats">
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Gramos</div>
+                <div class="pcm-stat-value">${p.gramos ? Number(p.gramos).toLocaleString('es-AR') + ' g' : '—'}</div>
+              </div>
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Tiempo</div>
+                <div class="pcm-stat-value">${p.tiempo_horas ? p.tiempo_horas + ' hs' : '—'}</div>
+              </div>
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Costo prod.</div>
+                <div class="pcm-stat-value highlight">${costo !== null ? fmt(Math.round(costo)) : '—'}</div>
+              </div>
+            </div>` : ''}
             ${p.descripcion ? `<div class="pcm-desc">${esc(p.descripcion)}</div>` : ''}
-          </div>`).join('');
+          </div>`;
+          }).join('');
     }
     lucide.createIcons();
   }
@@ -2018,6 +2329,8 @@
   function abrirNuevoProducto() {
     ['np-nombre','np-categoria','np-descripcion'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('np-precio').value = '';
+    document.getElementById('np-gramos').value = '';
+    document.getElementById('np-tiempo').value = '';
     const msg = document.getElementById('msg-nuevo-producto');
     msg.className = 'msg-box'; msg.textContent = '';
     document.getElementById('modal-nuevo-producto').classList.add('open');
@@ -2036,6 +2349,8 @@
       nombre,
       categoria:   document.getElementById('np-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('np-precio').value) || 0,
+      gramos:      parseFloat(document.getElementById('np-gramos').value) || null,
+      tiempo_horas: parseFloat(document.getElementById('np-tiempo').value) || null,
       descripcion: document.getElementById('np-descripcion').value.trim(),
     };
     btn.disabled = true;
@@ -2056,6 +2371,8 @@
     document.getElementById('ep-nombre').value      = p.nombre || '';
     document.getElementById('ep-categoria').value   = p.categoria || '';
     document.getElementById('ep-precio').value      = p.precio_base || '';
+    document.getElementById('ep-gramos').value      = p.gramos ?? '';
+    document.getElementById('ep-tiempo').value      = p.tiempo_horas ?? '';
     document.getElementById('ep-descripcion').value = p.descripcion || '';
     const msg = document.getElementById('msg-editar-producto');
     msg.className = 'msg-box'; msg.textContent = '';
@@ -2076,6 +2393,8 @@
       nombre,
       categoria:   document.getElementById('ep-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('ep-precio').value) || 0,
+      gramos:      parseFloat(document.getElementById('ep-gramos').value) || null,
+      tiempo_horas: parseFloat(document.getElementById('ep-tiempo').value) || null,
       descripcion: document.getElementById('ep-descripcion').value.trim(),
     };
     btn.disabled = true;
