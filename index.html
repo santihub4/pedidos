@@ -562,6 +562,7 @@
       <div class="stats-toolbar">
         <div class="card-title">Resumen configurable</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="abrirNuevaEst('variable')" style="background:var(--purple)"><i data-lucide="variable" width="14" height="14"></i> Nueva variable</button>
           <button class="btn-primary" onclick="abrirNuevaEst()" style="background:var(--green)"><i data-lucide="plus" width="14" height="14"></i> Nueva estadistica</button>
           <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
         </div>
@@ -1182,6 +1183,7 @@
         <select id="est-vista" class="custom-select" style="width:100%" onchange="actualizarPreviewEst()">
           <option value="numero">Numero</option>
           <option value="barras">Barras por mes (ultimos 6)</option>
+          <option value="variable">Variable (para usar en formulas)</option>
         </select>
       </div>
     </div>
@@ -1734,6 +1736,26 @@
     return meses;
   }
 
+  // Resuelve variables personalizadas (pueden referenciarse entre si, con proteccion contra ciclos)
+  function resolverCustoms(base) {
+    const vals = { ...base };
+    let pendientes = estadisticasCustom.filter(e => e.vista === 'variable');
+    let progreso = true;
+    while (progreso && pendientes.length) {
+      progreso = false;
+      pendientes = pendientes.filter(est => {
+        const refs = est.formula.filter(t => t.t === 'var').map(t => t.v);
+        if (refs.some(r => !(r in vals))) return true;
+        const v = evaluarTokens(est.formula, vals);
+        vals['custom_' + est.id] = v === null ? 0 : v;
+        progreso = true;
+        return false;
+      });
+    }
+    pendientes.forEach(est => { vals['custom_' + est.id] = 0; });
+    return vals;
+  }
+
   // Valores de las variables, opcionalmente filtrados a un mes {year, month}
   function valoresStats(mes) {
     const enRango = (fecha) => {
@@ -1748,7 +1770,7 @@
     const fils = filamentos.filter(f => enRango(f.fecha));
     const kg = fils.reduce((s, f) => s + (Number(f.kg) || 0), 0);
     const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
-    return {
+    const vars = {
       facturacion: fact,
       ingresos_mensuales: mes ? fact : (() => {
         const ahora = new Date();
@@ -1764,6 +1786,7 @@
       kg_comprados: kg,
       prom_kg: kg > 0 ? precioFil / kg : 0,
     };
+    return resolverCustoms(vars);
   }
 
   function evaluarTokens(tokens, valores) {
@@ -1781,13 +1804,14 @@
   }
 
   function renderCustomStats() {
-    if (!estadisticasCustom.length) return '';
+    const visibles = estadisticasCustom.filter(est => est.vista !== 'variable');
+    if (!visibles.length) return '';
     const meses = ultimos6Meses();
     const acciones = (est) => `<div style="display:flex;gap:6px;flex-shrink:0">
       <button class="btn-icon" onclick="abrirEditarEst(${est.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
       <button class="btn-icon del" onclick="borrarEst(${est.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
     </div>`;
-    return `<div class="stats-section"><div class="card-title" style="margin-bottom:10px">Estadisticas personalizadas</div>${estadisticasCustom.map(est => {
+    return `<div class="stats-section"><div class="card-title" style="margin-bottom:10px">Estadisticas personalizadas</div>${visibles.map(est => {
       if (est.vista === 'barras') {
         const vals = meses.map(m => evaluarTokens(est.formula, valoresStats(m)) ?? 0);
         const max = Math.max(...vals.map(Math.abs), 1);
@@ -1801,12 +1825,13 @@
   // ── MODAL CREADOR ──
   let formulaEditando = [];
 
-  function abrirNuevaEst() {
+  function abrirNuevaEst(tipo) {
     editandoEstId = null;
     formulaEditando = [];
-    document.getElementById('est-modal-titulo').textContent = 'Nueva estadistica';
+    document.getElementById('est-modal-titulo').textContent = tipo === 'variable' ? 'Nueva variable' : 'Nueva estadistica';
     document.getElementById('est-nombre').value = '';
-    document.getElementById('est-vista').value = 'numero';
+    document.getElementById('est-vista').value = tipo === 'variable' ? 'variable' : 'numero';
+    document.getElementById('est-nombre').placeholder = tipo === 'variable' ? 'Ej: Gastos totales' : 'Ej: Ganancia neta';
     renderGridVariables();
     renderFormulaDisplay();
     actualizarPreviewEst();
@@ -1819,7 +1844,7 @@
     if (!est) return;
     editandoEstId = id;
     formulaEditando = JSON.parse(JSON.stringify(est.formula || []));
-    document.getElementById('est-modal-titulo').textContent = 'Editar estadistica';
+    document.getElementById('est-modal-titulo').textContent = est.vista === 'variable' ? 'Editar variable' : 'Editar estadistica';
     document.getElementById('est-nombre').value = est.nombre || '';
     document.getElementById('est-vista').value = est.vista || 'numero';
     renderGridVariables();
@@ -1835,7 +1860,9 @@
   function renderGridVariables() {
     const grid = document.getElementById('est-vars-grid');
     if (!grid) return;
-    grid.innerHTML = VARIABLES_STATS.map(([key, label]) => `<button type="button" onclick="insertarToken({t:'var',v:'${key}'})">${label}</button>`).join('');
+    const customs = estadisticasCustom.filter(e => e.vista === 'variable');
+    grid.innerHTML = VARIABLES_STATS.map(([key, label]) => `<button type="button" onclick="insertarToken({t:'var',v:'${key}'})">${label}</button>`).join('')
+      + customs.map(e => `<button type="button" style="border-color:#bbf7d0;background:#f0fdf4;color:#15803d;font-weight:600" onclick="insertarToken({t:'var',v:'custom_${e.id}'})">${esc(e.nombre)}</button>`).join('');
   }
 
   function insertarToken(token) {
@@ -1862,7 +1889,13 @@
   function limpiarFormula() { formulaEditando = []; renderFormulaDisplay(); actualizarPreviewEst(); }
 
   function tokenLabel(t) {
-    if (t.t === 'var') return (VARIABLES_STATS.find(([k]) => k === t.v) || [t.v, t.v])[1];
+    if (t.t === 'var') {
+      if (String(t.v).startsWith('custom_')) {
+        const est = estadisticasCustom.find(e => 'custom_' + e.id === t.v);
+        return est ? est.nombre : t.v;
+      }
+      return (VARIABLES_STATS.find(([k]) => k === t.v) || [t.v, t.v])[1];
+    }
     if (t.t === 'num') return String(t.v);
     return { '*': '×', '/': '÷' }[t.v] || t.v;
   }
