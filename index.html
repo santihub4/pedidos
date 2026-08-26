@@ -816,6 +816,24 @@
           <input type="text" id="filtro-producto" placeholder="Buscar producto..."
             style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
             oninput="renderProductos()"/>
+          <!-- Orden productos -->
+          <div class="cd-wrap" id="cd-pord-wrap" style="width:180px;flex-shrink:0">
+            <button type="button" class="cd-trigger" id="cd-pord-trigger" onclick="toggleCd('pord')" style="padding:8px 36px 8px 12px;font-size:0.875rem">
+              <span id="cd-pord-label">Más nuevo</span>
+              <i data-lucide="chevron-down" width="14" height="14"></i>
+            </button>
+            <div class="cd-menu" id="cd-pord-menu">
+              <div class="cd-option selected" onclick="selectOrdenProd('nuevo','Más nuevo')"><i data-lucide="arrow-down" width="12" height="12"></i> Más nuevo</div>
+              <div class="cd-option" onclick="selectOrdenProd('viejo','Más antiguo')"><i data-lucide="arrow-up" width="12" height="12"></i> Más antiguo</div>
+              <div class="cd-option" onclick="selectOrdenProd('nombre_az','Nombre A→Z')"><i data-lucide="arrow-down-a-z" width="12" height="12"></i> Nombre A→Z</div>
+              <div class="cd-option" onclick="selectOrdenProd('nombre_za','Nombre Z→A')"><i data-lucide="arrow-up-a-z" width="12" height="12"></i> Nombre Z→A</div>
+              <div class="cd-option" onclick="selectOrdenProd('caro','Más caro')"><i data-lucide="trending-up" width="12" height="12"></i> Más caro</div>
+              <div class="cd-option" onclick="selectOrdenProd('barato','Más barato')"><i data-lucide="trending-down" width="12" height="12"></i> Más barato</div>
+              <div class="cd-option" onclick="selectOrdenProd('costo_caro','Mayor costo prod.')"><i data-lucide="trending-up" width="12" height="12"></i> Mayor costo prod.</div>
+              <div class="cd-option" onclick="selectOrdenProd('costo_barato','Menor costo prod.')"><i data-lucide="trending-down" width="12" height="12"></i> Menor costo prod.</div>
+            </div>
+            <input type="hidden" id="filtro-orden-productos" value="nuevo"/>
+          </div>
           <button class="btn-primary" onclick="abrirNuevoProducto()">
             <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
           </button>
@@ -2208,11 +2226,40 @@
     return subtotal * (1 + (Number(cfg.error) || 0) / 100);
   }
 
+  function selectOrdenProd(value, label) {
+    document.getElementById('cd-pord-label').textContent = label;
+    const input = document.getElementById('filtro-orden-productos');
+    if (input) input.value = value;
+    document.querySelectorAll('#cd-pord-menu .cd-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.textContent.trim() === label);
+    });
+    document.getElementById('cd-pord-menu').classList.remove('open');
+    document.getElementById('cd-pord-trigger').classList.remove('open');
+    lucide.createIcons();
+    renderProductos();
+  }
+
   function renderProductos(lista) {
     const filtro = (document.getElementById('filtro-producto')?.value||'').toLowerCase();
-    const data = (lista||productos).filter(p =>
+    const orden = (lista ? 'nuevo' : (document.getElementById('filtro-orden-productos')?.value||'nuevo'));
+    let data = (lista||productos).filter(p =>
       !filtro || (p.nombre||'').toLowerCase().includes(filtro) || (p.categoria||'').toLowerCase().includes(filtro)
     );
+    if (!lista) {
+      data = [...data].sort((a, b) => {
+        switch (orden) {
+          case 'nuevo':         return (b.id||0) - (a.id||0);
+          case 'viejo':         return (a.id||0) - (b.id||0);
+          case 'nombre_az':     return (a.nombre||'').localeCompare(b.nombre||'', 'es');
+          case 'nombre_za':     return (b.nombre||'').localeCompare(a.nombre||'', 'es');
+          case 'caro':          return (b.precio_base||0) - (a.precio_base||0);
+          case 'barato':        return (a.precio_base||0) - (b.precio_base||0);
+          case 'costo_caro':    return (calcularCostoProduccion(b)||0) - (calcularCostoProduccion(a)||0);
+          case 'costo_barato':  return (calcularCostoProduccion(a)||0) - (calcularCostoProduccion(b)||0);
+          default:              return 0;
+        }
+      });
+    }
 
     // Tabla desktop
     const tbody = document.getElementById('tbody-productos');
