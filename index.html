@@ -3506,6 +3506,307 @@ lucide.createIcons();
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => { if (paginaActual === 'dashboard') renderDashboard(); }, 250);
   });
+
+  // ── DASHBOARD WIDGETS (Grafana style) ──
+  const WIDGET_TYPES = {
+    metricas: { id: 'metricas', name: 'Métricas', desc: '4 tarjetas: ingresos, pedidos, ticket, productos', icon: 'layout-dashboard' },
+    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' },
+    donut: { id: 'donut', name: 'Estado de pedidos', desc: 'Donut con distribución de estados', icon: 'pie-chart' },
+    top: { id: 'top', name: 'Top productos', desc: 'Productos más vendidos con barras', icon: 'bar-chart-2' },
+    actividad: { id: 'actividad', name: 'Actividad reciente', desc: 'Últimos 8 pedidos registrados', icon: 'activity' },
+    gastos_cat: { id: 'gastos_cat', name: 'Gastos por categoría', desc: 'Barras de gastos del mes por categoría', icon: 'pie-chart' },
+    ganancia: { id: 'ganancia', name: 'Ganancia del mes', desc: 'Tarjeta grande con meta opcional', icon: 'piggy-bank' },
+  };
+
+  let dashboardWidgets = []; // { id, type, x, y, w, h, order }
+  let dashEditMode = false;
+  let dragState = null;
+
+  async function cargarDashboardWidgets() {
+    try {
+      const data = await apiFetch('dashboard_widgets?order=orden.asc');
+      dashboardWidgets = data || [];
+      dashboardWidgets.forEach((w, i) => {
+        if (!w.w) { w.w = 2; w.h = 1; w.x = (i % 2) * 2; w.y = Math.floor(i / 2); }
+      });
+      renderDashboardWidgets();
+    } catch (e) { console.error('Error cargando widgets:', e); }
+  }
+
+  async function guardarWidgetEnSupabase(widget) {
+    try {
+      await apiFetch('dashboard_widgets', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: JSON.stringify(widget) });
+    } catch (e) { console.error('Error guardando widget:', e); }
+  }
+
+  async function borrarWidgetEnSupabase(id) {
+    try { await apiFetch(`dashboard_widgets?id=eq.${id}`, { method: 'DELETE' }); }
+    catch (e) { console.error('Error borrando widget:', e); }
+  }
+
+  function renderDashboardWidgets() {
+    const grid = document.getElementById('dashboard-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    dashboardWidgets.forEach(w => {
+      const wt = WIDGET_TYPES[w.type];
+      if (!wt) return;
+      const el = document.createElement('div');
+      el.className = 'dashboard-widget';
+      el.dataset.id = w.id;
+      el.style.left = `${w.x * 260}px`;
+      el.style.top = `${w.y * 160}px`;
+      el.style.width = `${w.w * 260 - 16}px`;
+      el.style.height = `${w.h * 160 - 16}px`;
+      el.innerHTML = `
+        <div class="widget-header">
+          <span class="widget-title">${wt.name}</span>
+          <div class="widget-actions">
+            <button class="btn-icon" onclick="editarWidget('${w.id}')" title="Editar"><i data-lucide="settings" width="14" height="14"></i></button>
+            <button class="btn-icon del" onclick="borrarWidget('${w.id}')" title="Quitar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+          </div>
+        </div>
+        <div class="widget-content" id="widget-content-${w.id}"></div>
+        <div class="resize-handle rh-se" data-dir="se"></div>
+        <div class="resize-handle rh-s" data-dir="s"></div>
+        <div class="resize-handle rh-e" data-dir="e"></div>
+      `;
+      grid.appendChild(el);
+      renderWidgetContent(w.type, document.getElementById(`widget-content-${w.id}`));
+      makeDraggable(el);
+      makeResizable(el);
+    });
+    lucide.createIcons();
+  }
+
+  function renderWidgetContent(type, container) {
+    if (!container) return;
+    switch (type) {
+      case 'metricas': renderMetricasWidget(container); break;
+      case 'stock': renderStockWidget(container); break;
+      case 'donut': renderDonutWidget(container); break;
+      case 'top': renderTopWidget(container); break;
+      case 'actividad': renderActividadWidget(container); break;
+      case 'gastos_cat': renderGastosCatWidget(container); break;
+      case 'ganancia': renderGananciaWidget(container); break;
+    }
+  }
+
+  // Mini-renders para cada widget (versión compacta)
+  function renderMetricasWidget(el) {
+    if (!pedidos.length) { el.innerHTML = '<div class="empty-state">Sin datos</div>'; return; }
+    const ent = pedidos.filter(p => p.estado === 'Entregado');
+    const ing = ent.reduce((s,p)=>s+(Number(p.precio_final)||0),0);
+    const tot = pedidos.length;
+    const pend = pedidos.filter(p=>p.estado==='Pendiente').length;
+    const prod = productos.length;
+    el.innerHTML = `<div class="metrics" style="grid-template-columns:1fr 1fr;gap:8px">
+      <div class="metric-card"><div class="metric-label">Facturación</div><div class="metric-value">${fmt(ent.reduce((s,p)=>s+(Number(p.precio_final)||0),0))}</div></div>
+      <div class="metric-card"><div class="metric-label">Pedidos</div><div class="metric-value">${tot}</div></div>
+      <div class="metric-card"><div class="metric-label">Pendientes</div><div class="metric-value">${pend}</div></div>
+      <div class="metric-card"><div class="metric-label">Productos</div><div class="metric-value">${productos.length}</div></div>
+    </div>`;
+    lucide.createIcons();
+  }
+
+  function renderStockWidget(el) { renderStockChart(); }
+  function renderDonutWidget(el) { 
+    const estados = ['Entregado','Impreso','Pendiente','Cancelado','Listo para retirar'];
+    const colores = ['#22c55e','#3b6ef6','#f97316','#ef4444','#a855f7'];
+    const total = pedidos.length;
+    el.innerHTML = `<div style="display:flex;gap:16px;align-items:center">
+      <div style="position:relative;width:100px;height:100px">
+        <svg width="100" height="100" viewBox="0 0 100 100"></svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:1.2rem;font-weight:700">${total}</div>
+          <div style="font-size:.6rem;color:#8b90a7">pedidos</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">${estados.map((e,i)=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${colores[i]}"></span><span style="font-size:.75rem">${e}: ${pedidos.filter(p=>p.estado===e).length}</span></div>`).join('')}</div>
+    </div>`;
+    lucide.createIcons();
+  }
+
+  function renderTopWidget(el) {
+    const ranking = {};
+    pedidos.forEach(p => { if (p.producto) ranking[p.producto] = (ranking[p.producto]||0) + (p.cantidad||1); });
+    const top = Object.entries(ranking).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    el.innerHTML = top.map(([n,c],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="width:20px;height:20px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i]};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700">${i+1}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem">${esc(n)}</span><span style="font-size:.7rem;color:#8b90a7">${c} u.</span></div>`).join('') || '<div class="empty-state">Sin datos</div>';
+  }
+
+  function renderActividadWidget(el) {
+    el.innerHTML = pedidos.slice(0,5).map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:.8rem">${esc(p.cliente)}</div><div style="font-size:.7rem;color:#8b90a7">${esc(p.producto)} · ${fmt(p.precio_final)}</div></div>`).join('') || '<div class="empty-state">Sin actividad</div>';
+  }
+
+  function renderGastosCatWidget(el) {
+    const porCat = {};
+    gastos.filter(g=>esMesActual(g.fecha)).forEach(g=>{ const c=g.categoria||'Sin cat.'; porCat[c]=(porCat[c]||0)+(Number(g.monto)||0); });
+    if (filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0) > 0) porCat['Filamento'] = (porCat['Filamento']||0) + filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0);
+    const cats = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const max = cats[0]?.[1]||1;
+    el.innerHTML = cats.map(([c,t],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><div style="width:8px;height:8px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i%5]}"></div><span style="flex:1;font-size:.75rem">${esc(c)}</span><span style="font-size:.7rem;color:#8b90a7">${fmt(t)}</span></div>`).join('') || '<div class="empty-state">Sin gastos este mes</div>';
+  }
+
+  function renderGananciaWidget(el) {
+    const ent = pedidos.filter(p=>p.estado==='Entregado' && esMesActual(p.fecha));
+    const ing = ent.reduce((s,p)=>s+(Number(p.precio_final)||0),0);
+    const gMes = gastos.filter(g=>esMesActual(g.fecha)).reduce((s,g)=>s+(Number(g.monto)||0),0);
+    const fMes = filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0);
+    const gan = ing - gMes - fMes;
+    const meta = Number(dashConfig.meta)||0;
+    el.innerHTML = `<div style="font-size:1.5rem;font-weight:700;color:${gan>=0?'var(--green)':'var(--red)'}">${fmt(gan)}</div><div style="font-size:.75rem;color:#8b90a7;margin-top:4px">${meta>0?`${Math.round(gan/meta*100)}% de la meta (${fmt(meta)})`:`Gastos: ${fmt(gMes+fMes)}`}</div>`;
+  }
+
+  // ── EDIT MODE ──
+  function toggleDashEdit() {
+    dashEditMode = !dashEditMode;
+    document.getElementById('dashboard-grid').classList.toggle('dashboard-edit-mode', dashEditMode);
+    document.getElementById('dash-edit-btn').classList.toggle('active', dashEditMode);
+    document.getElementById('dash-edit-btn').innerHTML = dashEditMode ? `<i data-lucide="layout" width="14" height="14"></i> Guardar layout` : `<i data-lucide="layout" width="14" height="14"></i> Editar layout`;
+    if (!dashEditMode) guardarLayoutEnSupabase();
+    lucide.createIcons();
+  }
+
+  function openAddWidgetPanel() {
+    const panel = document.getElementById('add-widget-panel');
+    panel.classList.add('open');
+    renderWidgetList();
+  }
+
+  function closeAddWidgetPanel() { document.getElementById('add-widget-panel').classList.remove('open'); }
+
+  function renderWidgetList() {
+    const list = document.getElementById('widget-list');
+    if (!list) return;
+    const existentes = new Set(dashboardWidgets.map(w=>w.type));
+    list.innerHTML = Object.values(WIDGET_TYPES).filter(wt => !existentes.has(wt.id)).map(wt => `
+      <div class="widget-item" onclick="añadirWidget('${wt.id}')">
+        <div class="widget-icon"><i data-lucide="${wt.icon}" width="20" height="20"></i></div>
+        <div class="widget-info">
+          <div class="widget-name">${wt.name}</div>
+          <div class="widget-desc">${wt.desc}</div>
+        </div>
+      </div>`).join('') || '<div style="padding:16px;color:#8b90a7">Todos los widgets ya están en el dashboard</div>';
+    lucide.createIcons();
+  }
+
+  function añadirWidget(type) {
+    const wt = WIDGET_TYPES[type]; if (!wt) return;
+    const nuevo = {
+      id: 'w_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+      type, x: dashboardWidgets.length % 2 * 2, y: Math.floor(dashboardWidgets.length / 2),
+      w: 2, h: 1, orden: dashboardWidgets.length
+    };
+    dashboardWidgets.push(nuevo);
+    renderDashboardWidgets();
+    guardarWidgetEnSupabase(nuevo);
+    closeAddWidgetPanel();
+    toast('Widget añadido', 'ok');
+  }
+
+  function borrarWidget(id) {
+    if (!confirm('Quitar este widget del dashboard?')) return;
+    dashboardWidgets = dashboardWidgets.filter(w => w.id !== id);
+    renderDashboardWidgets();
+    borrarWidgetEnSupabase(id);
+    toast('Widget quitado', 'ok');
+  }
+
+  function editarWidget(id) { toast('Configuración próximamente', 'ok'); }
+
+  // ── DRAG & RESIZE ──
+  function makeDraggable(el) {
+    el.onmousedown = e => {
+      if (!dashEditMode) return;
+      if (e.target.closest('.resize-handle, .widget-actions')) return;
+      const rect = el.getBoundingClientRect();
+      dragState = { el, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      document.body.style.userSelect = 'none';
+    };
+  }
+
+  function makeResizable(el) {
+    el.querySelectorAll('.resize-handle').forEach(h => {
+      h.onmousedown = e => {
+        e.stopPropagation();
+        if (!dashEditMode) return;
+        const rect = el.getBoundingClientRect();
+        dragState = { el, handle: e.target.dataset.dir, startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height, startLeft: rect.left, startTop: rect.top };
+        document.body.style.userSelect = 'none';
+      };
+    });
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (!dragState) return;
+    const { el, handle, startX, startY, startW, startH, startLeft, startTop } = dragState;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (handle) {
+      let nw = startW, nh = startH, nl = parseInt(el.style.left), nt = parseInt(el.style.top);
+      if (handle.includes('e')) nw = Math.max(200, startW + dx);
+      if (handle.includes('s')) nh = Math.max(120, startH + dy);
+      if (handle.includes('w')) { nw = Math.max(200, startW - dx); nl += startW - nw; }
+      if (handle.includes('n')) { nh = Math.max(120, startH - dy); nt += startH - nh; }
+      el.style.width = nw + 'px';
+      el.style.height = nh + 'px';
+      el.style.left = nl + 'px';
+      el.style.top = nt + 'px';
+    } else {
+      el.style.left = (startLeft + dx) + 'px';
+      el.style.top = (startTop + dy) + 'px';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (dragState && !dragState.handle) {
+      const el = dragState.el;
+      const x = Math.round(parseInt(el.style.left) / 260);
+      const y = Math.round(parseInt(el.style.top) / 160);
+      el.style.left = `${x * 260}px`;
+      el.style.top = `${y * 160}px`;
+      const w = Math.round(parseInt(el.style.width) / 260);
+      const h = Math.round(parseInt(el.style.height) / 160);
+      el.style.width = `${w * 260 - 16}px`;
+      el.style.height = `${h * 160 - 16}px`;
+      const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
+      if (wd) { wd.x = x; wd.y = y; wd.w = Math.max(1, w); wd.h = Math.max(1, h); guardarWidgetEnSupabase(wd); }
+    } else if (dragState && dragState.handle) {
+      const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
+      if (wd) {
+        wd.w = Math.max(1, Math.round(parseInt(dragState.el.style.width) / 260));
+        wd.h = Math.max(1, Math.round(parseInt(dragState.el.style.height) / 160));
+        wd.x = Math.round(parseInt(dragState.el.style.left) / 260);
+        wd.y = Math.round(parseInt(dragState.el.style.top) / 160);
+        guardarWidgetEnSupabase(wd);
+      }
+    }
+    dragState = null;
+    document.body.style.userSelect = '';
+  });
+
+  async function guardarLayoutEnSupabase() {
+    await Promise.all(dashboardWidgets.map((w,i) => apiFetch('dashboard_widgets', {
+      method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
+      body: JSON.stringify({ ...w, orden: i })
+    })));
+  }
+
+  // Hook en carga inicial
+  const oldCargarDash = cargarDashboardWidgets;
+  cargarDashboardWidgets = async () => { await oldCargarDash(); if (paginaActual === 'dashboard') renderDashboardWidgets(); };
+
+  // Tabla Supabase necesaria:
+  // create table dashboard_widgets (
+  //   id bigserial primary key,
+  //   user_id uuid default auth.uid(),
+  //   type text not null,
+  //   x int default 0, y int default 0, w int default 2, h int default 1, orden int default 0,
+  //   created_at timestamptz default now()
+  // );
+  // alter table dashboard_widgets enable row level security;
+  // create policy "own" on dashboard_widgets for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
   iniciarApp();
   window.addEventListener('load', () => lucide.createIcons());
 </script>
