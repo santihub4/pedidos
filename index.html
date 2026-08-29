@@ -104,10 +104,34 @@
 
     /* ── CHARTS ── */
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-    /* ── DASHBOARD GRID (4 cols, auto rows) ── */
-    .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; min-height: 400px; grid-auto-rows: 160px; }
-    .grid-cell { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
-    @media (max-width: 600px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* ── DASHBOARD GRAFANA ── */
+    .dashboard-grid { position: relative; min-height: 400px; }
+    .dashboard-widget { position: absolute; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; }
+    .dashboard-widget:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .dashboard-widget .widget-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); cursor: move; user-select: none; }
+    .dashboard-widget .widget-title { font-weight: 600; font-size: .85rem; }
+    .dashboard-widget .widget-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .dashboard-widget:hover .widget-actions { opacity: 1; }
+    .dashboard-widget .widget-content { padding: 14px; overflow: auto; }
+    .dashboard-edit-mode .dashboard-widget { border: 2px dashed #3b6ef6; }
+    .dashboard-edit-mode .dashboard-widget .widget-header { background: #eff4ff; }
+    .dashboard-edit-mode .dashboard-widget .widget-actions { opacity: 1; }
+    .resize-handle { position: absolute; background: #3b6ef6; opacity: 0; transition: opacity .15s; z-index: 10; }
+    .dashboard-edit-mode .resize-handle { opacity: .6; }
+    .dashboard-edit-mode .resize-handle:hover { opacity: 1; }
+    .rh-se { bottom: 0; right: 0; width: 16px; height: 16px; cursor: se-resize; }
+    .rh-s { bottom: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 6px; cursor: s-resize; }
+    .rh-e { right: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40px; cursor: e-resize; }
+    .add-widget-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background: var(--card-bg); border-left: 1px solid var(--border); box-shadow: -4px 0 24px rgba(0,0,0,.1); z-index: 200; transform: translateX(100%); transition: transform .25s; overflow-y: auto; }
+    .add-widget-panel.open { transform: translateX(0); }
+    .add-widget-panel header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .add-widget-panel .widget-list { padding: 16px; }
+    .widget-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+    .widget-item:hover { background: var(--blue-light); border-color: #c7d7fd; }
+    .widget-item .widget-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--blue-light); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .widget-item .widget-info { flex: 1; min-width: 0; }
+    .widget-item .widget-name { font-weight: 600; font-size: .85rem; }
+    .widget-item .widget-desc { font-size: .72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
     .card-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
     .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 160px; padding-top: 10px; }
@@ -494,6 +518,11 @@
 
       <div class="stats-toolbar">
         <div class="card-title">Resumen configurable</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="toggleDashConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+          <button class="btn-primary" onclick="toggleDashEdit()" id="dash-edit-btn" style="background:var(--purple)"><i data-lucide="layout" width="14" height="14"></i> Editar layout</button>
+          <button class="btn-primary" onclick="openAddWidgetPanel()" id="dash-add-btn"><i data-lucide="plus" width="14" height="14"></i> Añadir widget</button>
+        </div>
       </div>
       <div class="stats-config" id="dash-config">
         <div class="card-title">Que mostrar y en que orden</div>
@@ -501,8 +530,119 @@
         <div class="stats-config-list" id="dash-config-list"></div>
       </div>
       <div class="dashboard-grid" id="dashboard-grid">
-        <!-- Grid vacío - 4 cols, auto rows -->
+      <!-- MÉTRICAS -->
+      <div id="dash-sec-metricas" style="grid-column:1/-1">
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Facturacion entregada</div>
+            <div class="metric-icon green"><i data-lucide="banknote" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-ingresos">—</div>
+          <div class="metric-sub" id="m-ingresos-sub"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Pedidos totales</div>
+            <div class="metric-icon blue"><i data-lucide="shopping-bag" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-total">—</div>
+          <div class="metric-sub" id="m-total-sub"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Ticket promedio</div>
+            <div class="metric-icon orange"><i data-lucide="trending-up" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-ticket">—</div>
+          <div class="metric-sub" id="m-ticket-sub"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Productos activos</div>
+            <div class="metric-icon purple"><i data-lucide="box" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-productos">—</div>
+          <div class="metric-sub" id="m-productos-sub"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-label">Ganancia del mes</div>
+            <div class="metric-icon green"><i data-lucide="piggy-bank" width="16" height="16"></i></div>
+          </div>
+          <div class="metric-value" id="m-ganancia">—</div>
+          <div class="metric-sub" id="m-ganancia-sub"></div>
+        </div>
+      </div>
+      </div>
 
+<div id="dash-sec-linea">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap">
+              <div>
+                <div class="card-title">Facturacion mensual</div>
+                <div class="card-sub">Pedidos entregados - granularidad diaria</div>
+              </div>
+              <div class="cd-wrap" id="cd-rango-fact-wrap" style="width:160px;flex-shrink:0">
+                <button type="button" class="cd-trigger" id="cd-rango-fact-trigger" onclick="toggleCd('rango-fact')" style="padding:8px 36px 8px 12px;font-size:0.8rem">
+                  <span id="cd-rango-fact-label">6 meses</span>
+                  <i data-lucide="chevron-down" width="12" height="12"></i>
+                </button>
+                <div class="cd-menu" id="cd-rango-fact-menu">
+                  <div class="cd-option selected" onclick="seleccionarRangoFact('all')">Todo el historial</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1y')">1 año</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('6m')">6 meses</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('3m')">3 meses</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1m')">1 mes</div>
+                  <div class="cd-option" onclick="seleccionarRangoFact('1w')">1 semana</div>
+                </div>
+                <input type="hidden" id="rango-facturacion" value="6m"/>
+              </div>
+            </div>
+            <div style="position:relative;height:220px;touch-action:pan-y">
+              <svg id="stock-chart" width="100%" height="100%" style="display:block;touch-action:none"></svg>
+              <div id="stock-tooltip" style="position:absolute;pointer-events:none;background:#1a1d2e;color:#fff;padding:8px 12px;border-radius:8px;font-size:.75rem;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .15s;z-index:10;white-space:nowrap"></div>
+            </div>
+          </div>
+        </div>
+
+      <!-- DONUT -->
+      <div id="dash-sec-donut">
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="card-title">Estado de pedidos</div>
+          <div class="card-sub">Como se distribuye tu trabajo actual</div>
+          <div style="display:flex;align-items:center;gap:20px;flex:1">
+            <div style="position:relative;flex-shrink:0">
+              <svg id="donut-chart" width="130" height="130" viewBox="0 0 130 130"></svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                <div style="font-size:1.3rem;font-weight:700" id="donut-total">—</div>
+                <div style="font-size:0.65rem;color:#8b90a7">pedidos</div>
+              </div>
+            </div>
+            <div class="estado-list" id="estado-dist" style="flex:1;gap:10px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP PRODUCTOS -->
+      <div id="dash-sec-top">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:4px">Productos mas vendidos</div>
+          <div class="card-sub">Ordenados por unidades pedidas</div>
+          <div id="top-productos"></div>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD RECIENTE -->
+      <div id="dash-sec-actividad">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:4px">Actividad reciente</div>
+          <div class="card-sub">Ultimos movimientos registrados</div>
+<div id="actividad-reciente"></div>
+        </div>
+      </div>
+      </div>
+    </div>
     </div>
 
     <!-- ESTADISTICAS -->
@@ -1655,8 +1795,6 @@
   function renderDashboard() {
     aplicarDashLayout();
     if (!pedidos.length) return;
-    // Verificar si los elementos del dashboard antiguo existen
-    if (!document.getElementById('m-ingresos')) return;
 
     const entregadosList = pedidos.filter(p => p.estado === 'Entregado');
     const total      = pedidos.length;
@@ -3370,40 +3508,15 @@ lucide.createIcons();
   });
 
   // ── DASHBOARD WIDGETS (Grafana style) ──
-const WIDGET_TYPES = {
-    metricas: { id: 'metricas', name: 'Métricas', desc: '4 tarjetas: ingresos, pedidos, ticket, productos', icon: 'layout-dashboard', sizePresets: ['4x1', '4x2', '12x1'] },
-    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up', sizePresets: ['6x2', '4x2', '12x1'] },
-    donut: { id: 'donut', name: 'Estado de pedidos', desc: 'Donut con distribución de estados', icon: 'pie-chart', sizePresets: ['2x2', '3x2', '4x2'] },
-    top: { id: 'top', name: 'Top productos', desc: 'Productos más vendidos con barras', icon: 'bar-chart-2', sizePresets: ['2x2', '3x2', '4x2'] },
-    actividad: { id: 'actividad', name: 'Actividad reciente', desc: 'Últimos 8 pedidos registrados', icon: 'activity', sizePresets: ['2x2', '2x3', '4x2'] },
-    gastos_cat: { id: 'gastos_cat', name: 'Gastos por categoría', desc: 'Barras de gastos del mes por categoría', icon: 'pie-chart', sizePresets: ['2x2', '3x2', '4x2'] },
-    ganancia: { id: 'ganancia', name: 'Ganancia del mes', desc: 'Tarjeta grande con meta opcional', icon: 'piggy-bank', sizePresets: ['1x1', '2x1', '2x2'] },
+  const WIDGET_TYPES = {
+    metricas: { id: 'metricas', name: 'Métricas', desc: '4 tarjetas: ingresos, pedidos, ticket, productos', icon: 'layout-dashboard' },
+    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' },
+    donut: { id: 'donut', name: 'Estado de pedidos', desc: 'Donut con distribución de estados', icon: 'pie-chart' },
+    top: { id: 'top', name: 'Top productos', desc: 'Productos más vendidos con barras', icon: 'bar-chart-2' },
+    actividad: { id: 'actividad', name: 'Actividad reciente', desc: 'Últimos 8 pedidos registrados', icon: 'activity' },
+    gastos_cat: { id: 'gastos_cat', name: 'Gastos por categoría', desc: 'Barras de gastos del mes por categoría', icon: 'pie-chart' },
+    ganancia: { id: 'ganancia', name: 'Ganancia del mes', desc: 'Tarjeta grande con meta opcional', icon: 'piggy-bank' },
   };
-
-  // Android-style size presets: key -> {w, h}
-  const SIZE_PRESETS = {
-    '1x1': { w: 1, h: 1 },
-    '2x1': { w: 2, h: 1 },
-    '2x2': { w: 2, h: 2 },
-    '3x1': { w: 3, h: 1 },
-    '3x2': { w: 3, h: 2 },
-    '4x1': { w: 4, h: 1 },
-    '4x2': { w: 4, h: 2 },
-    '4x3': { w: 4, h: 3 },
-    '6x1': { w: 6, h: 1 },
-    '6x2': { w: 6, h: 2 },
-    '12x1': { w: 12, h: 1 },
-  };
-
-  function applySizePreset(widget, presetKey) {
-    const preset = SIZE_PRESETS[presetKey];
-    if (!preset) return;
-    widget.w = preset.w;
-    widget.h = preset.h;
-    // Asegurar que no se salga del grid
-    if (widget.x + widget.w > 12) widget.x = 12 - widget.w;
-    if (widget.y + widget.h > 4) widget.y = 4 - widget.h;
-  }
 
   let dashboardWidgets = []; // { id, type, x, y, w, h, order }
   let dashEditMode = false;
@@ -3438,12 +3551,13 @@ const WIDGET_TYPES = {
     dashboardWidgets.forEach(w => {
       const wt = WIDGET_TYPES[w.type];
       if (!wt) return;
-      const sizeClass = `size-${w.w}x${w.h}`;
       const el = document.createElement('div');
-      el.className = `dashboard-widget ${sizeClass}`;
+      el.className = 'dashboard-widget';
       el.dataset.id = w.id;
-      el.style.gridColumn = `${w.x + 1} / ${w.x + 1 + w.w}`;
-      el.style.gridRow = `${w.y + 1} / ${w.y + 1 + w.h}`;
+      el.style.left = `${w.x * 260}px`;
+      el.style.top = `${w.y * 160}px`;
+      el.style.width = `${w.w * 260 - 16}px`;
+      el.style.height = `${w.h * 160 - 16}px`;
       el.innerHTML = `
         <div class="widget-header">
           <span class="widget-title">${wt.name}</span>
@@ -3478,7 +3592,7 @@ const WIDGET_TYPES = {
     }
   }
 
-  // Mini-renders para cada widget (versión compacta con colores y badges)
+  // Mini-renders para cada widget (versión compacta)
   function renderMetricasWidget(el) {
     if (!pedidos.length) { el.innerHTML = '<div class="empty-state">Sin datos</div>'; return; }
     const ent = pedidos.filter(p => p.estado === 'Entregado');
@@ -3487,17 +3601,16 @@ const WIDGET_TYPES = {
     const pend = pedidos.filter(p=>p.estado==='Pendiente').length;
     const prod = productos.length;
     el.innerHTML = `<div class="metrics" style="grid-template-columns:1fr 1fr;gap:8px">
-      <div class="metric-card"><div class="metric-header"><div class="metric-label">Facturación</div><div class="metric-icon green"><i data-lucide="banknote" width="16" height="16"></i></div></div><div class="metric-value">${fmt(ing)}</div></div>
-      <div class="metric-card"><div class="metric-header"><div class="metric-label">Pedidos</div><div class="metric-icon blue"><i data-lucide="shopping-bag" width="16" height="16"></i></div></div><div class="metric-value">${pedidos.length}</div></div>
-      <div class="metric-card"><div class="metric-header"><div class="metric-label">Pendientes</div><div class="metric-icon orange"><i data-lucide="clock" width="16" height="16"></i></div></div><div class="metric-value">${pedidos.filter(p=>p.estado==='Pendiente').length}</div></div>
-      <div class="metric-card"><div class="metric-header"><div class="metric-label">Productos</div><div class="metric-icon purple"><i data-lucide="box" width="16" height="16"></i></div></div><div class="metric-value">${productos.length}</div></div>
+      <div class="metric-card"><div class="metric-label">Facturación</div><div class="metric-value">${fmt(ent.reduce((s,p)=>s+(Number(p.precio_final)||0),0))}</div></div>
+      <div class="metric-card"><div class="metric-label">Pedidos</div><div class="metric-value">${tot}</div></div>
+      <div class="metric-card"><div class="metric-label">Pendientes</div><div class="metric-value">${pend}</div></div>
+      <div class="metric-card"><div class="metric-label">Productos</div><div class="metric-value">${productos.length}</div></div>
     </div>`;
     lucide.createIcons();
   }
 
   function renderStockWidget(el) { renderStockChart(); }
-
-  function renderDonutWidget(el) {
+  function renderDonutWidget(el) { 
     const estados = ['Entregado','Impreso','Pendiente','Cancelado','Listo para retirar'];
     const colores = ['#22c55e','#3b6ef6','#f97316','#ef4444','#a855f7'];
     const total = pedidos.length;
@@ -3509,7 +3622,7 @@ const WIDGET_TYPES = {
           <div style="font-size:.6rem;color:#8b90a7">pedidos</div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px">${estados.map((e,i)=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${colores[i]}"></span><span style="font-size:.75rem">${e}: <span class="badge ${badgeClass(e)}" style="font-size:.7rem;padding:2px 6px">${pedidos.filter(p=>p.estado===e).length}</span></span></div>`).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">${estados.map((e,i)=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${colores[i]}"></span><span style="font-size:.75rem">${e}: ${pedidos.filter(p=>p.estado===e).length}</span></div>`).join('')}</div>
     </div>`;
     lucide.createIcons();
   }
@@ -3522,16 +3635,16 @@ const WIDGET_TYPES = {
   }
 
   function renderActividadWidget(el) {
-    el.innerHTML = pedidos.slice(0,8).map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:.8rem">${esc(p.cliente)}</div><div style="font-size:.7rem;color:#8b90a7">${esc(p.producto)}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="badge ${badgeClass(p.estado)}" style="font-size:.65rem;padding:2px 6px">${esc(p.estado||'—')}</span><span style="font-size:.75rem;font-weight:600">${fmt(p.precio_final)}</span></div></div>`).join('') || '<div class="empty-state">Sin actividad</div>';
+    el.innerHTML = pedidos.slice(0,5).map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:.8rem">${esc(p.cliente)}</div><div style="font-size:.7rem;color:#8b90a7">${esc(p.producto)} · ${fmt(p.precio_final)}</div></div>`).join('') || '<div class="empty-state">Sin actividad</div>';
   }
 
   function renderGastosCatWidget(el) {
     const porCat = {};
     gastos.filter(g=>esMesActual(g.fecha)).forEach(g=>{ const c=g.categoria||'Sin cat.'; porCat[c]=(porCat[c]||0)+(Number(g.monto)||0); });
     if (filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0) > 0) porCat['Filamento'] = (porCat['Filamento']||0) + filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0);
-    const cats = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const cats = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const max = cats[0]?.[1]||1;
-    el.innerHTML = cats.map(([c,t],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div style="width:10px;height:10px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444','#0ea5e9'][i%6]}"></div><span style="flex:1;font-size:.75rem">${esc(c)}</span><span style="font-size:.7rem;color:#8b90a7">${fmt(t)}</span></div>`).join('') || '<div class="empty-state">Sin gastos este mes</div>';
+    el.innerHTML = cats.map(([c,t],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><div style="width:8px;height:8px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i%5]}"></div><span style="flex:1;font-size:.75rem">${esc(c)}</span><span style="font-size:.7rem;color:#8b90a7">${fmt(t)}</span></div>`).join('') || '<div class="empty-state">Sin gastos este mes</div>';
   }
 
   function renderGananciaWidget(el) {
@@ -3601,72 +3714,15 @@ const WIDGET_TYPES = {
 
   function editarWidget(id) { toast('Configuración próximamente', 'ok'); }
 
-  // ── DRAG & RESIZE (Android-style con ghost preview) ──
-  let ghostEl = null;
-  let placeholderEl = null;
-
+  // ── DRAG & RESIZE ──
   function makeDraggable(el) {
     el.onmousedown = e => {
       if (!dashEditMode) return;
       if (e.target.closest('.resize-handle, .widget-actions')) return;
-      const style = window.getComputedStyle(el);
-      const gridCol = parseInt(style.gridColumn?.split('/')[0]) || 1;
-      const gridRow = parseInt(style.gridRow?.split('/')[0]) || 1;
-      const gridColEnd = parseInt(style.gridColumn?.split('/')[1]) || gridCol + 1;
-      const gridRowEnd = parseInt(style.gridRow?.split('/')[1]) || gridRow + 1;
-      const w = gridColEnd - gridCol;
-      const h = gridRowEnd - gridRow;
-      dragState = { el, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, w, h };
-      placeholderEl = document.createElement('div');
-      placeholderEl.className = 'dashboard-widget placeholder';
-      placeholderEl.style.gridColumn = `${gridCol} / ${gridColEnd}`;
-      placeholderEl.style.gridRow = `${gridRow} / ${gridRowEnd}`;
-      placeholderEl.style.background = 'transparent';
-      placeholderEl.style.border = '2px dashed #3b6ef6';
-      placeholderEl.style.opacity = '0.3';
-      el.parentNode.insertBefore(placeholderEl, el.nextSibling);
-      ghostEl = el.cloneNode(true);
-      ghostEl.classList.add('ghost', 'dragging');
-      ghostEl.style.width = el.offsetWidth + 'px';
-      ghostEl.style.height = el.offsetHeight + 'px';
-      ghostEl.style.position = 'fixed';
-      ghostEl.style.zIndex = '9999';
-      ghostEl.style.pointerEvents = 'none';
-      document.body.appendChild(ghostEl);
-      el.style.visibility = 'hidden';
-      updateGhostPosition(e.clientX, e.clientY);
+      const rect = el.getBoundingClientRect();
+      dragState = { el, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
       document.body.style.userSelect = 'none';
     };
-  }
-
-  function findDropPosition(clientX, clientY) {
-    const grid = document.getElementById('dashboard-grid');
-    if (!grid) return null;
-    const rect = grid.getBoundingClientRect();
-    const colWidth = rect.width / 12;
-    const rowHeight = 160;
-    const relX = clientX - rect.left;
-    const relY = clientY - rect.top;
-    if (relX < 0 || relY < 0 || relX > rect.width || relY > rect.height) return null;
-    let col = Math.max(1, Math.min(12, Math.floor(relX / (rect.width / 12)) + 1));
-    let row = Math.max(1, Math.min(4, Math.floor(relY / 160) + 1));
-    return { col, row };
-  }
-
-  function updateGhostPosition(clientX, clientY) {
-    if (!ghostEl) return;
-    const drop = findDropPosition(clientX, clientY);
-    if (drop) {
-      ghostEl.style.left = (clientX - ghostEl.offsetWidth / 2) + 'px';
-      ghostEl.style.top = (clientY - ghostEl.offsetHeight / 2) + 'px';
-      if (placeholderEl) {
-        placeholderEl.style.gridColumn = `${drop.col} / ${drop.col + dragState.w}`;
-        placeholderEl.style.gridRow = `${drop.row} / ${drop.row + dragState.h}`;
-      }
-    } else {
-      ghostEl.style.left = (clientX - ghostEl.offsetWidth / 2) + 'px';
-      ghostEl.style.top = (clientY - ghostEl.offsetHeight / 2) + 'px';
-    }
   }
 
   function makeResizable(el) {
@@ -3674,14 +3730,8 @@ const WIDGET_TYPES = {
       h.onmousedown = e => {
         e.stopPropagation();
         if (!dashEditMode) return;
-        const style = window.getComputedStyle(el);
-        const gridCol = parseInt(style.gridColumn?.split('/')[0]) || 1;
-        const gridRow = parseInt(style.gridRow?.split('/')[0]) || 1;
-        const gridColEnd = parseInt(style.gridColumn?.split('/')[1]) || gridCol + 1;
-        const gridRowEnd = parseInt(style.gridRow?.split('/')[1]) || gridRow + 1;
-        const w = gridColEnd - gridCol;
-        const h = gridRowEnd - gridRow;
-        dragState = { el, handle: h.dataset.dir, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, w, h };
+        const rect = el.getBoundingClientRect();
+        dragState = { el, handle: e.target.dataset.dir, startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height, startLeft: rect.left, startTop: rect.top };
         document.body.style.userSelect = 'none';
       };
     });
@@ -3689,52 +3739,50 @@ const WIDGET_TYPES = {
 
   document.addEventListener('mousemove', e => {
     if (!dragState) return;
-    const { el, handle, startX, startY, startCol, startRow, w, h } = dragState;
+    const { el, handle, startX, startY, startW, startH, startLeft, startTop } = dragState;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (handle) {
-      let newW = w, newH = h;
-      if (handle.includes('e')) newW = Math.max(1, Math.min(12, w + Math.round(dx / 260)));
-      if (handle.includes('s')) newH = Math.max(1, Math.min(4, h + Math.round(dy / 160)));
-      if (handle.includes('w')) newW = Math.max(1, Math.min(12, w - Math.round(dx / 260)));
-      if (handle.includes('n')) newH = Math.max(1, Math.min(4, h - Math.round(dy / 160)));
-      const col = parseInt(el.style.gridColumn?.split('/')[0]) || 1;
-      const row = parseInt(el.style.gridRow?.split('/')[0]) || 1;
-      newW = Math.min(newW, 13 - col);
-      newH = Math.min(newH, 5 - row);
-      el.style.gridColumn = `${col} / ${col + newW}`;
-      el.style.gridRow = `${row} / ${row + newH}`;
+      let nw = startW, nh = startH, nl = parseInt(el.style.left), nt = parseInt(el.style.top);
+      if (handle.includes('e')) nw = Math.max(200, startW + dx);
+      if (handle.includes('s')) nh = Math.max(120, startH + dy);
+      if (handle.includes('w')) { nw = Math.max(200, startW - dx); nl += startW - nw; }
+      if (handle.includes('n')) { nh = Math.max(120, startH - dy); nt += startH - nh; }
+      el.style.width = nw + 'px';
+      el.style.height = nh + 'px';
+      el.style.left = nl + 'px';
+      el.style.top = nt + 'px';
     } else {
-      updateGhostPosition(e.clientX, e.clientY);
+      el.style.left = (startLeft + dx) + 'px';
+      el.style.top = (startTop + dy) + 'px';
     }
   });
 
   document.addEventListener('mouseup', () => {
-    if (dragState) {
-      const { el, handle, startCol, startRow, w, h } = dragState;
-      if (ghostEl) { ghostEl.remove(); ghostEl = null; }
-      if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
-      if (el) el.style.visibility = 'visible';
-      if (!handle) {
-        const style = window.getComputedStyle(el);
-        const col = parseInt(style.gridColumn?.split('/')[0]) || 1;
-        const row = parseInt(style.gridRow?.split('/')[0]) || 1;
-        const colEnd = parseInt(style.gridColumn?.split('/')[1]) || col + 1;
-        const rowEnd = parseInt(style.gridRow?.split('/')[1]) || row + 1;
-        const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
-        if (wd) { wd.x = col - 1; wd.y = row - 1; wd.w = colEnd - col; wd.h = rowEnd - row; guardarWidgetEnSupabase(wd); }
-      } else if (handle) {
-        const style = window.getComputedStyle(el);
-        const col = parseInt(style.gridColumn?.split('/')[0]) || 1;
-        const row = parseInt(style.gridRow?.split('/')[0]) || 1;
-        const colEnd = parseInt(style.gridColumn?.split('/')[1]) || col + 1;
-        const rowEnd = parseInt(style.gridRow?.split('/')[1]) || row + 1;
-        const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
-        if (wd) { wd.w = colEnd - col; wd.h = rowEnd - row; wd.x = col - 1; wd.y = row - 1; guardarWidgetEnSupabase(wd); }
+    if (dragState && !dragState.handle) {
+      const el = dragState.el;
+      const x = Math.round(parseInt(el.style.left) / 260);
+      const y = Math.round(parseInt(el.style.top) / 160);
+      el.style.left = `${x * 260}px`;
+      el.style.top = `${y * 160}px`;
+      const w = Math.round(parseInt(el.style.width) / 260);
+      const h = Math.round(parseInt(el.style.height) / 160);
+      el.style.width = `${w * 260 - 16}px`;
+      el.style.height = `${h * 160 - 16}px`;
+      const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
+      if (wd) { wd.x = x; wd.y = y; wd.w = Math.max(1, w); wd.h = Math.max(1, h); guardarWidgetEnSupabase(wd); }
+    } else if (dragState && dragState.handle) {
+      const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
+      if (wd) {
+        wd.w = Math.max(1, Math.round(parseInt(dragState.el.style.width) / 260));
+        wd.h = Math.max(1, Math.round(parseInt(dragState.el.style.height) / 160));
+        wd.x = Math.round(parseInt(dragState.el.style.left) / 260);
+        wd.y = Math.round(parseInt(dragState.el.style.top) / 160);
+        guardarWidgetEnSupabase(wd);
       }
-      dragState = null;
-      document.body.style.userSelect = '';
     }
+    dragState = null;
+    document.body.style.userSelect = '';
   });
 
   async function guardarLayoutEnSupabase() {
