@@ -106,15 +106,17 @@
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     /* ── DASHBOARD GRAFANA ── */
     .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; min-height: 400px; grid-auto-flow: dense; }
-    .dashboard-widget { position: relative; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; min-height: 120px; }
+    .dashboard-widget { position: relative; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s, transform .15s; min-height: 120px; }
     .dashboard-widget:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
-    .dashboard-widget .widget-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); cursor: move; user-select: none; }
+    .dashboard-widget.dragging { opacity: 0.4; pointer-events: none; }
+    .dashboard-widget.ghost { position: fixed; z-index: 1000; pointer-events: none; opacity: 0.3; border: 2px dashed #3b6ef6; border-radius: 12px; background: rgba(59,110,246,0.1); }
+    .dashboard-widget .widget-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); cursor: grab; user-select: none; }
     .dashboard-widget .widget-title { font-weight: 600; font-size: .85rem; }
     .dashboard-widget .widget-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
     .dashboard-widget:hover .widget-actions { opacity: 1; }
     .dashboard-widget .widget-content { padding: 14px; overflow: auto; }
     .dashboard-edit-mode .dashboard-widget { border: 2px dashed #3b6ef6; }
-    .dashboard-edit-mode .dashboard-widget .widget-header { background: #eff4ff; }
+    .dashboard-edit-mode .dashboard-widget .widget-header { background: #eff4ff; cursor: grab; }
     .dashboard-edit-mode .dashboard-widget .widget-actions { opacity: 1; }
     .resize-handle { position: absolute; background: #3b6ef6; opacity: 0; transition: opacity .15s; z-index: 10; }
     .dashboard-edit-mode .resize-handle { opacity: .6; }
@@ -122,10 +124,24 @@
     .rh-se { bottom: 0; right: 0; width: 16px; height: 16px; cursor: se-resize; }
     .rh-s { bottom: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 6px; cursor: s-resize; }
     .rh-e { right: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40px; cursor: e-resize; }
-    /* Tamaños de widget en celdas (12 columnas) */
+    /* Tamaños Android-style (grid 12 cols × 4 rows) */
     .w-1 { grid-column: span 1; } .w-2 { grid-column: span 2; } .w-3 { grid-column: span 3; } .w-4 { grid-column: span 4; } .w-6 { grid-column: span 6; } .w-12 { grid-column: span 12; }
     .h-1 { grid-row: span 1; } .h-2 { grid-row: span 2; } .h-3 { grid-row: span 3; } .h-4 { grid-row: span 4; }
-    @media (max-width: 900px) { .dashboard-widget { grid-column: span 12 !important; } }
+    /* Android widget sizes presets */
+    .size-1x1 { grid-column: span 1; grid-row: span 1; }
+    .size-2x1 { grid-column: span 2; grid-row: span 1; }
+    .size-2x2 { grid-column: span 2; grid-row: span 2; }
+    .size-3x2 { grid-column: span 3; grid-row: span 2; }
+    .size-4x1 { grid-column: span 4; grid-row: span 1; }
+    .size-4x2 { grid-column: span 4; grid-row: span 2; }
+    .size-4x3 { grid-column: span 4; grid-row: span 3; }
+    .size-6x1 { grid-column: span 6; grid-row: span 1; }
+    .size-6x2 { grid-column: span 6; grid-row: span 2; }
+    .size-12x1 { grid-column: span 12; grid-row: span 1; }
+    @media (max-width: 900px) { 
+      .dashboard-widget { grid-column: span 12 !important; grid-row: span auto !important; }
+      .dashboard-widget .resize-handle { display: none; }
+    }
     .add-widget-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background: var(--card-bg); border-left: 1px solid var(--border); box-shadow: -4px 0 24px rgba(0,0,0,.1); z-index: 200; transform: translateX(100%); transition: transform .25s; overflow-y: auto; }
     .add-widget-panel.open { transform: translateX(0); }
     .add-widget-panel header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
@@ -3512,15 +3528,40 @@ lucide.createIcons();
   });
 
   // ── DASHBOARD WIDGETS (Grafana style) ──
-  const WIDGET_TYPES = {
-    metricas: { id: 'metricas', name: 'Métricas', desc: '4 tarjetas: ingresos, pedidos, ticket, productos', icon: 'layout-dashboard' },
-    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' },
-    donut: { id: 'donut', name: 'Estado de pedidos', desc: 'Donut con distribución de estados', icon: 'pie-chart' },
-    top: { id: 'top', name: 'Top productos', desc: 'Productos más vendidos con barras', icon: 'bar-chart-2' },
-    actividad: { id: 'actividad', name: 'Actividad reciente', desc: 'Últimos 8 pedidos registrados', icon: 'activity' },
-    gastos_cat: { id: 'gastos_cat', name: 'Gastos por categoría', desc: 'Barras de gastos del mes por categoría', icon: 'pie-chart' },
-    ganancia: { id: 'ganancia', name: 'Ganancia del mes', desc: 'Tarjeta grande con meta opcional', icon: 'piggy-bank' },
+const WIDGET_TYPES = {
+    metricas: { id: 'metricas', name: 'Métricas', desc: '4 tarjetas: ingresos, pedidos, ticket, productos', icon: 'layout-dashboard', sizePresets: ['4x1', '4x2', '12x1'] },
+    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up', sizePresets: ['6x2', '4x2', '12x1'] },
+    donut: { id: 'donut', name: 'Estado de pedidos', desc: 'Donut con distribución de estados', icon: 'pie-chart', sizePresets: ['2x2', '3x2', '4x2'] },
+    top: { id: 'top', name: 'Top productos', desc: 'Productos más vendidos con barras', icon: 'bar-chart-2', sizePresets: ['2x2', '3x2', '4x2'] },
+    actividad: { id: 'actividad', name: 'Actividad reciente', desc: 'Últimos 8 pedidos registrados', icon: 'activity', sizePresets: ['2x2', '2x3', '4x2'] },
+    gastos_cat: { id: 'gastos_cat', name: 'Gastos por categoría', desc: 'Barras de gastos del mes por categoría', icon: 'pie-chart', sizePresets: ['2x2', '3x2', '4x2'] },
+    ganancia: { id: 'ganancia', name: 'Ganancia del mes', desc: 'Tarjeta grande con meta opcional', icon: 'piggy-bank', sizePresets: ['1x1', '2x1', '2x2'] },
   };
+
+  // Android-style size presets: key -> {w, h}
+  const SIZE_PRESETS = {
+    '1x1': { w: 1, h: 1 },
+    '2x1': { w: 2, h: 1 },
+    '2x2': { w: 2, h: 2 },
+    '3x1': { w: 3, h: 1 },
+    '3x2': { w: 3, h: 2 },
+    '4x1': { w: 4, h: 1 },
+    '4x2': { w: 4, h: 2 },
+    '4x3': { w: 4, h: 3 },
+    '6x1': { w: 6, h: 1 },
+    '6x2': { w: 6, h: 2 },
+    '12x1': { w: 12, h: 1 },
+  };
+
+  function applySizePreset(widget, presetKey) {
+    const preset = SIZE_PRESETS[presetKey];
+    if (!preset) return;
+    widget.w = preset.w;
+    widget.h = preset.h;
+    // Asegurar que no se salga del grid
+    if (widget.x + widget.w > 12) widget.x = 12 - widget.w;
+    if (widget.y + widget.h > 4) widget.y = 4 - widget.h;
+  }
 
   let dashboardWidgets = []; // { id, type, x, y, w, h, order }
   let dashEditMode = false;
@@ -3555,9 +3596,12 @@ lucide.createIcons();
     dashboardWidgets.forEach(w => {
       const wt = WIDGET_TYPES[w.type];
       if (!wt) return;
+      const sizeClass = `size-${w.w}x${w.h}`;
       const el = document.createElement('div');
-      el.className = `dashboard-widget w-${w.w} h-${w.h}`;
+      el.className = `dashboard-widget ${sizeClass}`;
       el.dataset.id = w.id;
+      el.style.gridColumn = `${w.x + 1} / ${w.x + 1 + w.w}`;
+      el.style.gridRow = `${w.y + 1} / ${w.y + 1 + w.h}`;
       el.innerHTML = `
         <div class="widget-header">
           <span class="widget-title">${wt.name}</span>
@@ -3715,14 +3759,72 @@ lucide.createIcons();
 
   function editarWidget(id) { toast('Configuración próximamente', 'ok'); }
 
-  // ── DRAG & RESIZE ──
+  // ── DRAG & RESIZE (Android-style con ghost preview) ──
+  let ghostEl = null;
+  let placeholderEl = null;
+
   function makeDraggable(el) {
     el.onmousedown = e => {
       if (!dashEditMode) return;
       if (e.target.closest('.resize-handle, .widget-actions')) return;
-      dragState = { el, startX: e.clientX, startY: e.clientY };
+      const style = window.getComputedStyle(el);
+      const gridCol = parseInt(style.gridColumn?.split('/')[0]) || 1;
+      const gridRow = parseInt(style.gridRow?.split('/')[0]) || 1;
+      const gridColEnd = parseInt(style.gridColumn?.split('/')[1]) || gridCol + 1;
+      const gridRowEnd = parseInt(style.gridRow?.split('/')[1]) || gridRow + 1;
+      const w = gridColEnd - gridCol;
+      const h = gridRowEnd - gridRow;
+      dragState = { el, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, w, h };
+      placeholderEl = document.createElement('div');
+      placeholderEl.className = 'dashboard-widget placeholder';
+      placeholderEl.style.gridColumn = `${gridCol} / ${gridColEnd}`;
+      placeholderEl.style.gridRow = `${gridRow} / ${gridRowEnd}`;
+      placeholderEl.style.background = 'transparent';
+      placeholderEl.style.border = '2px dashed #3b6ef6';
+      placeholderEl.style.opacity = '0.3';
+      el.parentNode.insertBefore(placeholderEl, el.nextSibling);
+      ghostEl = el.cloneNode(true);
+      ghostEl.classList.add('ghost', 'dragging');
+      ghostEl.style.width = el.offsetWidth + 'px';
+      ghostEl.style.height = el.offsetHeight + 'px';
+      ghostEl.style.position = 'fixed';
+      ghostEl.style.zIndex = '9999';
+      ghostEl.style.pointerEvents = 'none';
+      document.body.appendChild(ghostEl);
+      el.style.visibility = 'hidden';
+      updateGhostPosition(e.clientX, e.clientY);
       document.body.style.userSelect = 'none';
     };
+  }
+
+  function findDropPosition(clientX, clientY) {
+    const grid = document.getElementById('dashboard-grid');
+    if (!grid) return null;
+    const rect = grid.getBoundingClientRect();
+    const colWidth = rect.width / 12;
+    const rowHeight = 160;
+    const relX = clientX - rect.left;
+    const relY = clientY - rect.top;
+    if (relX < 0 || relY < 0 || relX > rect.width || relY > rect.height) return null;
+    let col = Math.max(1, Math.min(12, Math.floor(relX / (rect.width / 12)) + 1));
+    let row = Math.max(1, Math.min(4, Math.floor(relY / 160) + 1));
+    return { col, row };
+  }
+
+  function updateGhostPosition(clientX, clientY) {
+    if (!ghostEl) return;
+    const drop = findDropPosition(clientX, clientY);
+    if (drop) {
+      ghostEl.style.left = (clientX - ghostEl.offsetWidth / 2) + 'px';
+      ghostEl.style.top = (clientY - ghostEl.offsetHeight / 2) + 'px';
+      if (placeholderEl) {
+        placeholderEl.style.gridColumn = `${drop.col} / ${drop.col + dragState.w}`;
+        placeholderEl.style.gridRow = `${drop.row} / ${drop.row + dragState.h}`;
+      }
+    } else {
+      ghostEl.style.left = (clientX - ghostEl.offsetWidth / 2) + 'px';
+      ghostEl.style.top = (clientY - ghostEl.offsetHeight / 2) + 'px';
+    }
   }
 
   function makeResizable(el) {
@@ -3735,7 +3837,9 @@ lucide.createIcons();
         const gridRow = parseInt(style.gridRow?.split('/')[0]) || 1;
         const gridColEnd = parseInt(style.gridColumn?.split('/')[1]) || gridCol + 1;
         const gridRowEnd = parseInt(style.gridRow?.split('/')[1]) || gridRow + 1;
-        dragState = { el, handle: e.target.dataset.dir, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, startColEnd: gridColEnd, startRowEnd: gridRowEnd };
+        const w = gridColEnd - gridCol;
+        const h = gridRowEnd - gridRow;
+        dragState = { el, handle: h.dataset.dir, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, w, h };
         document.body.style.userSelect = 'none';
       };
     });
@@ -3743,60 +3847,52 @@ lucide.createIcons();
 
   document.addEventListener('mousemove', e => {
     if (!dragState) return;
-    const { el, handle, startX, startY, startCol, startRow, startColEnd, startRowEnd } = dragState;
+    const { el, handle, startX, startY, startCol, startRow, w, h } = dragState;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (handle) {
-      // Resize - calcular nuevas celdas basadas en movimiento del mouse
-      const cellWidth = 260; // ancho aproximado de celda + gap
-      const cellHeight = 160; // alto aproximado de celda + gap
-      let col = startCol, row = startRow, colEnd = startColEnd, rowEnd = startRowEnd;
-      if (handle.includes('e')) colEnd = Math.max(startCol + 1, startColEnd + Math.round(dx / cellWidth));
-      if (handle.includes('s')) rowEnd = Math.max(startRow + 1, startRowEnd + Math.round(dy / cellHeight));
-      if (handle.includes('w')) col = Math.max(1, startCol - Math.round(dx / cellWidth));
-      if (handle.includes('n')) row = Math.max(1, startRow - Math.round(dy / cellHeight));
-      // Limitar a grid de 12 columnas y 4 filas max
-      col = Math.max(1, Math.min(col, 12));
-      row = Math.max(1, Math.min(row, 12));
-      colEnd = Math.max(col + 1, Math.min(colEnd, 13));
-      rowEnd = Math.max(row + 1, Math.min(rowEnd, 5));
-      el.style.gridColumn = `${col} / ${colEnd}`;
-      el.style.gridRow = `${row} / ${rowEnd}`;
+      let newW = w, newH = h;
+      if (handle.includes('e')) newW = Math.max(1, Math.min(12, w + Math.round(dx / 260)));
+      if (handle.includes('s')) newH = Math.max(1, Math.min(4, h + Math.round(dy / 160)));
+      if (handle.includes('w')) newW = Math.max(1, Math.min(12, w - Math.round(dx / 260)));
+      if (handle.includes('n')) newH = Math.max(1, Math.min(4, h - Math.round(dy / 160)));
+      const col = parseInt(el.style.gridColumn?.split('/')[0]) || 1;
+      const row = parseInt(el.style.gridRow?.split('/')[0]) || 1;
+      newW = Math.min(newW, 13 - col);
+      newH = Math.min(newH, 5 - row);
+      el.style.gridColumn = `${col} / ${col + newW}`;
+      el.style.gridRow = `${row} / ${row + newH}`;
     } else {
-      // Drag - mover widget a nueva posición en grid
-      const cellWidth = 260;
-      const cellHeight = 160;
-      const newCol = Math.max(1, Math.min(12, startCol + Math.round(dx / cellWidth)));
-      const newRow = Math.max(1, Math.min(12, startRow + Math.round(dy / cellHeight)));
-      const w = parseInt(el.style.gridColumn?.split('/')[1] || 3) - parseInt(el.style.gridColumn?.split('/')[0] || 1);
-      const h = parseInt(el.style.gridRow?.split('/')[1] || 2) - parseInt(el.style.gridRow?.split('/')[0] || 1);
-      el.style.gridColumn = `${newCol} / ${newCol + w}`;
-      el.style.gridRow = `${newRow} / ${newRow + h}`;
+      updateGhostPosition(e.clientX, e.clientY);
     }
   });
 
   document.addEventListener('mouseup', () => {
-    if (dragState && !dragState.handle) {
-      // Guardar posición tras drag
-      const el = dragState.el;
-      const col = parseInt(el.style.gridColumn?.split('/')[0] || 1);
-      const row = parseInt(el.style.gridRow?.split('/')[0] || 1);
-      const colEnd = parseInt(el.style.gridColumn?.split('/')[1] || col + 1);
-      const rowEnd = parseInt(el.style.gridRow?.split('/')[1] || row + 1);
-      const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
-      if (wd) { wd.x = col - 1; wd.y = row - 1; wd.w = colEnd - col; wd.h = rowEnd - row; guardarWidgetEnSupabase(wd); }
-    } else if (dragState && dragState.handle) {
-      // Guardar tamaño tras resize
-      const el = dragState.el;
-      const col = parseInt(el.style.gridColumn?.split('/')[0] || 1);
-      const row = parseInt(el.style.gridRow?.split('/')[0] || 1);
-      const colEnd = parseInt(el.style.gridColumn?.split('/')[1] || col + 1);
-      const rowEnd = parseInt(el.style.gridRow?.split('/')[1] || row + 1);
-      const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
-      if (wd) { wd.w = colEnd - col; wd.h = rowEnd - row; wd.x = col - 1; wd.y = row - 1; guardarWidgetEnSupabase(wd); }
+    if (dragState) {
+      const { el, handle, startCol, startRow, w, h } = dragState;
+      if (ghostEl) { ghostEl.remove(); ghostEl = null; }
+      if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
+      if (el) el.style.visibility = 'visible';
+      if (!handle) {
+        const style = window.getComputedStyle(el);
+        const col = parseInt(style.gridColumn?.split('/')[0]) || 1;
+        const row = parseInt(style.gridRow?.split('/')[0]) || 1;
+        const colEnd = parseInt(style.gridColumn?.split('/')[1]) || col + 1;
+        const rowEnd = parseInt(style.gridRow?.split('/')[1]) || row + 1;
+        const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
+        if (wd) { wd.x = col - 1; wd.y = row - 1; wd.w = colEnd - col; wd.h = rowEnd - row; guardarWidgetEnSupabase(wd); }
+      } else if (handle) {
+        const style = window.getComputedStyle(el);
+        const col = parseInt(style.gridColumn?.split('/')[0]) || 1;
+        const row = parseInt(style.gridRow?.split('/')[0]) || 1;
+        const colEnd = parseInt(style.gridColumn?.split('/')[1]) || col + 1;
+        const rowEnd = parseInt(style.gridRow?.split('/')[1]) || row + 1;
+        const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
+        if (wd) { wd.w = colEnd - col; wd.h = rowEnd - row; wd.x = col - 1; wd.y = row - 1; guardarWidgetEnSupabase(wd); }
+      }
+      dragState = null;
+      document.body.style.userSelect = '';
     }
-    dragState = null;
-    document.body.style.userSelect = '';
   });
 
   async function guardarLayoutEnSupabase() {
