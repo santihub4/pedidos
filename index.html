@@ -1187,7 +1187,10 @@
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
     await Promise.all([cargarCategorias(), cargarConfiguracionCalculadora(), cargarGastos()]);
     navegarA('dashboard');
-    await Promise.all([cargarProductos(), cargarPedidos(), cargarFilamentos()]);
+    // Cargar en segundo plano sin bloquear la UI
+    cargarProductos();
+    cargarPedidos();
+    cargarFilamentos();
   }
 
   // ── RECARGAR ──
