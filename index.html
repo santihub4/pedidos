@@ -105,8 +105,8 @@
     /* ── CHARTS ── */
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     /* ── DASHBOARD GRAFANA ── */
-    .dashboard-grid { position: relative; min-height: 400px; }
-    .dashboard-widget { position: absolute; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; min-height: 400px; grid-auto-flow: dense; }
+    .dashboard-widget { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; }
     .dashboard-widget:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
     .dashboard-widget .widget-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); cursor: move; user-select: none; }
     .dashboard-widget .widget-title { font-weight: 600; font-size: .85rem; }
@@ -122,6 +122,10 @@
     .rh-se { bottom: 0; right: 0; width: 16px; height: 16px; cursor: se-resize; }
     .rh-s { bottom: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 6px; cursor: s-resize; }
     .rh-e { right: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40px; cursor: e-resize; }
+    /* Tamaños de widget en celdas (12 columnas) */
+    .w-1 { grid-column: span 1; } .w-2 { grid-column: span 2; } .w-3 { grid-column: span 3; } .w-4 { grid-column: span 4; } .w-6 { grid-column: span 6; } .w-12 { grid-column: span 12; }
+    .h-1 { grid-row: span 1; } .h-2 { grid-row: span 2; } .h-3 { grid-row: span 3; } .h-4 { grid-row: span 4; }
+    @media (max-width: 900px) { .dashboard-widget { grid-column: span 12 !important; } }
     .add-widget-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background: var(--card-bg); border-left: 1px solid var(--border); box-shadow: -4px 0 24px rgba(0,0,0,.1); z-index: 200; transform: translateX(100%); transition: transform .25s; overflow-y: auto; }
     .add-widget-panel.open { transform: translateX(0); }
     .add-widget-panel header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
@@ -3552,12 +3556,8 @@ lucide.createIcons();
       const wt = WIDGET_TYPES[w.type];
       if (!wt) return;
       const el = document.createElement('div');
-      el.className = 'dashboard-widget';
+      el.className = `dashboard-widget w-${w.w} h-${w.h}`;
       el.dataset.id = w.id;
-      el.style.left = `${w.x * 260}px`;
-      el.style.top = `${w.y * 160}px`;
-      el.style.width = `${w.w * 260 - 16}px`;
-      el.style.height = `${w.h * 160 - 16}px`;
       el.innerHTML = `
         <div class="widget-header">
           <span class="widget-title">${wt.name}</span>
@@ -3592,7 +3592,7 @@ lucide.createIcons();
     }
   }
 
-  // Mini-renders para cada widget (versión compacta)
+  // Mini-renders para cada widget (versión compacta con colores y badges)
   function renderMetricasWidget(el) {
     if (!pedidos.length) { el.innerHTML = '<div class="empty-state">Sin datos</div>'; return; }
     const ent = pedidos.filter(p => p.estado === 'Entregado');
@@ -3601,16 +3601,17 @@ lucide.createIcons();
     const pend = pedidos.filter(p=>p.estado==='Pendiente').length;
     const prod = productos.length;
     el.innerHTML = `<div class="metrics" style="grid-template-columns:1fr 1fr;gap:8px">
-      <div class="metric-card"><div class="metric-label">Facturación</div><div class="metric-value">${fmt(ent.reduce((s,p)=>s+(Number(p.precio_final)||0),0))}</div></div>
-      <div class="metric-card"><div class="metric-label">Pedidos</div><div class="metric-value">${tot}</div></div>
-      <div class="metric-card"><div class="metric-label">Pendientes</div><div class="metric-value">${pend}</div></div>
-      <div class="metric-card"><div class="metric-label">Productos</div><div class="metric-value">${productos.length}</div></div>
+      <div class="metric-card"><div class="metric-header"><div class="metric-label">Facturación</div><div class="metric-icon green"><i data-lucide="banknote" width="16" height="16"></i></div></div><div class="metric-value">${fmt(ing)}</div></div>
+      <div class="metric-card"><div class="metric-header"><div class="metric-label">Pedidos</div><div class="metric-icon blue"><i data-lucide="shopping-bag" width="16" height="16"></i></div></div><div class="metric-value">${pedidos.length}</div></div>
+      <div class="metric-card"><div class="metric-header"><div class="metric-label">Pendientes</div><div class="metric-icon orange"><i data-lucide="clock" width="16" height="16"></i></div></div><div class="metric-value">${pedidos.filter(p=>p.estado==='Pendiente').length}</div></div>
+      <div class="metric-card"><div class="metric-header"><div class="metric-label">Productos</div><div class="metric-icon purple"><i data-lucide="box" width="16" height="16"></i></div></div><div class="metric-value">${productos.length}</div></div>
     </div>`;
     lucide.createIcons();
   }
 
   function renderStockWidget(el) { renderStockChart(); }
-  function renderDonutWidget(el) { 
+
+  function renderDonutWidget(el) {
     const estados = ['Entregado','Impreso','Pendiente','Cancelado','Listo para retirar'];
     const colores = ['#22c55e','#3b6ef6','#f97316','#ef4444','#a855f7'];
     const total = pedidos.length;
@@ -3622,7 +3623,7 @@ lucide.createIcons();
           <div style="font-size:.6rem;color:#8b90a7">pedidos</div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px">${estados.map((e,i)=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${colores[i]}"></span><span style="font-size:.75rem">${e}: ${pedidos.filter(p=>p.estado===e).length}</span></div>`).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">${estados.map((e,i)=>`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${colores[i]}"></span><span style="font-size:.75rem">${e}: <span class="badge ${badgeClass(e)}" style="font-size:.7rem;padding:2px 6px">${pedidos.filter(p=>p.estado===e).length}</span></span></div>`).join('')}</div>
     </div>`;
     lucide.createIcons();
   }
@@ -3635,16 +3636,16 @@ lucide.createIcons();
   }
 
   function renderActividadWidget(el) {
-    el.innerHTML = pedidos.slice(0,5).map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:.8rem">${esc(p.cliente)}</div><div style="font-size:.7rem;color:#8b90a7">${esc(p.producto)} · ${fmt(p.precio_final)}</div></div>`).join('') || '<div class="empty-state">Sin actividad</div>';
+    el.innerHTML = pedidos.slice(0,8).map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:.8rem">${esc(p.cliente)}</div><div style="font-size:.7rem;color:#8b90a7">${esc(p.producto)}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="badge ${badgeClass(p.estado)}" style="font-size:.65rem;padding:2px 6px">${esc(p.estado||'—')}</span><span style="font-size:.75rem;font-weight:600">${fmt(p.precio_final)}</span></div></div>`).join('') || '<div class="empty-state">Sin actividad</div>';
   }
 
   function renderGastosCatWidget(el) {
     const porCat = {};
     gastos.filter(g=>esMesActual(g.fecha)).forEach(g=>{ const c=g.categoria||'Sin cat.'; porCat[c]=(porCat[c]||0)+(Number(g.monto)||0); });
     if (filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0) > 0) porCat['Filamento'] = (porCat['Filamento']||0) + filamentos.filter(f=>esMesActual(f.fecha)).reduce((s,f)=>s+(Number(f.precio)||0),0);
-    const cats = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const cats = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,6);
     const max = cats[0]?.[1]||1;
-    el.innerHTML = cats.map(([c,t],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><div style="width:8px;height:8px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i%5]}"></div><span style="flex:1;font-size:.75rem">${esc(c)}</span><span style="font-size:.7rem;color:#8b90a7">${fmt(t)}</span></div>`).join('') || '<div class="empty-state">Sin gastos este mes</div>';
+    el.innerHTML = cats.map(([c,t],i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div style="width:10px;height:10px;border-radius:50%;background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444','#0ea5e9'][i%6]}"></div><span style="flex:1;font-size:.75rem">${esc(c)}</span><span style="font-size:.7rem;color:#8b90a7">${fmt(t)}</span></div>`).join('') || '<div class="empty-state">Sin gastos este mes</div>';
   }
 
   function renderGananciaWidget(el) {
