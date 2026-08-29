@@ -270,12 +270,24 @@
     .calculator-total-label { font-size:.75rem; font-weight:700; text-transform:uppercase; }
     .calculator-total-value { font-size:1.8rem; font-weight:700; margin-top:5px; }
     .calculator-save-state { min-height:18px; margin-top:10px; color:var(--text-muted); font-size:.75rem; }
-    .expenses-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    .expenses-summary { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
     .expense-form-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:12px; align-items:end; }
     .expense-form-grid .form-group.full { grid-column:1 / -1; }
     .expense-actions { display:flex; gap:6px; align-items:center; }
     .profit-positive { color:var(--green); }
     .profit-negative { color:var(--red); }
+    /* ── CREADOR DE ESTADISTICAS ── */
+    .formula-display { min-height:44px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-wrap:wrap; gap:5px; align-items:center; font-size:.85rem; color:var(--text-muted); }
+    .formula-chip { background:var(--blue-light); color:var(--accent); border-radius:6px; padding:3px 8px; font-weight:600; font-size:.78rem; }
+    .formula-chip.op { background:#fff; border:1px solid var(--border); color:var(--text); }
+    .est-btn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:6px; }
+    .est-btn-grid button, .ops-row button { border:1px solid var(--border); background:var(--card-bg); border-radius:7px; padding:6px 8px; font-size:.78rem; cursor:pointer; font-family:inherit; color:var(--text); transition:all .12s; }
+    .est-btn-grid button:hover, .ops-row button:hover { border-color:#c7d7fd; background:var(--blue-light); color:var(--accent); }
+    .ops-row { display:flex; gap:6px; flex-wrap:wrap; }
+    .ops-row button { font-weight:700; min-width:36px; }
+    .est-preview { margin-top:14px; padding:12px 14px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .est-preview-label { font-size:.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+    .est-preview-value { font-size:1.3rem; font-weight:700; }
     @media (max-width:900px) { .expenses-summary { grid-template-columns:1fr 1fr; } .expense-form-grid { grid-template-columns:1fr 1fr; } }
     @media (max-width:640px) { .expenses-summary { gap:8px; } .expense-form-grid { grid-template-columns:1fr; } .expense-form-grid .form-group.full { grid-column:1; } }
     @media (max-width:900px) { .stats-summary { grid-template-columns:1fr 1fr; } }
@@ -549,7 +561,10 @@
       <div class="page-sub">Organiza y consulta los datos importantes de tu negocio</div>
       <div class="stats-toolbar">
         <div class="card-title">Resumen configurable</div>
-        <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="abrirNuevaEst()" style="background:var(--green)"><i data-lucide="plus" width="14" height="14"></i> Nueva estadistica</button>
+          <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+        </div>
       </div>
       <div class="stats-config" id="stats-config">
         <div class="card-title">Que mostrar y en que orden</div>
@@ -609,27 +624,70 @@
       <div class="page-title">Gastos</div>
       <div class="page-sub">Registra tus compras y analiza la rentabilidad del negocio</div>
       <div class="expenses-summary">
+        <div class="metric-card"><div class="metric-label">Gastos del mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Gastos generales + filamento</div></div>
+        <div class="metric-card"><div class="metric-label">Facturacion del mes</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados este mes</div></div>
+        <div class="metric-card"><div class="metric-label">Rentabilidad del mes</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos (mes actual)</div></div>
+        <div class="metric-card"><div class="metric-label">Promedio filamento</div><div class="metric-value" id="gastos-prom-kg">—</div><div class="metric-sub" id="gastos-prom-kg-sub">$/kg segun compras del mes</div></div>
         <div class="metric-card"><div class="metric-label">Gastos acumulados</div><div class="metric-value" id="gastos-total">$0</div><div class="metric-sub">Todos los registros</div></div>
-        <div class="metric-card"><div class="metric-label">Gastos este mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Compras del mes actual</div></div>
-        <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados</div></div>
-        <div class="metric-card"><div class="metric-label">Rentabilidad estimada</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos</div></div>
       </div>
       <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Registrar gasto</div>
-        <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
-        <div class="expense-form-grid">
-          <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
-          <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
-          <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
-          <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
-          <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
-          <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
-          <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
+        <div class="page-tabs" style="margin-bottom:16px">
+          <button class="page-tab active" id="gtab-btn-general" onclick="switchGastoTab('general')">Gasto general</button>
+          <button class="page-tab" id="gtab-btn-filamento" onclick="switchGastoTab('filamento')">Filamento</button>
         </div>
-        <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
-        <div class="calculator-save-state" id="gasto-save-state"></div>
+
+        <!-- Form: gasto general -->
+        <div id="form-gasto-general">
+          <div class="card-title">Registrar gasto general</div>
+          <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
+          <div class="expense-form-grid">
+            <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
+            <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
+            <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
+            <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
+            <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
+            <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
+          </div>
+          <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
+          <div class="calculator-save-state" id="gasto-save-state"></div>
+        </div>
+
+        <!-- Form: filamento -->
+        <div id="form-gasto-filamento" style="display:none">
+          <div class="card-title">Registrar compra de filamento</div>
+          <div class="card-sub">Estas compras alimentan el promedio de $/kg y el costo de produccion.</div>
+          <div class="expense-form-grid">
+            <div class="form-group"><label>Marca</label><input type="text" id="fil-marca" placeholder="Grilon3, BQ, etc."/></div>
+            <div class="form-group"><label>Color</label><input type="text" id="fil-color" placeholder="Blanco, negro..."/></div>
+            <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="fil-kg" min="0.01" step="0.01" placeholder="1"/></div>
+            <div class="form-group"><label>Precio total ($)</label><input type="number" id="fil-precio" min="0" step="0.01" placeholder="20000"/></div>
+            <div class="form-group"><label>Fecha</label><input type="date" id="fil-fecha"/></div>
+          </div>
+          <button class="btn-primary" id="btn-guardar-filamento" onclick="guardarFilamento()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar filamento</button>
+          <div class="calculator-save-state" id="filamento-save-state"></div>
+        </div>
       </div>
+
+      <!-- TABLA FILAMENTOS -->
+      <div class="card" style="padding:0;margin-bottom:20px">
+        <div style="padding:20px 20px 0">
+          <div class="card-title">Filamentos comprados</div>
+          <div class="card-sub">El promedio $/kg usa las compras del mes actual.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Marca</th><th>Color</th><th>Kg</th><th>Precio</th><th>$/kg</th><th>Acciones</th></tr></thead>
+            <tbody id="tbody-filamentos"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLA GASTOS GENERALES -->
       <div class="card" style="padding:0">
+        <div style="padding:20px 20px 0">
+          <div class="card-title">Gastos generales</div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Cantidad</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead>
@@ -773,6 +831,24 @@
           <input type="text" id="filtro-producto" placeholder="Buscar producto..."
             style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
             oninput="renderProductos()"/>
+          <!-- Orden productos -->
+          <div class="cd-wrap" id="cd-pord-wrap" style="width:180px;flex-shrink:0">
+            <button type="button" class="cd-trigger" id="cd-pord-trigger" onclick="toggleCd('pord')" style="padding:8px 36px 8px 12px;font-size:0.875rem">
+              <span id="cd-pord-label">Más nuevo</span>
+              <i data-lucide="chevron-down" width="14" height="14"></i>
+            </button>
+            <div class="cd-menu" id="cd-pord-menu">
+              <div class="cd-option selected" onclick="selectOrdenProd('nuevo','Más nuevo')"><i data-lucide="arrow-down" width="12" height="12"></i> Más nuevo</div>
+              <div class="cd-option" onclick="selectOrdenProd('viejo','Más antiguo')"><i data-lucide="arrow-up" width="12" height="12"></i> Más antiguo</div>
+              <div class="cd-option" onclick="selectOrdenProd('nombre_az','Nombre A→Z')"><i data-lucide="arrow-down-a-z" width="12" height="12"></i> Nombre A→Z</div>
+              <div class="cd-option" onclick="selectOrdenProd('nombre_za','Nombre Z→A')"><i data-lucide="arrow-up-a-z" width="12" height="12"></i> Nombre Z→A</div>
+              <div class="cd-option" onclick="selectOrdenProd('caro','Más caro')"><i data-lucide="trending-up" width="12" height="12"></i> Más caro</div>
+              <div class="cd-option" onclick="selectOrdenProd('barato','Más barato')"><i data-lucide="trending-down" width="12" height="12"></i> Más barato</div>
+              <div class="cd-option" onclick="selectOrdenProd('costo_caro','Mayor costo prod.')"><i data-lucide="trending-up" width="12" height="12"></i> Mayor costo prod.</div>
+              <div class="cd-option" onclick="selectOrdenProd('costo_barato','Menor costo prod.')"><i data-lucide="trending-down" width="12" height="12"></i> Menor costo prod.</div>
+            </div>
+            <input type="hidden" id="filtro-orden-productos" value="nuevo"/>
+          </div>
           <button class="btn-primary" onclick="abrirNuevoProducto()">
             <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
           </button>
@@ -780,8 +856,8 @@
         <div class="card tabla-desktop" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Descripcion</th><th>Acciones</th></tr></thead>
-              <tbody id="tbody-productos"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Gramos / Tiempo</th><th>Costo prod.</th><th>Descripcion</th><th>Acciones</th></tr></thead>
+              <tbody id="tbody-productos"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -971,6 +1047,8 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="np-nombre" placeholder="Nombre del producto"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="np-categoria" placeholder="Ej: Herramientas"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="np-precio" placeholder="0" step="0.01"/></div>
+      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="np-gramos" min="0" step="0.1" placeholder="0"/></div>
+      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="np-tiempo" min="0" step="0.1" placeholder="0"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="np-descripcion" placeholder="Descripcion opcional..."></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -993,6 +1071,8 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="ep-nombre"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="ep-categoria"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="ep-precio" step="0.01"/></div>
+      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="ep-gramos" min="0" step="0.1"/></div>
+      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="ep-tiempo" min="0" step="0.1"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="ep-descripcion"></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -1043,6 +1123,108 @@
   </div>
 </div>
 
+<!-- MODAL EDITAR GASTO -->
+<div class="modal-overlay" id="modal-editar-gasto">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar gasto</span>
+      <button class="modal-close" onclick="cerrarModalEditarGasto()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Concepto</label><input type="text" id="eg-concepto"/></div>
+      <div class="form-group"><label>Categoria</label><input type="text" id="eg-categoria"/></div>
+      <div class="form-group"><label>Monto total ($)</label><input type="number" id="eg-monto" min="0" step="0.01"/></div>
+      <div class="form-group"><label>Cantidad</label><input type="number" id="eg-cantidad" min="0.01" step="0.01"/></div>
+      <div class="form-group"><label>Unidad</label><input type="text" id="eg-unidad"/></div>
+      <div class="form-group full"><label>Fecha</label><input type="date" id="eg-fecha"/></div>
+      <div class="form-group full"><label>Notas</label><input type="text" id="eg-descripcion"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEdicionGasto()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR FILAMENTO -->
+<div class="modal-overlay" id="modal-editar-filamento">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar filamento</span>
+      <button class="modal-close" onclick="cerrarModalEditarFilamento()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Marca</label><input type="text" id="ef-marca"/></div>
+      <div class="form-group"><label>Color</label><input type="text" id="ef-color"/></div>
+      <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="ef-kg" min="0.01" step="0.01"/></div>
+      <div class="form-group"><label>Precio total ($)</label><input type="number" id="ef-precio" min="0" step="0.01"/></div>
+      <div class="form-group full"><label>Fecha</label><input type="date" id="ef-fecha"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEdicionFilamento()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREADOR DE ESTADISTICAS -->
+<div class="modal-overlay" id="modal-estadistica">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="est-modal-titulo">Nueva estadistica</span>
+      <button class="modal-close" onclick="cerrarModalEst()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input type="text" id="est-nombre" placeholder="Ej: Ganancia neta"/></div>
+      <div class="form-group"><label>Vista</label>
+        <select id="est-vista" class="custom-select" style="width:100%" onchange="actualizarPreviewEst()">
+          <option value="numero">Numero</option>
+          <option value="barras">Barras por mes (ultimos 6)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:16px">
+      <label>Formula</label>
+      <div class="formula-display" id="est-formula-display"></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Operadores</label>
+      <div class="ops-row">
+        <button type="button" onclick="insertarToken({t:'op',v:'+'})">+</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'-'})">−</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'*'})">×</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'/'})">÷</button>
+        <button type="button" onclick="insertarToken({t:'op',v:'('})">(</button>
+        <button type="button" onclick="insertarToken({t:'op',v:')'})">)</button>
+        <button type="button" onclick="borrarUltimoToken()" title="Borrar ultimo">←</button>
+        <button type="button" onclick="limpiarFormula()" title="Limpiar todo">Limpiar</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Variables (toca para insertar)</label>
+      <div class="est-btn-grid" id="est-vars-grid"></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Numero</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="est-num" step="any" placeholder="Ej: 100" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.9rem;color:var(--text);outline:none;font-family:inherit;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();insertarNumero();}"/>
+        <button type="button" class="btn-primary" onclick="insertarNumero()">Insertar</button>
+      </div>
+    </div>
+    <div class="est-preview">
+      <span class="est-preview-label">Vista previa</span>
+      <span class="est-preview-value" id="est-preview-value">—</span>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" onclick="guardarEstadistica()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar estadistica
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = window.supabase.createClient(
     'https://ydugevaqupmpwwabwxno.supabase.co',
@@ -1053,6 +1235,11 @@
   const TABLA = 'pedidos';
   let pedidos = [];
   let gastos = [];
+  let filamentos = [];
+  let estadisticasCustom = [];
+  let editandoEstId = null;
+  let editandoGastoId = null;
+  let editandoFilamentoId = null;
   let paginaActual = 'dashboard';
   let editandoId = null;
 
@@ -1105,7 +1292,7 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos()]);
+    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos(), cargarEstadisticasCustom()]);
     navegarA('dashboard');
     cargarProductos();
     cargarPedidos();
@@ -1115,7 +1302,7 @@
   async function recargar() {
     const btn = document.getElementById('btn-reload');
     btn.classList.add('spinning');
-    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos()]);
+    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos(), cargarFilamentos()]);
     setTimeout(() => btn.classList.remove('spinning'), 600);
   }
 
@@ -1384,8 +1571,8 @@
   }
 
   const statsDefaultConfig = {
-    order: ['summary', 'monthly', 'states', 'top', 'activity'],
-    visible: { summary: true, monthly: true, states: true, top: true, activity: true }
+    order: ['summary', 'monthly', 'states', 'top', 'rentabilidad', 'activity'],
+    visible: { summary: true, monthly: true, states: true, top: true, rentabilidad: true, activity: true }
   };
   let statsConfig = JSON.parse(JSON.stringify(statsDefaultConfig));
 
@@ -1393,7 +1580,13 @@
     try {
       const filas = await apiFetch('configuracion_estadisticas?select=orden,visibles&limit=1');
       const guardada = filas?.[0];
-      if (guardada?.orden && guardada?.visibles) statsConfig = { order: guardada.orden, visible: guardada.visibles };
+      if (guardada?.orden && guardada?.visibles) {
+        const faltan = statsDefaultConfig.order.filter(k => !guardada.orden.includes(k));
+        statsConfig = {
+          order: [...guardada.orden, ...faltan],
+          visible: { ...statsDefaultConfig.visible, ...guardada.visibles }
+        };
+      }
     } catch (e) { console.warn('No se pudo cargar la configuracion de estadisticas:', e); }
     return statsConfig;
   }
@@ -1414,7 +1607,7 @@
   }
 
   function renderStatsConfig() {
-    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', activity: 'Actividad reciente' };
+    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', rentabilidad: 'Productos mas rentables', activity: 'Actividad reciente' };
     const lista = document.getElementById('stats-config-list');
     if (!lista) return;
     lista.innerHTML = statsConfig.order.map((key, index) => `
@@ -1477,15 +1670,241 @@
       monthly: `<div class="card stats-section"><div class="card-title">Facturacion mensual</div><div class="card-sub">Pedidos entregados en los ultimos 6 meses</div><div class="stats-month-list">${meses.map(m => `<div class="stats-month-row"><span>${m.nombre}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.round(m.total / maxMes * 100)}%"></div></div><strong>${fmt(m.total)}</strong></div>`).join('')}</div></div>`,
       states: `<div class="card stats-section"><div class="card-title">Estado de pedidos</div><div class="card-sub">Distribucion actual del trabajo</div><div class="estado-list">${conteos.map(s => `<div class="estado-row"><div class="estado-top"><span class="estado-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${s.color};margin-right:7px"></span>${s.estado}</span><span class="estado-count">${s.total}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pedidos.length ? Math.round(s.total / pedidos.length * 100) : 0}%;background:${s.color}"></div></div></div>`).join('')}</div></div>`,
       top: `<div class="card stats-section"><div class="card-title">Productos mas vendidos</div><div class="card-sub">Ordenados por unidades pedidas</div>${top.map(([nombre, total], i) => `<div class="top-prod-row"><div class="top-prod-rank" style="background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i]}">${i + 1}</div><div class="top-prod-info"><div class="top-prod-name">${esc(nombre)}</div><div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.round(total / (top[0]?.[1] || 1) * 100)}%;background:var(--accent)"></div></div></div><div class="top-prod-units">${total} u.</div></div>`).join('') || '<div class="empty-state">Sin datos</div>'}</div>`,
+      rentabilidad: (() => {
+        const filas = productos
+          .map(p => {
+            const costo = calcularCostoProduccion(p);
+            const precio = Number(p.precio_base) || 0;
+            if (!costo || !precio) return null;
+            return { nombre: p.nombre, ganancia: precio - costo, pct: (precio - costo) / precio * 100 };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.pct - a.pct)
+          .slice(0, 5);
+        if (!filas.length) return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen entre precio base y costo de produccion</div><div class="empty-state">Completa precio base, gramos y tiempo de impresion en tus productos.</div></div>`;
+        const maxPct = filas[0].pct || 1;
+        return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">El porcentaje indica cuanto de cada venta queda como ganancia: si un producto muestra 60%, de cada $100 que cobras, $60 quedan para vos despues de descontar el costo de produccion (materiales, luz y desgaste de maquina).</div>${filas.map((r, i) => `
+          <div class="top-prod-row">
+            <div class="top-prod-rank" style="background:${['#22c55e', '#3b6ef6', '#f97316', '#a855f7', '#ef4444'][i]}">${i + 1}</div>
+            <div class="top-prod-info">
+              <div class="top-prod-name">${esc(r.nombre)}</div>
+              <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.max(4, Math.round(r.pct / maxPct * 100))}%;background:#22c55e"></div></div>
+            </div>
+            <div class="top-prod-units">${Math.round(r.pct)}%</div>
+            <div class="top-prod-monto">${fmt(Math.round(r.ganancia))}</div>
+          </div>`).join('')}</div>`;
+      })(),
       activity: `<div class="card stats-section"><div class="card-title">Actividad reciente</div><div class="card-sub">Ultimos pedidos registrados</div>${pedidos.slice(0, 8).map(p => `<div class="act-row"><div class="act-info"><div class="act-cliente">${esc(p.cliente)}</div><div class="act-detalle">${esc(p.producto)} · ${fmtFecha(p.fecha)}</div></div><div class="act-right"><div class="act-monto">${fmt(p.precio_final)}</div><span class="badge ${badgeClass(p.estado)}">${esc(p.estado || '—')}</span></div></div>`).join('') || '<div class="empty-state">Sin pedidos</div>'}</div>`
     };
-    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
+    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') + renderCustomStats() || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
     renderStatsConfig();
     lucide.createIcons();
   }
 
+  // ── ESTADISTICAS PERSONALIZADAS ──
+  const VARIABLES_STATS = [
+    ['facturacion', 'Facturacion entregada'],
+    ['pedidos', 'Pedidos totales'],
+    ['pedidos_entregados', 'Pedidos entregados'],
+    ['pedidos_pendientes', 'Pedidos pendientes'],
+    ['unidades', 'Unidades vendidas'],
+    ['ticket', 'Ticket promedio'],
+    ['gastos', 'Gastos generales'],
+    ['gastos_filamento', 'Gastos en filamento'],
+    ['kg_comprados', 'Kg de filamento comprados'],
+    ['prom_kg', 'Promedio $/kg'],
+  ];
+
+  function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
+
+  async function cargarEstadisticasCustom() {
+    try {
+      estadisticasCustom = await apiFetch('estadisticas_personalizadas?order=id.asc');
+    } catch (e) { console.error('Error cargando estadisticas personalizadas:', e); }
+  }
+
+  function ultimos6Meses() {
+    const meses = [];
+    const ahora = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      meses.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('es-AR', { month: 'short' }) });
+    }
+    return meses;
+  }
+
+  // Valores de las variables, opcionalmente filtrados a un mes {year, month}
+  function valoresStats(mes) {
+    const enRango = (fecha) => {
+      if (!mes || !fecha) return !mes;
+      const d = new Date(fecha);
+      return d.getFullYear() === mes.year && d.getMonth() === mes.month;
+    };
+    const peds = pedidos.filter(p => enRango(p.fecha));
+    const ents = peds.filter(p => p.estado === 'Entregado');
+    const fact = ents.reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
+    const gs = gastos.filter(g => enRango(g.fecha));
+    const fils = filamentos.filter(f => enRango(f.fecha));
+    const kg = fils.reduce((s, f) => s + (Number(f.kg) || 0), 0);
+    const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
+    return {
+      facturacion: fact,
+      pedidos: peds.length,
+      pedidos_entregados: ents.length,
+      pedidos_pendientes: peds.filter(p => p.estado === 'Pendiente').length,
+      unidades: peds.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
+      ticket: ents.length ? fact / ents.length : 0,
+      gastos: gs.reduce((s, g) => s + (Number(g.monto) || 0), 0),
+      gastos_filamento: precioFil,
+      kg_comprados: kg,
+      prom_kg: kg > 0 ? precioFil / kg : 0,
+    };
+  }
+
+  function evaluarTokens(tokens, valores) {
+    if (!tokens || !tokens.length) return null;
+    const expr = tokens.map(t => {
+      if (t.t === 'var') return '(' + (valores[t.v] ?? 0) + ')';
+      if (t.t === 'num') return '(' + t.v + ')';
+      return t.v;
+    }).join(' ');
+    if (!/^[\d\s+\-*/().]+$/.test(expr)) return null;
+    try {
+      const r = Function('"use strict";return (' + expr + ')')();
+      return Number.isFinite(r) ? r : null;
+    } catch { return null; }
+  }
+
+  function renderCustomStats() {
+    if (!estadisticasCustom.length) return '';
+    const meses = ultimos6Meses();
+    const acciones = (est) => `<div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="btn-icon" onclick="abrirEditarEst(${est.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
+      <button class="btn-icon del" onclick="borrarEst(${est.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
+    </div>`;
+    return `<div class="stats-section"><div class="card-title" style="margin-bottom:10px">Estadisticas personalizadas</div>${estadisticasCustom.map(est => {
+      if (est.vista === 'barras') {
+        const vals = meses.map(m => evaluarTokens(est.formula, valoresStats(m)) ?? 0);
+        const max = Math.max(...vals.map(Math.abs), 1);
+        return `<div class="card stats-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada · ultimos 6 meses</div></div>${acciones(est)}</div><div class="stats-month-list">${meses.map((m, i) => `<div class="stats-month-row"><span>${m.label}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.max(0, Math.round(vals[i] / max * 100))}%"></div></div><strong>${fmtNum(vals[i])}</strong></div>`).join('')}</div></div>`;
+      }
+      const val = evaluarTokens(est.formula, valoresStats(null));
+      return `<div class="card stats-section" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">Estadistica personalizada</div></div><div style="display:flex;align-items:center;gap:12px"><div style="font-size:1.8rem;font-weight:700">${val === null ? '—' : fmtNum(val)}</div>${acciones(est)}</div></div>`;
+    }).join('')}</div>`;
+  }
+
+  // ── MODAL CREADOR ──
+  let formulaEditando = [];
+
+  function abrirNuevaEst() {
+    editandoEstId = null;
+    formulaEditando = [];
+    document.getElementById('est-modal-titulo').textContent = 'Nueva estadistica';
+    document.getElementById('est-nombre').value = '';
+    document.getElementById('est-vista').value = 'numero';
+    renderGridVariables();
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+    document.getElementById('modal-estadistica').classList.add('open');
+    lucide.createIcons();
+  }
+
+  function abrirEditarEst(id) {
+    const est = estadisticasCustom.find(x => x.id === id);
+    if (!est) return;
+    editandoEstId = id;
+    formulaEditando = JSON.parse(JSON.stringify(est.formula || []));
+    document.getElementById('est-modal-titulo').textContent = 'Editar estadistica';
+    document.getElementById('est-nombre').value = est.nombre || '';
+    document.getElementById('est-vista').value = est.vista || 'numero';
+    renderGridVariables();
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+    document.getElementById('modal-estadistica').classList.add('open');
+    lucide.createIcons();
+  }
+
+  function cerrarModalEst() { document.getElementById('modal-estadistica').classList.remove('open'); editandoEstId = null; formulaEditando = []; }
+  document.getElementById('modal-estadistica').addEventListener('click', function(e) { if(e.target===this) cerrarModalEst(); });
+
+  function renderGridVariables() {
+    const grid = document.getElementById('est-vars-grid');
+    if (!grid) return;
+    grid.innerHTML = VARIABLES_STATS.map(([key, label]) => `<button type="button" onclick="insertarToken({t:'var',v:'${key}'})">${label}</button>`).join('');
+  }
+
+  function insertarToken(token) {
+    const ultimo = formulaEditando[formulaEditando.length - 1];
+    const esValor = t => t && (t.t === 'var' || t.t === 'num' || t.v === ')');
+    if (token.t === 'op') {
+      if (token.v === '(') { if (esValor(ultimo)) return; }
+      else if (token.v === ')') { if (!ultimo || ultimo.t === 'op' || ultimo.v === '(') return; }
+      else { if (!ultimo || ultimo.t === 'op') return; }
+    } else if (esValor({ t: token.t, v: token.v }) && esValor(ultimo)) return;
+    formulaEditando.push(token);
+    renderFormulaDisplay();
+    actualizarPreviewEst();
+  }
+
+  function insertarNumero() {
+    const v = parseFloat(document.getElementById('est-num').value);
+    if (!Number.isFinite(v)) return;
+    insertarToken({ t: 'num', v });
+    document.getElementById('est-num').value = '';
+  }
+
+  function borrarUltimoToken() { formulaEditando.pop(); renderFormulaDisplay(); actualizarPreviewEst(); }
+  function limpiarFormula() { formulaEditando = []; renderFormulaDisplay(); actualizarPreviewEst(); }
+
+  function tokenLabel(t) {
+    if (t.t === 'var') return (VARIABLES_STATS.find(([k]) => k === t.v) || [t.v, t.v])[1];
+    if (t.t === 'num') return String(t.v);
+    return { '*': '×', '/': '÷' }[t.v] || t.v;
+  }
+
+  function renderFormulaDisplay() {
+    const el = document.getElementById('est-formula-display');
+    if (!el) return;
+    el.innerHTML = formulaEditando.length
+      ? formulaEditando.map(t => `<span class="formula-chip ${t.t === 'op' ? 'op' : ''}">${esc(tokenLabel(t))}</span>`).join('')
+      : 'Toca las variables y operadores para armar la formula.';
+  }
+
+  function actualizarPreviewEst() {
+    const val = evaluarTokens(formulaEditando, valoresStats(null));
+    document.getElementById('est-preview-value').textContent = val === null ? 'Formula incompleta' : fmtNum(val);
+  }
+
+  async function guardarEstadistica() {
+    const nombre = document.getElementById('est-nombre').value.trim();
+    if (!nombre) { alert('Ponle un nombre a la estadistica.'); return; }
+    const val = evaluarTokens(formulaEditando, valoresStats(null));
+    if (val === null) { alert('La formula esta incompleta o invalida.'); return; }
+    const datos = { nombre, formula: formulaEditando, vista: document.getElementById('est-vista').value };
+    try {
+      if (editandoEstId) {
+        await apiFetch(`estadisticas_personalizadas?id=eq.${editandoEstId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      } else {
+        await apiFetch('estadisticas_personalizadas', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      }
+      cerrarModalEst();
+      await cargarEstadisticasCustom();
+      if (paginaActual === 'estadisticas') renderEstadisticas();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  async function borrarEst(id) {
+    if (!confirm('Borrar esta estadistica?')) return;
+    try {
+      await apiFetch(`estadisticas_personalizadas?id=eq.${id}`, { method: 'DELETE' });
+      estadisticasCustom = estadisticasCustom.filter(x => x.id !== id);
+      if (paginaActual === 'estadisticas') renderEstadisticas();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
   const calculatorFields = ['filamento', 'kwh', 'consumo', 'vida', 'repuestos', 'error', 'horas', 'minutos', 'gramos', 'insumos', 'multiplicador'];
   const calculatorDefaults = { filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, horas: 0, minutos: 0, gramos: 0, insumos: 0, multiplicador: 4 };
+  let calcConfigGlobal = null;
 
   function obtenerDatosCalculadora() {
     return Object.fromEntries(calculatorFields.map(key => [key, parseFloat(document.getElementById(`calc-${key}`)?.value) || 0]));
@@ -1502,11 +1921,12 @@
   async function cargarConfiguracionCalculadora() {
     try {
       const filas = await apiFetch('configuracion_calculadora?select=configuracion&limit=1');
-      aplicarDatosCalculadora({ ...calculatorDefaults, ...(filas?.[0]?.configuracion || {}) });
+      calcConfigGlobal = { ...calculatorDefaults, ...(filas?.[0]?.configuracion || {}) };
     } catch (e) {
-      aplicarDatosCalculadora(calculatorDefaults);
+      calcConfigGlobal = { ...calculatorDefaults };
       console.warn('No se pudo cargar la configuracion de la calculadora:', e);
     }
+    aplicarDatosCalculadora(calcConfigGlobal);
   }
 
   function calcularPrecio() {
@@ -1533,6 +1953,8 @@
         prefer: 'resolution=merge-duplicates,return=minimal',
         body: JSON.stringify({ configuracion: obtenerDatosCalculadora() })
       });
+      calcConfigGlobal = { ...obtenerDatosCalculadora() };
+      if (paginaActual === 'productos') renderProductos();
       state.textContent = 'Configuracion guardada en Supabase.';
       state.style.color = 'var(--green)';
     } catch (e) {
@@ -1555,19 +1977,36 @@
     return fechaGasto.getMonth() === ahora.getMonth() && fechaGasto.getFullYear() === ahora.getFullYear();
   }
 
+  function obtenerPromedioKg() {
+    const delMes = filamentos.filter(f => esMesActual(f.fecha));
+    const lista = delMes.length ? delMes : filamentos;
+    const kg = lista.reduce((s, f) => s + Number(f.kg || 0), 0);
+    const precio = lista.reduce((s, f) => s + Number(f.precio || 0), 0);
+    if (kg > 0) return precio / kg;
+    const v = parseFloat(document.getElementById('calc-filamento')?.value);
+    return Number.isFinite(v) && v > 0 ? v : null;
+  }
+
   function renderGastos() {
     const fechaInput = document.getElementById('gasto-fecha');
     if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
+    const filFechaInput = document.getElementById('fil-fecha');
+    if (filFechaInput && !filFechaInput.value) filFechaInput.value = new Date().toISOString().split('T')[0];
     const totalGastos = gastos.reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
     const gastosMes = gastos.filter(gasto => esMesActual(gasto.fecha)).reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
-    const facturacion = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
-    const rentabilidad = facturacion - totalGastos;
+    const gastosFilamentoMes = filamentos.filter(f => esMesActual(f.fecha)).reduce((sum, f) => sum + Number(f.precio || 0), 0);
+    const facturacionTotal = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
+    const facturacionMes = pedidos.filter(pedido => pedido.estado === 'Entregado' && esMesActual(pedido.fecha)).reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
     document.getElementById('gastos-total').textContent = fmt(totalGastos);
-    document.getElementById('gastos-mes').textContent = fmt(gastosMes);
-    document.getElementById('gastos-facturacion').textContent = fmt(facturacion);
+    document.getElementById('gastos-mes').textContent = fmt(gastosMes + gastosFilamentoMes);
+    document.getElementById('gastos-facturacion').textContent = fmt(facturacionMes);
+    const rentabilidad = facturacionMes - (gastosMes + gastosFilamentoMes);
     const rentabilidadEl = document.getElementById('gastos-rentabilidad');
     rentabilidadEl.textContent = fmt(rentabilidad);
     rentabilidadEl.className = 'metric-value ' + (rentabilidad >= 0 ? 'profit-positive' : 'profit-negative');
+    const promKg = obtenerPromedioKg();
+    document.getElementById('gastos-prom-kg').textContent = promKg !== null ? fmt(Math.round(promKg * 100) / 100) + '/kg' : '—';
+    document.getElementById('gastos-prom-kg-sub').textContent = filamentos.some(f => esMesActual(f.fecha)) ? '$/kg segun compras del mes' : (filamentos.length ? '$/kg segun todas las compras' : 'Sin compras registradas');
 
     const tbody = document.getElementById('tbody-gastos');
     if (!tbody) return;
@@ -1579,7 +2018,7 @@
         <td>${Number(gasto.cantidad || 0).toLocaleString('es-AR')} ${esc(gasto.unidad || '')}</td>
         <td class="td-monto">${fmt(Number(gasto.monto || 0))}</td>
         <td style="font-size:.8rem;color:var(--text-muted)">${esc(gasto.descripcion || '')}</td>
-        <td><div class="expense-actions"><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
+        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarGasto(${gasto.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
       </tr>`).join('') : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>';
     lucide.createIcons();
   }
@@ -1623,6 +2062,163 @@
     try {
       await apiFetch(`gastos?id=eq.${id}`, { method: 'DELETE' });
       gastos = gastos.filter(gasto => gasto.id !== id);
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  function abrirEditarGasto(id) {
+    const gasto = gastos.find(g => g.id === id);
+    if (!gasto) return;
+    editandoGastoId = id;
+    document.getElementById('eg-concepto').value = gasto.concepto || '';
+    document.getElementById('eg-categoria').value = gasto.categoria || '';
+    document.getElementById('eg-monto').value = gasto.monto ?? '';
+    document.getElementById('eg-cantidad').value = gasto.cantidad ?? 1;
+    document.getElementById('eg-unidad').value = gasto.unidad || 'unidad';
+    document.getElementById('eg-fecha').value = gasto.fecha || '';
+    document.getElementById('eg-descripcion').value = gasto.descripcion || '';
+    document.getElementById('modal-editar-gasto').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalEditarGasto() { document.getElementById('modal-editar-gasto').classList.remove('open'); editandoGastoId = null; }
+  document.getElementById('modal-editar-gasto').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarGasto(); });
+
+  async function guardarEdicionGasto() {
+    if (!editandoGastoId) return;
+    const concepto = document.getElementById('eg-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('eg-monto').value);
+    if (!concepto || !Number.isFinite(monto) || monto < 0) { alert('Completa el concepto y un monto valido.'); return; }
+    const datos = {
+      concepto,
+      categoria: document.getElementById('eg-categoria').value.trim(),
+      monto,
+      cantidad: parseFloat(document.getElementById('eg-cantidad').value) || 1,
+      unidad: document.getElementById('eg-unidad').value.trim() || 'unidad',
+      fecha: document.getElementById('eg-fecha').value || new Date().toISOString().split('T')[0],
+      descripcion: document.getElementById('eg-descripcion').value.trim()
+    };
+    try {
+      await apiFetch(`gastos?id=eq.${editandoGastoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      const idx = gastos.findIndex(g => g.id === editandoGastoId);
+      if (idx >= 0) gastos[idx] = { ...gastos[idx], ...datos };
+      cerrarModalEditarGasto();
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  // ── FILAMENTOS ──
+  function switchGastoTab(tab) {
+    document.getElementById('gtab-btn-general').classList.toggle('active', tab === 'general');
+    document.getElementById('gtab-btn-filamento').classList.toggle('active', tab === 'filamento');
+    document.getElementById('form-gasto-general').style.display = tab === 'general' ? '' : 'none';
+    document.getElementById('form-gasto-filamento').style.display = tab === 'filamento' ? '' : 'none';
+  }
+
+  async function cargarFilamentos() {
+    try {
+      filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc');
+      if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
+    } catch (e) { console.error('Error cargando filamentos:', e); }
+  }
+
+  function renderFilamentos() {
+    const tbody = document.getElementById('tbody-filamentos');
+    if (!tbody) return;
+    tbody.innerHTML = filamentos.length ? filamentos.map(f => {
+      const kg = Number(f.kg || 0);
+      const precio = Number(f.precio || 0);
+      return `
+      <tr>
+        <td>${fmtFecha(f.fecha)}</td>
+        <td class="td-cliente">${esc(f.marca || '—')}</td>
+        <td>${esc(f.color || '—')}</td>
+        <td>${kg.toLocaleString('es-AR')} kg</td>
+        <td class="td-monto">${fmt(precio)}</td>
+        <td>${kg > 0 ? fmt(Math.round((precio / kg) * 100) / 100) : '—'}</td>
+        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarFilamento(${f.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarFilamento(${f.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="7" class="empty-state">No hay filamentos registrados.</td></tr>';
+    lucide.createIcons();
+  }
+
+  async function guardarFilamento() {
+    const state = document.getElementById('filamento-save-state');
+    const marca = document.getElementById('fil-marca').value.trim();
+    const kg = parseFloat(document.getElementById('fil-kg').value);
+    const precio = parseFloat(document.getElementById('fil-precio').value);
+    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) {
+      state.textContent = 'Completa marca, kg (mayor a 0) y precio.';
+      state.style.color = 'var(--red)';
+      return;
+    }
+    const datos = {
+      marca,
+      color: document.getElementById('fil-color').value.trim(),
+      kg,
+      precio,
+      fecha: document.getElementById('fil-fecha').value || new Date().toISOString().split('T')[0]
+    };
+    const btn = document.getElementById('btn-guardar-filamento');
+    btn.disabled = true;
+    try {
+      await apiFetch('filamentos', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      state.textContent = 'Filamento guardado en Supabase.';
+      state.style.color = 'var(--green)';
+      document.getElementById('fil-marca').value = '';
+      document.getElementById('fil-color').value = '';
+      document.getElementById('fil-kg').value = '';
+      document.getElementById('fil-precio').value = '';
+      await cargarFilamentos();
+    } catch (e) {
+      state.textContent = 'No se pudo guardar: ' + e.message;
+      state.style.color = 'var(--red)';
+    } finally { btn.disabled = false; }
+  }
+
+  async function borrarFilamento(id) {
+    if (!confirm('Borrar este filamento?')) return;
+    try {
+      await apiFetch(`filamentos?id=eq.${id}`, { method: 'DELETE' });
+      filamentos = filamentos.filter(f => f.id !== id);
+      renderFilamentos();
+      renderGastos();
+    } catch (e) { alert('Error: ' + e.message); }
+  }
+
+  function abrirEditarFilamento(id) {
+    const f = filamentos.find(x => x.id === id);
+    if (!f) return;
+    editandoFilamentoId = id;
+    document.getElementById('ef-marca').value = f.marca || '';
+    document.getElementById('ef-color').value = f.color || '';
+    document.getElementById('ef-kg').value = f.kg ?? '';
+    document.getElementById('ef-precio').value = f.precio ?? '';
+    document.getElementById('ef-fecha').value = f.fecha || '';
+    document.getElementById('modal-editar-filamento').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalEditarFilamento() { document.getElementById('modal-editar-filamento').classList.remove('open'); editandoFilamentoId = null; }
+  document.getElementById('modal-editar-filamento').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarFilamento(); });
+
+  async function guardarEdicionFilamento() {
+    if (!editandoFilamentoId) return;
+    const marca = document.getElementById('ef-marca').value.trim();
+    const kg = parseFloat(document.getElementById('ef-kg').value);
+    const precio = parseFloat(document.getElementById('ef-precio').value);
+    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) { alert('Completa marca, kg (mayor a 0) y precio.'); return; }
+    const datos = {
+      marca,
+      color: document.getElementById('ef-color').value.trim(),
+      kg,
+      precio,
+      fecha: document.getElementById('ef-fecha').value || new Date().toISOString().split('T')[0]
+    };
+    try {
+      await apiFetch(`filamentos?id=eq.${editandoFilamentoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
+      const idx = filamentos.findIndex(x => x.id === editandoFilamentoId);
+      if (idx >= 0) filamentos[idx] = { ...filamentos[idx], ...datos };
+      cerrarModalEditarFilamento();
+      renderFilamentos();
       renderGastos();
     } catch (e) { alert('Error: ' + e.message); }
   }
@@ -1920,29 +2516,77 @@
     } catch(e) { console.error('Error cargando productos:', e); }
   }
 
+  // Costo de produccion: filamento (promedio $/kg) + luz + desgaste + margen de error (config de la calculadora)
+  function calcularCostoProduccion(prod) {
+    const cfg = calcConfigGlobal || calculatorDefaults;
+    const promKg = obtenerPromedioKg();
+    const gramos = Number(prod?.gramos) || 0;
+    const horas = Number(prod?.tiempo_horas) || 0;
+    if (!gramos && !horas) return null;
+    const material = gramos / 1000 * (promKg || 0);
+    const luz = horas * (Number(cfg.consumo) || 0) / 1000 * (Number(cfg.kwh) || 0);
+    const desgaste = (Number(cfg.vida) || 0) > 0 ? horas * (Number(cfg.repuestos) || 0) / cfg.vida : 0;
+    const subtotal = material + luz + desgaste;
+    return subtotal * (1 + (Number(cfg.error) || 0) / 100);
+  }
+
+  function selectOrdenProd(value, label) {
+    document.getElementById('cd-pord-label').textContent = label;
+    const input = document.getElementById('filtro-orden-productos');
+    if (input) input.value = value;
+    document.querySelectorAll('#cd-pord-menu .cd-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.textContent.trim() === label);
+    });
+    document.getElementById('cd-pord-menu').classList.remove('open');
+    document.getElementById('cd-pord-trigger').classList.remove('open');
+    lucide.createIcons();
+    renderProductos();
+  }
+
   function renderProductos(lista) {
     const filtro = (document.getElementById('filtro-producto')?.value||'').toLowerCase();
-    const data = (lista||productos).filter(p =>
+    const orden = (lista ? 'nuevo' : (document.getElementById('filtro-orden-productos')?.value||'nuevo'));
+    let data = (lista||productos).filter(p =>
       !filtro || (p.nombre||'').toLowerCase().includes(filtro) || (p.categoria||'').toLowerCase().includes(filtro)
     );
+    if (!lista) {
+      data = [...data].sort((a, b) => {
+        switch (orden) {
+          case 'nuevo':         return (b.id||0) - (a.id||0);
+          case 'viejo':         return (a.id||0) - (b.id||0);
+          case 'nombre_az':     return (a.nombre||'').localeCompare(b.nombre||'', 'es');
+          case 'nombre_za':     return (b.nombre||'').localeCompare(a.nombre||'', 'es');
+          case 'caro':          return (b.precio_base||0) - (a.precio_base||0);
+          case 'barato':        return (a.precio_base||0) - (b.precio_base||0);
+          case 'costo_caro':    return (calcularCostoProduccion(b)||0) - (calcularCostoProduccion(a)||0);
+          case 'costo_barato':  return (calcularCostoProduccion(a)||0) - (calcularCostoProduccion(b)||0);
+          default:              return 0;
+        }
+      });
+    }
 
     // Tabla desktop
     const tbody = document.getElementById('tbody-productos');
     if (tbody) {
       tbody.innerHTML = !data.length
-        ? '<tr><td colspan="6" class="empty-state">No hay productos.</td></tr>'
-        : data.map(p => `
+        ? '<tr><td colspan="7" class="empty-state">No hay productos.</td></tr>'
+        : data.map(p => {
+            const costo = calcularCostoProduccion(p);
+            return `
           <tr>
             <td class="td-id">${p.id}</td>
             <td class="td-cliente">${esc(p.nombre)}</td>
             <td>${esc(p.categoria||'—')}</td>
             <td class="td-monto">${p.precio_base ? fmt(p.precio_base) : '—'}</td>
+            <td style="white-space:nowrap">${p.gramos ? `${Number(p.gramos).toLocaleString('es-AR')} g` : '—'}<div style="font-size:.75rem;color:#8b90a7">${p.tiempo_horas ? `${p.tiempo_horas} hs` : ''}</div></td>
+            <td class="td-monto" style="color:var(--accent)">${costo !== null ? fmt(Math.round(costo)) : '—'}</td>
             <td style="font-size:0.8rem;color:#8b90a7;max-width:200px">${esc(p.descripcion||'')}</td>
             <td><div class="acciones">
               <button class="btn-icon" onclick="abrirEditarProducto(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
               <button class="btn-icon del" onclick="borrarProducto(${p.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
             </div></td>
-          </tr>`).join('');
+          </tr>`;
+          }).join('');
     }
 
     // Cards mobile
@@ -1950,7 +2594,9 @@
     if (mobile) {
       mobile.innerHTML = !data.length
         ? '<div class="empty-state">No hay productos.</div>'
-        : data.map(p => `
+        : data.map(p => {
+            const costo = calcularCostoProduccion(p);
+            return `
           <div class="pedido-card-mobile">
             <div class="pcm-top">
               <div class="pcm-top-left">
@@ -1964,8 +2610,24 @@
             </div>
             <div class="pcm-cliente">${esc(p.nombre)}</div>
             ${p.precio_base ? `<div class="pcm-producto">${fmt(p.precio_base)}</div>` : ''}
+            ${costo !== null || p.gramos || p.tiempo_horas ? `
+            <div class="pcm-stats">
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Gramos</div>
+                <div class="pcm-stat-value">${p.gramos ? Number(p.gramos).toLocaleString('es-AR') + ' g' : '—'}</div>
+              </div>
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Tiempo</div>
+                <div class="pcm-stat-value">${p.tiempo_horas ? p.tiempo_horas + ' hs' : '—'}</div>
+              </div>
+              <div class="pcm-stat">
+                <div class="pcm-stat-label">Costo prod.</div>
+                <div class="pcm-stat-value highlight">${costo !== null ? fmt(Math.round(costo)) : '—'}</div>
+              </div>
+            </div>` : ''}
             ${p.descripcion ? `<div class="pcm-desc">${esc(p.descripcion)}</div>` : ''}
-          </div>`).join('');
+          </div>`;
+          }).join('');
     }
     lucide.createIcons();
   }
@@ -2018,6 +2680,8 @@
   function abrirNuevoProducto() {
     ['np-nombre','np-categoria','np-descripcion'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('np-precio').value = '';
+    document.getElementById('np-gramos').value = '';
+    document.getElementById('np-tiempo').value = '';
     const msg = document.getElementById('msg-nuevo-producto');
     msg.className = 'msg-box'; msg.textContent = '';
     document.getElementById('modal-nuevo-producto').classList.add('open');
@@ -2036,6 +2700,8 @@
       nombre,
       categoria:   document.getElementById('np-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('np-precio').value) || 0,
+      gramos:      parseFloat(document.getElementById('np-gramos').value) || null,
+      tiempo_horas: parseFloat(document.getElementById('np-tiempo').value) || null,
       descripcion: document.getElementById('np-descripcion').value.trim(),
     };
     btn.disabled = true;
@@ -2056,6 +2722,8 @@
     document.getElementById('ep-nombre').value      = p.nombre || '';
     document.getElementById('ep-categoria').value   = p.categoria || '';
     document.getElementById('ep-precio').value      = p.precio_base || '';
+    document.getElementById('ep-gramos').value      = p.gramos ?? '';
+    document.getElementById('ep-tiempo').value      = p.tiempo_horas ?? '';
     document.getElementById('ep-descripcion').value = p.descripcion || '';
     const msg = document.getElementById('msg-editar-producto');
     msg.className = 'msg-box'; msg.textContent = '';
@@ -2076,6 +2744,8 @@
       nombre,
       categoria:   document.getElementById('ep-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('ep-precio').value) || 0,
+      gramos:      parseFloat(document.getElementById('ep-gramos').value) || null,
+      tiempo_horas: parseFloat(document.getElementById('ep-tiempo').value) || null,
       descripcion: document.getElementById('ep-descripcion').value.trim(),
     };
     btn.disabled = true;
