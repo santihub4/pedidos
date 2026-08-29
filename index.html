@@ -236,6 +236,31 @@
     .msg-box.ok  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display: block; }
     .msg-box.err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; display: block; }
     .empty-state { text-align: center; color: var(--text-muted); padding: 48px 0; font-size: 0.9rem; }
+    /* ── PAGE TABS ── */
+    .page-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg); border-radius: 10px; padding: 4px; width: fit-content; }
+    .page-tab { padding: 7px 18px; border-radius: 7px; border: none; background: none; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .page-tab.active { background: var(--card-bg); color: var(--text); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .page-tab:hover:not(.active) { color: var(--text); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .stats-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+    .stats-config { display:none; background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:20px; }
+    .stats-config.open { display:block; }
+    .stats-config-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; margin-top:12px; }
+    .stats-config-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; background:var(--bg); border-radius:7px; font-size:.82rem; }
+    .stats-config-item label { display:flex; align-items:center; gap:8px; cursor:pointer; }
+    .stats-order { display:flex; gap:3px; }
+    .stats-order button { width:25px; height:25px; border:1px solid var(--border); border-radius:5px; background:var(--card-bg); color:var(--text-muted); cursor:pointer; }
+    .stats-order button:hover { color:var(--accent); border-color:#c7d7fd; }
+    .stats-section { margin-bottom:20px; }
+    .stats-section:last-child { margin-bottom:0; }
+    .stats-month-list { display:flex; flex-direction:column; gap:9px; }
+    .stats-month-row { display:grid; grid-template-columns:65px 1fr auto; align-items:center; gap:10px; font-size:.8rem; }
+    .stats-month-bar { height:8px; background:var(--blue-light); border-radius:4px; overflow:hidden; }
+    .stats-month-fill { height:100%; background:var(--accent); border-radius:4px; }
+    .stats-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    @media (max-width:900px) { .stats-summary { grid-template-columns:1fr 1fr; } }
+    @media (max-width:640px) { .stats-summary { gap:8px; } .stats-month-row { grid-template-columns:52px 1fr auto; gap:6px; } }
     .auth-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); }
     .auth-overlay.hidden { display: none; }
     .auth-box { width: min(100%, 380px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; box-shadow: 0 16px 40px rgba(26,29,46,.08); }
@@ -383,6 +408,9 @@
     <button class="nav-item" onclick="navegarA('productos')">
       <i data-lucide="box" width="16" height="16"></i> Productos
     </button>
+    <button class="nav-item" onclick="navegarA('estadisticas')">
+      <i data-lucide="chart-no-axes-combined" width="16" height="16"></i> Estadisticas
+    </button>
   </nav>
 </aside>
 
@@ -487,6 +515,22 @@
           <div id="actividad-reciente"></div>
         </div>
       </div>
+    </div>
+
+    <!-- ESTADISTICAS -->
+    <div class="page" id="page-estadisticas">
+      <div class="page-title">Estadisticas</div>
+      <div class="page-sub">Organiza y consulta los datos importantes de tu negocio</div>
+      <div class="stats-toolbar">
+        <div class="card-title">Resumen configurable</div>
+        <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
+      </div>
+      <div class="stats-config" id="stats-config">
+        <div class="card-title">Que mostrar y en que orden</div>
+        <div class="card-sub" style="margin-bottom:0">Los cambios se guardan solo en este navegador.</div>
+        <div class="stats-config-list" id="stats-config-list"></div>
+      </div>
+      <div id="stats-content"></div>
     </div>
 
     <!-- PEDIDOS -->
@@ -611,24 +655,52 @@
   <!-- PRODUCTOS -->
     <div class="page" id="page-productos">
       <div class="page-title">Productos</div>
-      <div class="page-sub">Catalogo de productos disponibles</div>
-      <div class="filtros-bar">
-        <input type="text" id="filtro-producto" placeholder="Buscar producto..."
-          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
-          oninput="renderProductos()"/>
-        <button class="btn-primary" onclick="abrirNuevoProducto()">
-          <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
-        </button>
+      <div class="page-sub">Catalogo de productos y categorias</div>
+      <div class="page-tabs">
+        <button class="page-tab active" id="tab-btn-productos" onclick="switchProdTab('productos')">Productos</button>
+        <button class="page-tab" id="tab-btn-categorias" onclick="switchProdTab('categorias')">Categorias</button>
       </div>
-      <div class="card tabla-desktop" style="padding:0">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Descripcion</th><th>Acciones</th></tr></thead>
-            <tbody id="tbody-productos"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
-          </table>
+
+      <!-- Tab Productos -->
+      <div class="tab-content active" id="tab-productos">
+        <div class="filtros-bar">
+          <input type="text" id="filtro-producto" placeholder="Buscar producto..."
+            style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
+            oninput="renderProductos()"/>
+          <button class="btn-primary" onclick="abrirNuevoProducto()">
+            <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
+          </button>
+        </div>
+        <div class="card tabla-desktop" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Descripcion</th><th>Acciones</th></tr></thead>
+              <tbody id="tbody-productos"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="cards-mobile" id="cards-productos-mobile"></div>
+      </div>
+
+      <!-- Tab Categorias -->
+      <div class="tab-content" id="tab-categorias">
+        <div class="filtros-bar">
+          <input type="text" id="filtro-categoria" placeholder="Buscar categoria..."
+            style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
+            oninput="renderCategorias()"/>
+          <button class="btn-primary" onclick="abrirNuevaCategoria()">
+            <i data-lucide="plus" width="14" height="14"></i> Nueva categoria
+          </button>
+        </div>
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Productos</th><th>Acciones</th></tr></thead>
+              <tbody id="tbody-categorias"><tr><td colspan="3" class="empty-state">Cargando...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="cards-mobile" id="cards-productos-mobile"></div>
     </div>
 
   </div>
@@ -656,6 +728,9 @@
   </button>
   <button class="mobile-nav-item" id="mnav-productos" onclick="navegarA('productos')">
     <i data-lucide="box" width="20" height="20"></i> Productos
+  </button>
+  <button class="mobile-nav-item" id="mnav-estadisticas" onclick="navegarA('estadisticas')">
+    <i data-lucide="chart-no-axes-combined" width="20" height="20"></i> Estadisticas
   </button>
   <button class="mobile-nav-item" onclick="abrirNuevo()" style="color:var(--accent)">
     <i data-lucide="plus-circle" width="22" height="22"></i> Nuevo
@@ -817,6 +892,45 @@
   </div>
 </div>
 
+
+<!-- MODAL NUEVA CATEGORIA -->
+<div class="modal-overlay" id="modal-nueva-cat">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nueva categoria</span>
+      <button class="modal-close" onclick="cerrarModalNuevaCat()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Nombre</label><input type="text" id="nc-nombre" placeholder="Nombre de la categoria"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" id="btn-nueva-cat" onclick="guardarNuevaCategoria()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar categoria
+      </button>
+    </div>
+    <div class="msg-box" id="msg-nueva-cat"></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR CATEGORIA -->
+<div class="modal-overlay" id="modal-editar-cat">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar categoria</span>
+      <button class="modal-close" onclick="cerrarModalEditarCat()"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Nombre</label><input type="text" id="ec-nombre"/></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-primary" id="btn-editar-cat" onclick="guardarEdicionCategoria()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
+        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
+      </button>
+    </div>
+    <div class="msg-box" id="msg-editar-cat"></div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = window.supabase.createClient(
     'https://ydugevaqupmpwwabwxno.supabase.co',
@@ -910,7 +1024,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
-    const idx = { dashboard: 0, pedidos: 1 };
+    const idx = { dashboard: 0, pedidos: 1, productos: 2, estadisticas: 3 };
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems[idx[pagina]]) navItems[idx[pagina]].classList.add('active');
     const mnavId = 'mnav-' + pagina;
@@ -920,6 +1034,7 @@
     if (pagina === 'dashboard') renderDashboard();
     if (pagina === 'pedidos') renderTabla();
     if (pagina === 'productos') renderProductos();
+    if (pagina === 'estadisticas') renderEstadisticas();
   }
 
   // ── UTILS ──
@@ -941,6 +1056,7 @@
       pedidos = await apiFetch(`${TABLA}?order=id.desc`);
       if (paginaActual === 'dashboard') renderDashboard();
       if (paginaActual === 'pedidos') renderTabla();
+      if (paginaActual === 'estadisticas') renderEstadisticas();
     } catch(e) { console.error(e); }
   }
 
@@ -958,19 +1074,48 @@
     const ticket     = entregados > 0 ? ingresos / entregados : 0;
     const totalUnidades = pedidos.reduce((s, p) => s + (p.cantidad||1), 0);
 
-    document.getElementById('m-ingresos').textContent   = fmt(ingresos);
-    document.getElementById('m-ingresos-sub').innerHTML = `<i data-lucide="trending-up" width="12" height="12"></i> ${entregados} entregados`;
-    document.getElementById('m-total').textContent      = total;
-    document.getElementById('m-total-sub').innerHTML    = `<i data-lucide="trending-up" width="12" height="12"></i> ${entregados} entregados`;
-    document.getElementById('m-ticket').textContent     = fmt(Math.round(ticket));
-    document.getElementById('m-ticket-sub').innerHTML   = `<i data-lucide="trending-up" width="12" height="12"></i> ${totalUnidades} unidades`;
-    document.getElementById('m-productos').textContent  = productos.length;
-    const conPedidos = new Set(pedidos.map(p => p.producto)).size;
-    document.getElementById('m-productos-sub').innerHTML = `<i data-lucide="trending-up" width="12" height="12"></i> ${conPedidos} con pedidos`;
+    document.getElementById('m-ingresos').textContent = fmt(ingresos);
+    document.getElementById('m-total').textContent     = total;
+    document.getElementById('m-ticket').textContent    = fmt(Math.round(ticket));
+    document.getElementById('m-productos').textContent = productos.length;
+
+    // Comparación vs mes anterior
+    const ahora = new Date();
+    const mesActual  = ahora.getMonth(), anioActual = ahora.getFullYear();
+    const mesPasado  = mesActual === 0 ? 11 : mesActual - 1;
+    const anioPasado = mesActual === 0 ? anioActual - 1 : anioActual;
+    const esEsteMes = p => { if (!p.fecha) return false; const d = new Date(p.fecha); return d.getMonth()===mesActual && d.getFullYear()===anioActual; };
+    const esMesAnt  = p => { if (!p.fecha) return false; const d = new Date(p.fecha); return d.getMonth()===mesPasado && d.getFullYear()===anioPasado; };
+
+    const ingEM = pedidos.filter(p => p.estado==='Entregado' && esEsteMes(p)).reduce((s,p)=>s+(p.precio_final||0),0);
+    const ingMA = pedidos.filter(p => p.estado==='Entregado' && esMesAnt(p)).reduce((s,p)=>s+(p.precio_final||0),0);
+    const pctIng = ingMA > 0 ? Math.round(((ingEM-ingMA)/ingMA)*100) : null;
+
+    const pedEM = pedidos.filter(esEsteMes).length;
+    const pedMA = pedidos.filter(esMesAnt).length;
+    const pctPed = pedMA > 0 ? Math.round(((pedEM-pedMA)/pedMA)*100) : null;
+
+    const entEM = pedidos.filter(p => p.estado==='Entregado' && esEsteMes(p));
+    const entMA = pedidos.filter(p => p.estado==='Entregado' && esMesAnt(p));
+    const tickEM = entEM.length > 0 ? entEM.reduce((s,p)=>s+(p.precio_final||0),0)/entEM.length : 0;
+    const tickMA = entMA.length > 0 ? entMA.reduce((s,p)=>s+(p.precio_final||0),0)/entMA.length : 0;
+    const pctTick = tickMA > 0 ? Math.round(((tickEM-tickMA)/tickMA)*100) : null;
+
+    const cats = new Set(productos.map(p => p.categoria).filter(Boolean)).size;
+
+    function subPct(pct) {
+      if (pct === null) return `<span style="color:var(--text-muted);font-size:0.72rem">Sin datos del mes anterior</span>`;
+      const up = pct >= 0;
+      return `<span style="color:${up?'var(--green)':'var(--red)'};font-size:0.75rem;font-weight:600">${up?'↑':'↓'} ${up?'+':''}${pct}% que el mes ant.</span>`;
+    }
+
+    document.getElementById('m-ingresos-sub').innerHTML = subPct(pctIng);
+    document.getElementById('m-total-sub').innerHTML    = `<span style="color:var(--green);font-size:0.75rem;font-weight:600">(${pedEM} pedidos este mes)</span>`;
+    document.getElementById('m-ticket-sub').innerHTML   = subPct(pctTick);
+    document.getElementById('m-productos-sub').innerHTML = `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">${cats} categoría${cats!==1?'s':''}</span>`;
     lucide.createIcons();
 
     // ── GRÁFICO DE LÍNEA (facturación mensual) ──
-    const ahora = new Date();
     const meses6 = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
@@ -1119,6 +1264,100 @@
           <span class="badge ${badgeClass(p.estado)}" style="font-size:0.65rem;padding:2px 7px">${esc(p.estado||'—')}</span>
         </div>
       </div>`).join('') || '<div class="empty-state">Sin pedidos</div>';
+  }
+
+  const statsDefaultConfig = {
+    order: ['summary', 'monthly', 'states', 'top', 'activity'],
+    visible: { summary: true, monthly: true, states: true, top: true, activity: true }
+  };
+  let statsConfig = cargarConfigEstadisticas();
+
+  function cargarConfigEstadisticas() {
+    try {
+      const guardada = JSON.parse(localStorage.getItem('pedidos3d-stats-config'));
+      if (guardada?.order && guardada?.visible) return guardada;
+    } catch (e) { console.warn('No se pudo cargar la configuracion de estadisticas.'); }
+    return JSON.parse(JSON.stringify(statsDefaultConfig));
+  }
+
+  function guardarConfigEstadisticas() {
+    localStorage.setItem('pedidos3d-stats-config', JSON.stringify(statsConfig));
+  }
+
+  function toggleStatsConfig() {
+    document.getElementById('stats-config').classList.toggle('open');
+    renderStatsConfig();
+  }
+
+  function renderStatsConfig() {
+    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', activity: 'Actividad reciente' };
+    const lista = document.getElementById('stats-config-list');
+    if (!lista) return;
+    lista.innerHTML = statsConfig.order.map((key, index) => `
+      <div class="stats-config-item">
+        <label><input type="checkbox" ${statsConfig.visible[key] ? 'checked' : ''} onchange="cambiarVisibilidadStats('${key}', this.checked)"/> ${nombres[key]}</label>
+        <div class="stats-order">
+          <button type="button" title="Subir" onclick="moverStats('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" title="Bajar" onclick="moverStats('${key}', 1)" ${index === statsConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function cambiarVisibilidadStats(key, visible) {
+    statsConfig.visible[key] = visible;
+    guardarConfigEstadisticas();
+    renderEstadisticas();
+  }
+
+  function moverStats(key, direction) {
+    const index = statsConfig.order.indexOf(key);
+    const next = index + direction;
+    if (index < 0 || next < 0 || next >= statsConfig.order.length) return;
+    [statsConfig.order[index], statsConfig.order[next]] = [statsConfig.order[next], statsConfig.order[index]];
+    guardarConfigEstadisticas();
+    renderStatsConfig();
+    renderEstadisticas();
+  }
+
+  function renderEstadisticas() {
+    const content = document.getElementById('stats-content');
+    if (!content) return;
+    const ahora = new Date();
+    const entregados = pedidos.filter(p => p.estado === 'Entregado');
+    const facturacion = entregados.reduce((total, p) => total + (p.precio_final || 0), 0);
+    const ticket = entregados.length ? facturacion / entregados.length : 0;
+    const meses = [];
+    for (let i = 5; i >= 0; i--) {
+      const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      const lista = pedidos.filter(p => {
+        if (!p.fecha) return false;
+        const fechaPedido = new Date(p.fecha);
+        return fechaPedido.getFullYear() === fecha.getFullYear() && fechaPedido.getMonth() === fecha.getMonth() && p.estado === 'Entregado';
+      });
+      meses.push({ nombre: fecha.toLocaleString('es-AR', { month: 'short' }), total: lista.reduce((sum, p) => sum + (p.precio_final || 0), 0) });
+    }
+    const maxMes = Math.max(...meses.map(m => m.total), 1);
+    const estados = ['Entregado', 'Impreso', 'Pendiente', 'Cancelado', 'Listo para retirar'];
+    const estadoColores = ['#22c55e', '#3b6ef6', '#f97316', '#ef4444', '#a855f7'];
+    const conteos = estados.map((estado, i) => ({ estado, color: estadoColores[i], total: pedidos.filter(p => p.estado === estado).length }));
+    const ranking = {};
+    pedidos.forEach(p => { if (p.producto) ranking[p.producto] = (ranking[p.producto] || 0) + (p.cantidad || 1); });
+    const top = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const bloques = {
+      summary: `<div class="stats-section stats-summary">
+        <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value">${fmt(facturacion)}</div><div class="metric-sub">Total acumulado</div></div>
+        <div class="metric-card"><div class="metric-label">Pedidos totales</div><div class="metric-value">${pedidos.length}</div><div class="metric-sub">${pedidos.filter(p => p.fecha && new Date(p.fecha).getMonth() === ahora.getMonth() && new Date(p.fecha).getFullYear() === ahora.getFullYear()).length} este mes</div></div>
+        <div class="metric-card"><div class="metric-label">Ticket promedio</div><div class="metric-value">${fmt(Math.round(ticket))}</div><div class="metric-sub">Por pedido entregado</div></div>
+        <div class="metric-card"><div class="metric-label">Productos activos</div><div class="metric-value">${productos.length}</div><div class="metric-sub">${new Set(productos.map(p => p.categoria).filter(Boolean)).size} categorias</div></div>
+      </div>`,
+      monthly: `<div class="card stats-section"><div class="card-title">Facturacion mensual</div><div class="card-sub">Pedidos entregados en los ultimos 6 meses</div><div class="stats-month-list">${meses.map(m => `<div class="stats-month-row"><span>${m.nombre}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.round(m.total / maxMes * 100)}%"></div></div><strong>${fmt(m.total)}</strong></div>`).join('')}</div></div>`,
+      states: `<div class="card stats-section"><div class="card-title">Estado de pedidos</div><div class="card-sub">Distribucion actual del trabajo</div><div class="estado-list">${conteos.map(s => `<div class="estado-row"><div class="estado-top"><span class="estado-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${s.color};margin-right:7px"></span>${s.estado}</span><span class="estado-count">${s.total}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pedidos.length ? Math.round(s.total / pedidos.length * 100) : 0}%;background:${s.color}"></div></div></div>`).join('')}</div></div>`,
+      top: `<div class="card stats-section"><div class="card-title">Productos mas vendidos</div><div class="card-sub">Ordenados por unidades pedidas</div>${top.map(([nombre, total], i) => `<div class="top-prod-row"><div class="top-prod-rank" style="background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i]}">${i + 1}</div><div class="top-prod-info"><div class="top-prod-name">${esc(nombre)}</div><div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.round(total / (top[0]?.[1] || 1) * 100)}%;background:var(--accent)"></div></div></div><div class="top-prod-units">${total} u.</div></div>`).join('') || '<div class="empty-state">Sin datos</div>'}</div>`,
+      activity: `<div class="card stats-section"><div class="card-title">Actividad reciente</div><div class="card-sub">Ultimos pedidos registrados</div>${pedidos.slice(0, 8).map(p => `<div class="act-row"><div class="act-info"><div class="act-cliente">${esc(p.cliente)}</div><div class="act-detalle">${esc(p.producto)} · ${fmtFecha(p.fecha)}</div></div><div class="act-right"><div class="act-monto">${fmt(p.precio_final)}</div><span class="badge ${badgeClass(p.estado)}">${esc(p.estado || '—')}</span></div></div>`).join('') || '<div class="empty-state">Sin pedidos</div>'}</div>`
+    };
+    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
+    renderStatsConfig();
+    lucide.createIcons();
   }
 
   // ── TABLA / CARDS ──
@@ -1401,7 +1640,12 @@
   async function cargarProductos() {
     try {
       productos = await apiFetch('productos?order=nombre.asc');
+      categorias = [...new Set([
+        ...categorias,
+        ...productos.map(p => (p.categoria || '').trim()).filter(Boolean)
+      ])].sort((a, b) => a.localeCompare(b, 'es'));
       if (paginaActual === 'productos') renderProductos();
+      if (document.getElementById('tab-categorias')?.classList.contains('active')) renderCategorias();
       if (paginaActual === 'dashboard') renderDashboard();
       // Actualizar dropdown de producto en modales
       renderDropdownProductos();
@@ -1586,6 +1830,119 @@
       productos = productos.filter(p => p.id !== id);
       renderProductos();
       renderDropdownProductos();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+
+  // ── CATEGORÍAS ──
+  let categorias = [];
+  let editandoCatNombre = null;
+
+  function switchProdTab(tab) {
+    document.getElementById('tab-btn-productos').classList.toggle('active', tab==='productos');
+    document.getElementById('tab-btn-categorias').classList.toggle('active', tab==='categorias');
+    document.getElementById('tab-productos').classList.toggle('active', tab==='productos');
+    document.getElementById('tab-categorias').classList.toggle('active', tab==='categorias');
+    if (tab === 'categorias') { renderCategorias(); lucide.createIcons(); }
+    if (tab === 'productos')  { renderProductos(); }
+  }
+
+  function renderCategorias() {
+    const filtro = (document.getElementById('filtro-categoria')?.value||'').toLowerCase();
+    const data = categorias.filter(c => !filtro || c.toLowerCase().includes(filtro));
+    const tbody = document.getElementById('tbody-categorias');
+    if (!tbody) return;
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay categorias.</td></tr>'; return; }
+    tbody.innerHTML = data.map(cat => {
+      const count = productos.filter(p => p.categoria === cat).length;
+      return `<tr>
+        <td class="td-cliente">${esc(cat)}</td>
+        <td style="color:var(--text-muted)">${count} producto${count!==1?'s':''}</td>
+        <td><div class="acciones">
+          <button class="btn-icon" onclick="abrirEditarCat('${cat.replace(/'/g,"\'")}')"><i data-lucide="pencil" width="13" height="13"></i></button>
+          <button class="btn-icon del" onclick="borrarCategoria('${cat.replace(/'/g,"\'")}')"><i data-lucide="trash-2" width="13" height="13"></i></button>
+        </div></td>
+      </tr>`;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  // MODAL NUEVA CATEGORIA
+  function abrirNuevaCategoria() {
+    document.getElementById('nc-nombre').value = '';
+    const msg = document.getElementById('msg-nueva-cat');
+    msg.className = 'msg-box'; msg.textContent = '';
+    document.getElementById('modal-nueva-cat').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalNuevaCat() { document.getElementById('modal-nueva-cat').classList.remove('open'); }
+  document.getElementById('modal-nueva-cat').addEventListener('click', function(e) { if(e.target===this) cerrarModalNuevaCat(); });
+
+  async function guardarNuevaCategoria() {
+    const msg = document.getElementById('msg-nueva-cat');
+    const btn = document.getElementById('btn-nueva-cat');
+    msg.className = 'msg-box'; msg.textContent = '';
+    const nombre = document.getElementById('nc-nombre').value.trim();
+    if (!nombre) { msg.textContent = 'El nombre es obligatorio.'; msg.className = 'msg-box err'; return; }
+    if (categorias.includes(nombre)) { msg.textContent = 'Esa categoria ya existe.'; msg.className = 'msg-box err'; return; }
+    categorias.push(nombre);
+    categorias.sort();
+    msg.textContent = 'Categoria creada. Podés asignarla a productos.';
+    msg.className = 'msg-box ok';
+    renderCategorias();
+    setTimeout(cerrarModalNuevaCat, 800);
+  }
+
+  // MODAL EDITAR CATEGORIA
+  function abrirEditarCat(nombre) {
+    editandoCatNombre = nombre;
+    document.getElementById('ec-nombre').value = nombre;
+    const msg = document.getElementById('msg-editar-cat');
+    msg.className = 'msg-box'; msg.textContent = '';
+    document.getElementById('modal-editar-cat').classList.add('open');
+    lucide.createIcons();
+  }
+  function cerrarModalEditarCat() { document.getElementById('modal-editar-cat').classList.remove('open'); editandoCatNombre = null; }
+  document.getElementById('modal-editar-cat').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarCat(); });
+
+  async function guardarEdicionCategoria() {
+    const btn = document.getElementById('btn-editar-cat');
+    const msg = document.getElementById('msg-editar-cat');
+    msg.className = 'msg-box'; msg.textContent = '';
+    const nuevoNombre = document.getElementById('ec-nombre').value.trim();
+    if (!nuevoNombre || !editandoCatNombre) { msg.textContent = 'El nombre es obligatorio.'; msg.className = 'msg-box err'; return; }
+    btn.disabled = true;
+    try {
+      const prods = productos.filter(p => p.categoria === editandoCatNombre);
+      await Promise.all(prods.map(p =>
+        apiFetch(`productos?id=eq.${p.id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ categoria: nuevoNombre }) })
+      ));
+      productos.forEach(p => { if (p.categoria === editandoCatNombre) p.categoria = nuevoNombre; });
+      const idx = categorias.indexOf(editandoCatNombre);
+      if (idx >= 0) categorias[idx] = nuevoNombre;
+      categorias.sort();
+      msg.textContent = `Renombrada. ${prods.length} producto${prods.length!==1?'s':''} actualizados.`;
+      msg.className = 'msg-box ok';
+      renderCategorias();
+      setTimeout(cerrarModalEditarCat, 900);
+    } catch(e) { msg.textContent = 'Error: ' + e.message; msg.className = 'msg-box err'; }
+    finally { btn.disabled = false; }
+  }
+
+  async function borrarCategoria(nombre) {
+    const count = productos.filter(p => p.categoria === nombre).length;
+    const confirmar = count > 0
+      ? `Borrar "${nombre}"? Los ${count} producto${count!==1?'s':''} quedarán sin categoria.`
+      : `Borrar "${nombre}"?`;
+    if (!confirm(confirmar)) return;
+    try {
+      const prods = productos.filter(p => p.categoria === nombre);
+      await Promise.all(prods.map(p =>
+        apiFetch(`productos?id=eq.${p.id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ categoria: '' }) })
+      ));
+      productos.forEach(p => { if (p.categoria === nombre) p.categoria = ''; });
+      categorias = categorias.filter(c => c !== nombre);
+      renderCategorias();
     } catch(e) { alert('Error: ' + e.message); }
   }
 
