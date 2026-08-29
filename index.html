@@ -281,6 +281,10 @@
     .dash-grid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; }
     .dash-grid > div { min-width:0; }
     @media (max-width:900px) { .dash-grid { grid-template-columns:1fr; } }
+    /* ── DASHBOARD GRID (4 cols, auto rows) ── */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; min-height: 400px; grid-auto-rows: 160px; }
+    .grid-cell { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+    @media (max-width: 600px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
     /* ── TOASTS ── */
     .toast-wrap { position:fixed; bottom:70px; right:16px; z-index:3000; display:flex; flex-direction:column; gap:8px; }
     .toast { background:#1a1d2e; color:#fff; border-radius:8px; padding:10px 14px; font-size:.82rem; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transform:translateY(8px); transition:all .25s; max-width:320px; }
@@ -487,10 +491,17 @@
     <div class="page active" id="page-dashboard">
       <div class="page-title">Dashboard</div>
       <div class="page-sub">Resumen general de tu negocio</div>
-      <div style="text-align:center;padding:60px 20px;color:var(--text-muted)">
-        <i data-lucide="layout-dashboard" width="64" height="64" style="margin-bottom:16px;opacity:0.5"></i>
-        <h2 style="margin-bottom:8px">Dashboard en construcción</h2>
-        <p>El dashboard está siendo rediseñado. Por ahora usa las otras secciones del menú lateral.</p>
+
+      <div class="dashboard-grid" id="dashboard-grid">
+        <!-- Grid 4 columnas, auto-expande hacia abajo -->
+        <div class="grid-cell" style="grid-column: 1 / 2; grid-row: 1 / 2;"></div>
+        <div class="grid-cell" style="grid-column: 2 / 3; grid-row: 1 / 2;"></div>
+        <div class="grid-cell" style="grid-column: 3 / 4; grid-row: 1 / 2;"></div>
+        <div class="grid-cell" style="grid-column: 4 / 5; grid-row: 1 / 2;"></div>
+        <div class="grid-cell" style="grid-column: 1 / 2; grid-row: 2 / 3;"></div>
+        <div class="grid-cell" style="grid-column: 2 / 3; grid-row: 2 / 3;"></div>
+        <div class="grid-cell" style="grid-column: 3 / 4; grid-row: 2 / 3;"></div>
+        <div class="grid-cell" style="grid-column: 4 / 5; grid-row: 2 / 3;"></div>
       </div>
     </div>
 
