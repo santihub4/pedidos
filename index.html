@@ -1655,6 +1655,8 @@
   function renderDashboard() {
     aplicarDashLayout();
     if (!pedidos.length) return;
+    // Verificar si los elementos del dashboard antiguo existen
+    if (!document.getElementById('m-ingresos')) return;
 
     const entregadosList = pedidos.filter(p => p.estado === 'Entregado');
     const total      = pedidos.length;
