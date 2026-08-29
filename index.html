@@ -1185,10 +1185,9 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos()]);
+    await Promise.all([cargarCategorias(), cargarConfiguracionCalculadora(), cargarGastos()]);
     navegarA('dashboard');
-    cargarProductos();
-    cargarPedidos();
+    await Promise.all([cargarProductos(), cargarPedidos(), cargarFilamentos()]);
   }
 
   // ── RECARGAR ──
@@ -1674,7 +1673,7 @@ pedidos = await apiFetch(`${TABLA}?order=id.desc`);
 
   async function cargarFilamentos() {
     try {
-      filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc');
+      filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc&limit=100');
       if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
     } catch (e) { console.error('Error cargando filamentos:', e); }
   }
