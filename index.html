@@ -492,6 +492,17 @@
       <div class="page-title">Dashboard</div>
       <div class="page-sub">Resumen general de tu negocio</div>
 
+      <div class="stats-toolbar" style="justify-content:space-between">
+        <div class="card-title">Dashboard</div>
+        <button class="btn-icon" onclick="toggleDashConfig()" title="Configurar dashboard" style="width:36px;height:36px">
+          <i data-lucide="settings" width="18" height="18"></i>
+        </button>
+      </div>
+      <div class="stats-config" id="dash-config">
+        <div class="card-title">Widgets disponibles</div>
+        <div class="card-sub" style="margin-bottom:12px">Añade widgets a tu dashboard</div>
+        <div class="stats-config-list" id="dash-config-list"></div>
+      </div>
       <div class="dashboard-grid" id="dashboard-grid">
         <!-- Grid 4 columnas, auto-expande hacia abajo -->
         <div class="grid-cell" style="grid-column: 1 / 2; grid-row: 1 / 2;"></div>
@@ -1551,25 +1562,21 @@
     function hideTooltip() { tooltip.style.opacity = '0'; currentPoint = null; }
     
     container.onmousemove = showTooltip;
-    container.onmouseleave = hideTooltip;
-    container.ontouchmove = (e) => { e.preventDefault(); showTooltip(e); };
-    container.ontouchend = hideTooltip;
+container.onmouseleave = hideTooltip;
+  container.ontouchmove = (e) => { e.preventDefault(); showTooltip(e); };
+  container.ontouchend = hideTooltip;
   }
-  const dashDefaultConfig = {
-    order: ['metricas', 'linea', 'donut', 'top', 'actividad'],
-    visible: { metricas: true, linea: true, donut: true, top: true, actividad: true },
-    meta: 0
+  // ── DASHBOARD WIDGETS ──
+  const WIDGET_TYPES = {
+    stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' },
   };
-  const dashNombres = { metricas: 'Metricas', linea: 'Facturacion mensual', donut: 'Estado de pedidos', top: 'Productos mas vendidos', actividad: 'Actividad reciente' };
+
   let dashConfig = (function () {
     try {
       const guardada = JSON.parse(localStorage.getItem('dashboard_config'));
-      if (guardada?.order && guardada?.visible) {
-        const faltan = dashDefaultConfig.order.filter(k => !guardada.order.includes(k));
-        return { ...dashDefaultConfig, order: [...guardada.order, ...faltan], visible: { ...dashDefaultConfig.visible, ...guardada.visible }, meta: Number(guardada.meta) || 0 };
-      }
+      if (guardada?.widgets) return guardada;
     } catch { }
-    return JSON.parse(JSON.stringify(dashDefaultConfig));
+    return { widgets: [] };
   })();
 
   function guardarDashConfig() { localStorage.setItem('dashboard_config', JSON.stringify(dashConfig)); }
@@ -1582,69 +1589,148 @@
   function renderDashConfig() {
     const lista = document.getElementById('dash-config-list');
     if (!lista) return;
-    lista.innerHTML = dashConfig.order.map((key, index) => `
-      <div class="stats-config-item">
-        <label><input type="checkbox" ${dashConfig.visible[key] ? 'checked' : ''} onchange="cambiarVisibilidadDash('${key}', this.checked)"/> ${dashNombres[key]}</label>
-        <div class="stats-order">
-          <button type="button" title="Subir" onclick="moverDash('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" title="Bajar" onclick="moverDash('${key}', 1)" ${index === dashConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
+    const existentes = new Set((dashConfig.widgets || []).map(w => w.type));
+    lista.innerHTML = Object.values({ stock: { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' } }).map(wt => `
+      <div class="widget-item" onclick="añadirWidget('${wt.id}')">
+        <div class="widget-icon"><i data-lucide="${wt.icon}" width="20" height="20"></i></div>
+        <div class="widget-info">
+          <div class="widget-name">${wt.name}</div>
+          <div class="widget-desc">${wt.desc}</div>
         </div>
-      </div>`).join('')
-      + `<div class="stats-config-item" style="grid-column:1/-1">
-          <label for="dash-meta-input">Meta mensual de ganancia ($)</label>
-          <input type="number" id="dash-meta-input" min="0" step="1000" value="${dashConfig.meta || ''}" placeholder="Sin meta"
-            style="background:var(--card-bg);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:.82rem;color:var(--text);outline:none;font-family:inherit;width:140px"
-            onchange="guardarMetaDash(this.value)"/>
-        </div>`;
+        ${existentes.has(wt.id) ? '<span style="color:var(--green);font-size:.75rem;font-weight:600">Añadido</span>' : ''}
+      </div>`).join('') || '<div style="padding:16px;color:#8b90a7">Todos los widgets ya están en el dashboard</div>';
+    lucide.createIcons();
   }
 
-  function guardarMetaDash(valor) {
-    dashConfig.meta = Math.max(0, parseFloat(valor) || 0);
+  function añadirWidget(type) {
+    const wt = { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' };
+    if (!wt) return;
+    const nuevo = { id: 'w_' + Date.now() + '_' + Math.random().toString(36).slice(2), type: wt.id, x: 0, y: 0, w: 4, h: 2 };
+    dashConfig.widgets = dashConfig.widgets || [];
+    dashConfig.widgets.push(nuevo);
     guardarDashConfig();
-    if (paginaActual === 'dashboard') renderDashboard();
+    renderDashboardWidgets();
+    closeDashConfig();
+    toast('Widget añadido', 'ok');
   }
 
-  function cambiarVisibilidadDash(key, visible) {
-    dashConfig.visible[key] = visible;
-    guardarDashConfig();
-    aplicarDashLayout();
-  }
+  function closeDashConfig() { document.getElementById('dash-config').classList.remove('open'); }
 
-  function moverDash(key, direction) {
-    const index = dashConfig.order.indexOf(key);
-    const next = index + direction;
-    if (index < 0 || next < 0 || next >= dashConfig.order.length) return;
-    [dashConfig.order[index], dashConfig.order[next]] = [dashConfig.order[next], dashConfig.order[index]];
-    guardarDashConfig();
-    renderDashConfig();
-    aplicarDashLayout();
-  }
-
-  function aplicarDashLayout() {
-    const grid = document.getElementById('dash-grid');
+  function renderDashboardWidgets() {
+    const grid = document.getElementById('dashboard-grid');
     if (!grid) return;
-    dashConfig.order.forEach(key => {
-      const el = document.getElementById('dash-sec-' + key);
-      if (!el) return;
-      el.style.display = dashConfig.visible[key] ? '' : 'none';
+    grid.querySelectorAll('.dashboard-widget').forEach(el => el.remove());
+    (dashConfig.widgets || []).forEach(w => {
+      const wt = { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' };
+      if (!wt) return;
+      const el = document.createElement('div');
+      el.className = 'dashboard-widget';
+      el.dataset.id = w.id;
+      el.style.gridColumn = `${w.x + 1} / ${w.x + 1 + w.w}`;
+      el.style.gridRow = `${w.y + 1} / ${w.y + 1 + w.h}`;
+      el.innerHTML = `
+        <div class="widget-header">
+          <span class="widget-title">${wt.name}</span>
+          <div class="widget-actions">
+            <button class="btn-icon del" onclick="borrarWidget('${w.id}')" title="Quitar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+          </div>
+        </div>
+        <div class="widget-content" id="widget-content-${w.id}"></div>
+      `;
       grid.appendChild(el);
+      if (w.type === 'stock') renderStockWidget(document.getElementById(`widget-content-${w.id}`));
     });
-    // Si la seccion companera de columna esta oculta, la visible ocupa todo el ancho
-    const pares = [['linea', 'donut'], ['top', 'actividad']];
-    pares.forEach(([a, b]) => {
-      const elA = document.getElementById('dash-sec-' + a);
-      const elB = document.getElementById('dash-sec-' + b);
-      if (!elA || !elB) return;
-      const spanA = dashConfig.visible[a] && !dashConfig.visible[b];
-      const spanB = dashConfig.visible[b] && !dashConfig.visible[a];
-      elA.style.gridColumn = spanA ? '1 / -1' : '';
-      elB.style.gridColumn = spanB ? '1 / -1' : '';
-    });
+    lucide.createIcons();
   }
+
+  function borrarWidget(id) {
+    if (!confirm('Quitar este widget?')) return;
+    dashConfig.widgets = (dashConfig.widgets || []).filter(w => w.id !== id);
+    guardarDashConfig();
+    renderDashboardWidgets();
+    toast('Widget quitado', 'ok');
+  }
+
+  function closeDashConfig() { document.getElementById('dash-config').classList.remove('open'); }
+
+  function renderDashboardWidgets() {
+    const grid = document.getElementById('dashboard-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.dashboard-widget').forEach(el => el.remove());
+    (dashConfig.widgets || []).forEach(w => {
+      const wt = { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' };
+      if (!wt) return;
+      const el = document.createElement('div');
+      el.className = 'dashboard-widget';
+      el.dataset.id = w.id;
+      el.style.gridColumn = `${w.x + 1} / ${w.x + 1 + w.w}`;
+      el.style.gridRow = `${w.y + 1} / ${w.y + 1 + w.h}`;
+      el.innerHTML = `
+        <div class="widget-header">
+          <span class="widget-title">${wt.name}</span>
+          <div class="widget-actions">
+            <button class="btn-icon del" onclick="borrarWidget('${w.id}')" title="Quitar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+          </div>
+        </div>
+        <div class="widget-content" id="widget-content-${w.id}"></div>
+      `;
+      grid.appendChild(el);
+      if (w.type === 'stock') renderStockWidget(document.getElementById(`widget-content-${w.id}`));
+    });
+    lucide.createIcons();
+  }
+
+  function borrarWidget(id) {
+    if (!confirm('Quitar este widget?')) return;
+    dashConfig.widgets = (dashConfig.widgets || []).filter(w => w.id !== id);
+    guardarDashConfig();
+    renderDashboardWidgets();
+    toast('Widget quitado', 'ok');
+  }
+
+  function closeDashConfig() { document.getElementById('dash-config').classList.remove('open'); }
+
+  function renderDashboardWidgets() {
+    const grid = document.getElementById('dashboard-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.dashboard-widget').forEach(el => el.remove());
+    (dashConfig.widgets || []).forEach(w => {
+      const wt = { id: 'stock', name: 'Facturación diaria', desc: 'Gráfico acumulado estilo bolsa con selector de rango', icon: 'trending-up' };
+      if (!wt) return;
+      const el = document.createElement('div');
+      el.className = 'dashboard-widget';
+      el.dataset.id = w.id;
+      el.style.gridColumn = `${w.x + 1} / ${w.x + 1 + w.w}`;
+      el.style.gridRow = `${w.y + 1} / ${w.y + 1 + w.h}`;
+      el.innerHTML = `
+        <div class="widget-header">
+          <span class="widget-title">${wt.name}</span>
+          <div class="widget-actions">
+            <button class="btn-icon del" onclick="borrarWidget('${w.id}')" title="Quitar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+          </div>
+        </div>
+        <div class="widget-content" id="widget-content-${w.id}"></div>
+      `;
+      grid.appendChild(el);
+      if (w.type === 'stock') renderStockWidget(document.getElementById(`widget-content-${w.id}`));
+    });
+    lucide.createIcons();
+  }
+
+  function borrarWidget(id) {
+    if (!confirm('Quitar este widget?')) return;
+    dashConfig.widgets = (dashConfig.widgets || []).filter(w => w.id !== id);
+    guardarDashConfig();
+    renderDashboardWidgets();
+    toast('Widget quitado', 'ok');
+  }
+
+  function closeDashConfig() { document.getElementById('dash-config').classList.remove('open'); }
+
+  function renderStockWidget(el) { renderStockChart(); }
 
   // ── DASHBOARD ──
   function renderDashboard() {
-    aplicarDashLayout();
     if (!pedidos.length) return;
     // Verificar si los elementos del dashboard antiguo existen (ya no existen, solo grid)
     if (!document.getElementById('m-ingresos')) return;
