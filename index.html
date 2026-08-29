@@ -1,11 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Pedidos 3D</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b6ef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z'/%3E%3Cpath d='M12 22V12'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3C/svg%3E"/>
-  <meta name="theme-color" content="#3b6ef6"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -70,7 +68,7 @@
     .page-sub { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 24px; }
 
     /* ── METRICS ── */
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     .metric-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
     .metric-header { display: flex; align-items: center; justify-content: space-between; }
     .metric-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -103,6 +101,7 @@
     .act-monto { font-size: 0.875rem; font-weight: 700; white-space: nowrap; }
 
     /* ── CHARTS ── */
+    .charts-row { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 24px; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
     .card-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
@@ -237,73 +236,6 @@
     .msg-box.ok  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display: block; }
     .msg-box.err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; display: block; }
     .empty-state { text-align: center; color: var(--text-muted); padding: 48px 0; font-size: 0.9rem; }
-    /* ── PAGE TABS ── */
-    .page-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg); border-radius: 10px; padding: 4px; width: fit-content; }
-    .page-tab { padding: 7px 18px; border-radius: 7px; border: none; background: none; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; font-family: inherit; }
-    .page-tab.active { background: var(--card-bg); color: var(--text); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    .page-tab:hover:not(.active) { color: var(--text); }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .stats-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
-    .stats-config { display:none; background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:20px; }
-    .stats-config.open { display:block; }
-    .stats-config-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; margin-top:12px; }
-    .stats-config-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; background:var(--bg); border-radius:7px; font-size:.82rem; }
-    .stats-config-item label { display:flex; align-items:center; gap:8px; cursor:pointer; }
-    .stats-order { display:flex; gap:3px; }
-    .stats-order button { width:25px; height:25px; border:1px solid var(--border); border-radius:5px; background:var(--card-bg); color:var(--text-muted); cursor:pointer; }
-    .stats-order button:hover { color:var(--accent); border-color:#c7d7fd; }
-    .stats-section { margin-bottom:20px; }
-    .stats-section:last-child { margin-bottom:0; }
-    .stats-month-list { display:flex; flex-direction:column; gap:9px; }
-    .stats-month-row { display:grid; grid-template-columns:65px 1fr auto; align-items:center; gap:10px; font-size:.8rem; }
-    .stats-month-bar { height:8px; background:var(--blue-light); border-radius:4px; overflow:hidden; }
-    .stats-month-fill { height:100%; background:var(--accent); border-radius:4px; }
-    .stats-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
-    .calculator-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:20px; align-items:start; }
-    .calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .calculator-section { margin-bottom:20px; }
-    .calculator-section:last-child { margin-bottom:0; }
-    .calculator-results { position:sticky; top:77px; }
-    .calculator-result-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); font-size:.85rem; }
-    .calculator-result-row:last-child { border-bottom:none; }
-    .calculator-total { margin-top:14px; padding:16px; border-radius:10px; background:var(--blue-light); color:var(--accent); }
-    .calculator-total-label { font-size:.75rem; font-weight:700; text-transform:uppercase; }
-    .calculator-total-value { font-size:1.8rem; font-weight:700; margin-top:5px; }
-    .calculator-save-state { min-height:18px; margin-top:10px; color:var(--text-muted); font-size:.75rem; }
-    .expenses-summary { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
-    .expense-form-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:12px; align-items:end; }
-    .expense-form-grid .form-group.full { grid-column:1 / -1; }
-    .expense-actions { display:flex; gap:6px; align-items:center; }
-    .profit-positive { color:var(--green); }
-    .profit-negative { color:var(--red); }
-    /* ── DASHBOARD CONFIGURABLE ── */
-    .dash-grid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; }
-    .dash-grid > div { min-width:0; }
-    @media (max-width:900px) { .dash-grid { grid-template-columns:1fr; } }
-    /* ── TOASTS ── */
-    .toast-wrap { position:fixed; bottom:70px; right:16px; z-index:3000; display:flex; flex-direction:column; gap:8px; }
-    .toast { background:#1a1d2e; color:#fff; border-radius:8px; padding:10px 14px; font-size:.82rem; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transform:translateY(8px); transition:all .25s; max-width:320px; }
-    .toast.show { opacity:1; transform:none; }
-    .toast.err { background:#b91c1c; }
-    .toast.ok { background:#15803d; }
-    /* ── CREADOR DE ESTADISTICAS ── */
-    .formula-display { min-height:44px; height:auto; max-height:none; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:5px; align-items:center; font-size:.85rem; color:var(--text-muted); overflow:visible; }
-    .formula-chip { background:var(--blue-light); color:var(--accent); border-radius:6px; padding:3px 8px; font-weight:600; font-size:.78rem; }
-    .formula-chip.op { background:#fff; border:1px solid var(--border); color:var(--text); }
-    .est-btn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:6px; }
-    .est-btn-grid button, .ops-row button { border:1px solid var(--border); background:var(--card-bg); border-radius:7px; padding:6px 8px; font-size:.78rem; cursor:pointer; font-family:inherit; color:var(--text); transition:all .12s; }
-    .est-btn-grid button:hover, .ops-row button:hover { border-color:#c7d7fd; background:var(--blue-light); color:var(--accent); }
-    .ops-row { display:flex; gap:6px; flex-wrap:wrap; }
-    .ops-row button { font-weight:700; min-width:36px; }
-    .est-preview { margin-top:14px; padding:12px 14px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
-    .est-preview-label { font-size:.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-    .est-preview-value { font-size:1.3rem; font-weight:700; }
-    @media (max-width:900px) { .expenses-summary { grid-template-columns:1fr 1fr; } .expense-form-grid { grid-template-columns:1fr 1fr; } }
-    @media (max-width:640px) { .expenses-summary { gap:8px; } .expense-form-grid { grid-template-columns:1fr; } .expense-form-grid .form-group.full { grid-column:1; } }
-    @media (max-width:900px) { .stats-summary { grid-template-columns:1fr 1fr; } }
-    @media (max-width:900px) { .calculator-layout { grid-template-columns:1fr; } .calculator-results { position:static; } }
-    @media (max-width:640px) { .stats-summary { gap:8px; } .stats-month-row { grid-template-columns:52px 1fr auto; gap:6px; } .calculator-grid { grid-template-columns:1fr; gap:12px; } }
     .auth-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); }
     .auth-overlay.hidden { display: none; }
     .auth-box { width: min(100%, 380px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; box-shadow: 0 16px 40px rgba(26,29,46,.08); }
@@ -328,6 +260,7 @@
 
     @media (max-width: 900px) {
       .metrics { grid-template-columns: 1fr 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
@@ -349,6 +282,7 @@
       .metric-sub { font-size: 0.68rem; }
 
       /* Charts: una columna, gráfico más bajo */
+      .charts-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
       .card { padding: 14px; border-radius: 10px; }
       .card-title { font-size: 0.88rem; }
       .bar-chart { height: 110px; gap: 6px; }
@@ -369,6 +303,7 @@
       .mobile-nav-item.active { color: var(--accent); }
       .mobile-nav-item svg { flex-shrink: 0; }
       .modal { padding: 20px 16px; border-radius: 10px; }
+      .charts-row { grid-template-columns: 1fr; }
       .top-prod-monto { display: none; }
       .top-prod-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; }
       .top-prod-units { min-width: 0; max-width: 3.5em; overflow: hidden; text-overflow: ellipsis; }
@@ -448,15 +383,6 @@
     <button class="nav-item" onclick="navegarA('productos')">
       <i data-lucide="box" width="16" height="16"></i> Productos
     </button>
-    <button class="nav-item" onclick="navegarA('estadisticas')">
-      <i data-lucide="chart-no-axes-combined" width="16" height="16"></i> Estadisticas
-    </button>
-    <button class="nav-item" onclick="navegarA('calculadora')">
-      <i data-lucide="calculator" width="16" height="16"></i> Calculadora
-    </button>
-    <button class="nav-item" onclick="navegarA('gastos')">
-      <i data-lucide="receipt" width="16" height="16"></i> Gastos
-    </button>
   </nav>
 </aside>
 
@@ -466,15 +392,6 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="user-session" id="user-session" style="display:none">
-      <button class="btn-icon" onclick="recargar()" id="btn-reload" title="Recargar datos" style="width:34px;height:34px">
-        <i data-lucide="refresh-cw" width="15" height="15"></i>
-      </button>
-      <button class="btn-icon" onclick="exportarBackup()" title="Descargar backup (JSON)" style="width:34px;height:34px">
-        <i data-lucide="database-backup" width="15" height="15"></i>
-      </button>
-      <button class="btn-icon" onclick="importarBackup()" title="Importar backup (JSON)" style="width:34px;height:34px">
-        <i data-lucide="upload" width="15" height="15"></i>
-      </button>
       <span class="user-avatar" id="user-avatar"></span>
       <span class="user-email" id="user-email"></span>
       <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
@@ -488,18 +405,7 @@
       <div class="page-title">Dashboard</div>
       <div class="page-sub">Resumen general de tu negocio</div>
 
-      <div class="stats-toolbar">
-        <div class="card-title">Resumen configurable</div>
-        <button class="btn-primary" onclick="toggleDashConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
-      </div>
-      <div class="stats-config" id="dash-config">
-        <div class="card-title">Que mostrar y en que orden</div>
-        <div class="card-sub" style="margin-bottom:0">Los cambios se guardan en este navegador.</div>
-        <div class="stats-config-list" id="dash-config-list"></div>
-      </div>
-      <div class="dash-grid" id="dash-grid">
       <!-- MÉTRICAS -->
-      <div id="dash-sec-metricas" style="grid-column:1/-1">
       <div class="metrics">
         <div class="metric-card">
           <div class="metric-header">
@@ -533,49 +439,22 @@
           <div class="metric-value" id="m-productos">—</div>
           <div class="metric-sub" id="m-productos-sub"></div>
         </div>
-        <div class="metric-card">
-          <div class="metric-header">
-            <div class="metric-label">Ganancia del mes</div>
-            <div class="metric-icon green"><i data-lucide="piggy-bank" width="16" height="16"></i></div>
-          </div>
-          <div class="metric-value" id="m-ganancia">—</div>
-          <div class="metric-sub" id="m-ganancia-sub"></div>
-        </div>
-      </div>
       </div>
 
-<div id="dash-sec-linea">
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap">
-              <div>
-                <div class="card-title">Facturacion mensual</div>
-                <div class="card-sub">Pedidos entregados - granularidad diaria</div>
-              </div>
-              <div class="cd-wrap" id="cd-rango-fact-wrap" style="width:160px;flex-shrink:0">
-                <button type="button" class="cd-trigger" id="cd-rango-fact-trigger" onclick="toggleCd('rango-fact')" style="padding:8px 36px 8px 12px;font-size:0.8rem">
-                  <span id="cd-rango-fact-label">6 meses</span>
-                  <i data-lucide="chevron-down" width="12" height="12"></i>
-                </button>
-                <div class="cd-menu" id="cd-rango-fact-menu">
-                  <div class="cd-option selected" onclick="seleccionarRangoFact('all')">Todo el historial</div>
-                  <div class="cd-option" onclick="seleccionarRangoFact('1y')">1 año</div>
-                  <div class="cd-option" onclick="seleccionarRangoFact('6m')">6 meses</div>
-                  <div class="cd-option" onclick="seleccionarRangoFact('3m')">3 meses</div>
-                  <div class="cd-option" onclick="seleccionarRangoFact('1m')">1 mes</div>
-                  <div class="cd-option" onclick="seleccionarRangoFact('1w')">1 semana</div>
-                </div>
-                <input type="hidden" id="rango-facturacion" value="6m"/>
-              </div>
-            </div>
-            <div style="position:relative;height:220px;touch-action:pan-y">
-              <svg id="stock-chart" width="100%" height="100%" style="display:block;touch-action:none"></svg>
-              <div id="stock-tooltip" style="position:absolute;pointer-events:none;background:#1a1d2e;color:#fff;padding:8px 12px;border-radius:8px;font-size:.75rem;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .15s;z-index:10;white-space:nowrap"></div>
+      <!-- CHARTS ROW -->
+      <div class="charts-row">
+        <!-- Grafico de linea: facturacion mensual -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+            <div>
+              <div class="card-title">Facturacion mensual</div>
+              <div class="card-sub">Pedidos entregados en los ultimos 6 meses</div>
             </div>
           </div>
+          <svg id="line-chart" width="100%" height="180" style="overflow:visible"></svg>
         </div>
 
-      <!-- DONUT -->
-      <div id="dash-sec-donut">
+        <!-- Donut: estado de pedidos -->
         <div class="card" style="display:flex;flex-direction:column">
           <div class="card-title">Estado de pedidos</div>
           <div class="card-sub">Como se distribuye tu trabajo actual</div>
@@ -592,178 +471,20 @@
         </div>
       </div>
 
-      <!-- TOP PRODUCTOS -->
-      <div id="dash-sec-top">
+      <!-- BOTTOM ROW: top productos + actividad reciente -->
+      <div class="charts-row" style="margin-bottom:0">
+        <!-- Top productos -->
         <div class="card">
           <div class="card-title" style="margin-bottom:4px">Productos mas vendidos</div>
           <div class="card-sub">Ordenados por unidades pedidas</div>
           <div id="top-productos"></div>
         </div>
-      </div>
 
-      <!-- ACTIVIDAD RECIENTE -->
-      <div id="dash-sec-actividad">
+        <!-- Actividad reciente -->
         <div class="card">
           <div class="card-title" style="margin-bottom:4px">Actividad reciente</div>
           <div class="card-sub">Ultimos movimientos registrados</div>
           <div id="actividad-reciente"></div>
-        </div>
-      </div>
-      </div>
-    </div>
-
-    <!-- ESTADISTICAS -->
-    <div class="page" id="page-estadisticas">
-      <div class="page-title">Estadisticas</div>
-      <div class="page-sub">Organiza y consulta los datos importantes de tu negocio</div>
-      <div class="stats-toolbar">
-        <div class="card-title">Resumen configurable</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-primary" onclick="abrirNuevaEst('variable')" style="background:var(--purple)"><i data-lucide="variable" width="14" height="14"></i> Nueva variable</button>
-          <button class="btn-primary" onclick="abrirNuevaEst()" style="background:var(--green)"><i data-lucide="plus" width="14" height="14"></i> Nueva estadistica</button>
-          <button class="btn-primary" onclick="toggleStatsConfig()"><i data-lucide="sliders-horizontal" width="14" height="14"></i> Personalizar</button>
-        </div>
-      </div>
-      <div class="stats-config" id="stats-config">
-        <div class="card-title">Que mostrar y en que orden</div>
-        <div class="card-sub" style="margin-bottom:0">Los cambios se guardan solo en este navegador.</div>
-        <div class="stats-config-list" id="stats-config-list"></div>
-      </div>
-      <div id="stats-content"></div>
-    </div>
-
-    <!-- CALCULADORA -->
-    <div class="page" id="page-calculadora">
-      <div class="page-title">Calculadora de precios</div>
-      <div class="page-sub">Calcula el costo y precio sugerido de tus piezas impresas</div>
-      <div class="calculator-layout">
-        <div>
-          <div class="card calculator-section">
-            <div class="card-title">Gastos fijos</div>
-            <div class="card-sub">Estos valores se guardan para reutilizarlos en futuros calculos.</div>
-            <div class="calculator-grid">
-              <div class="form-group"><label>Precio del filamento ($/kg)</label><input type="number" id="calc-filamento" min="0" step="0.01" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Precio del kWh ($)</label><input type="number" id="calc-kwh" min="0" step="0.01" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Consumo de impresora (W)</label><input type="number" id="calc-consumo" min="0" step="1" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Vida util (horas)</label><input type="number" id="calc-vida" min="1" step="1" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Costo de repuestos ($)</label><input type="number" id="calc-repuestos" min="0" step="0.01" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Margen de error (%)</label><input type="number" id="calc-error" min="0" step="0.1" oninput="calcularPrecio()"/></div>
-            </div>
-          </div>
-          <div class="card calculator-section">
-            <div class="card-title">Pieza</div>
-            <div class="card-sub">Indica los datos de la impresion actual.</div>
-            <div class="calculator-grid">
-              <div class="form-group"><label>Horas de impresion</label><input type="number" id="calc-horas" min="0" step="0.1" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Minutos adicionales</label><input type="number" id="calc-minutos" min="0" max="59" step="1" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Gramos de filamento</label><input type="number" id="calc-gramos" min="0" step="0.1" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Insumos extra ($)</label><input type="number" id="calc-insumos" min="0" step="0.01" oninput="calcularPrecio()"/></div>
-              <div class="form-group"><label>Multiplicador de ganancia</label><input type="number" id="calc-multiplicador" min="1" step="0.1" oninput="calcularPrecio()"/></div>
-            </div>
-            <button class="btn-primary" onclick="guardarCalculadora()" style="width:100%;justify-content:center;margin-top:20px"><i data-lucide="save" width="14" height="14"></i> Guardar configuracion</button>
-            <div class="calculator-save-state" id="calc-save-state"></div>
-          </div>
-        </div>
-        <div class="card calculator-results">
-          <div class="card-title">Resultados</div>
-          <div class="card-sub">Estimacion para esta pieza.</div>
-          <div class="calculator-result-row"><span>Precio material</span><strong id="calc-resultado-material">$0</strong></div>
-          <div class="calculator-result-row"><span>Precio luz</span><strong id="calc-resultado-luz">$0</strong></div>
-          <div class="calculator-result-row"><span>Desgaste de maquina</span><strong id="calc-resultado-desgaste">$0</strong></div>
-          <div class="calculator-result-row"><span>Margen de error</span><strong id="calc-resultado-error">$0</strong></div>
-          <div class="calculator-result-row"><span>Insumos extra</span><strong id="calc-resultado-insumos">$0</strong></div>
-          <div class="calculator-total"><div class="calculator-total-label">Total a cobrar</div><div class="calculator-total-value" id="calc-resultado-total">$0</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- GASTOS -->
-    <div class="page" id="page-gastos">
-      <div class="page-title">Gastos</div>
-      <div class="page-sub">Registra tus compras y analiza la rentabilidad del negocio</div>
-      <div class="expenses-summary">
-        <div class="metric-card"><div class="metric-label">Gastos del mes</div><div class="metric-value" id="gastos-mes">$0</div><div class="metric-sub">Gastos generales + filamento</div></div>
-        <div class="metric-card"><div class="metric-label">Facturacion del mes</div><div class="metric-value" id="gastos-facturacion">$0</div><div class="metric-sub">Pedidos entregados este mes</div></div>
-        <div class="metric-card"><div class="metric-label">Rentabilidad del mes</div><div class="metric-value" id="gastos-rentabilidad">$0</div><div class="metric-sub">Facturacion menos gastos (mes actual)</div></div>
-        <div class="metric-card"><div class="metric-label">Promedio filamento</div><div class="metric-value" id="gastos-prom-kg">—</div><div class="metric-sub" id="gastos-prom-kg-sub">$/kg segun compras del mes</div></div>
-        <div class="metric-card"><div class="metric-label">Gastos acumulados</div><div class="metric-value" id="gastos-total">$0</div><div class="metric-sub">Todos los registros</div></div>
-      </div>
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Gastos por categoria</div>
-        <div class="card-sub">Distribucion de los gastos del mes actual (incluye filamento)</div>
-        <div class="estado-list" id="gastos-categorias"></div>
-      </div>
-      <div class="card" style="margin-bottom:20px">
-        <div class="page-tabs" style="margin-bottom:16px">
-          <button class="page-tab active" id="gtab-btn-general" onclick="switchGastoTab('general')">Gasto general</button>
-          <button class="page-tab" id="gtab-btn-filamento" onclick="switchGastoTab('filamento')">Filamento</button>
-        </div>
-
-        <!-- Form: gasto general -->
-        <div id="form-gasto-general">
-          <div class="card-title">Registrar gasto general</div>
-          <div class="card-sub">Ejemplo: 1 kg de filamento comprado por $20.000.</div>
-          <div class="expense-form-grid">
-            <div class="form-group"><label>Concepto</label><input type="text" id="gasto-concepto" placeholder="Filamento PLA blanco"/></div>
-            <div class="form-group"><label>Categoria</label><input type="text" id="gasto-categoria" placeholder="Materiales"/></div>
-            <div class="form-group"><label>Monto total ($)</label><input type="number" id="gasto-monto" min="0" step="0.01"/></div>
-            <div class="form-group"><label>Cantidad</label><input type="number" id="gasto-cantidad" min="0.01" step="0.01" value="1"/></div>
-            <div class="form-group"><label>Unidad</label><input type="text" id="gasto-unidad" value="unidad" placeholder="kg, unidad, litro"/></div>
-            <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"/></div>
-            <div class="form-group full"><label>Notas</label><input type="text" id="gasto-descripcion" placeholder="Proveedor o detalle de la compra"/></div>
-          </div>
-          <button class="btn-primary" id="btn-guardar-gasto" onclick="guardarGasto()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar gasto</button>
-          <div class="calculator-save-state" id="gasto-save-state"></div>
-        </div>
-
-        <!-- Form: filamento -->
-        <div id="form-gasto-filamento" style="display:none">
-          <div class="card-title">Registrar compra de filamento</div>
-          <div class="card-sub">Estas compras alimentan el promedio de $/kg y el costo de produccion.</div>
-          <div class="expense-form-grid">
-            <div class="form-group"><label>Marca</label><input type="text" id="fil-marca" placeholder="Grilon3, BQ, etc."/></div>
-            <div class="form-group"><label>Color</label><input type="text" id="fil-color" placeholder="Blanco, negro..."/></div>
-            <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="fil-kg" min="0.01" step="0.01" placeholder="1"/></div>
-            <div class="form-group"><label>Precio total ($)</label><input type="number" id="fil-precio" min="0" step="0.01" placeholder="20000"/></div>
-            <div class="form-group"><label>Fecha</label><input type="date" id="fil-fecha"/></div>
-          </div>
-          <button class="btn-primary" id="btn-guardar-filamento" onclick="guardarFilamento()" style="margin-top:16px"><i data-lucide="save" width="14" height="14"></i> Guardar filamento</button>
-          <div class="calculator-save-state" id="filamento-save-state"></div>
-        </div>
-      </div>
-
-      <!-- TABLA FILAMENTOS -->
-      <div class="card" style="padding:0;margin-bottom:20px">
-        <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-          <div>
-            <div class="card-title">Filamentos comprados</div>
-            <div class="card-sub">El promedio $/kg usa las compras del mes actual.</div>
-          </div>
-          <button class="btn-icon" onclick="exportarFilamentosCSV()" title="Exportar CSV"><i data-lucide="download" width="14" height="14"></i></button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Fecha</th><th>Marca</th><th>Color</th><th>Kg</th><th>Precio</th><th>$/kg</th><th>Acciones</th></tr></thead>
-            <tbody id="tbody-filamentos"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TABLA GASTOS GENERALES -->
-      <div class="card" style="padding:0">
-        <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-          <div class="card-title">Gastos generales</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="text" id="filtro-gasto" placeholder="Buscar gasto..." oninput="renderGastos()"
-              style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:.85rem;color:var(--text);outline:none;font-family:inherit;width:200px"/>
-            <button class="btn-icon" onclick="exportarGastosCSV()" title="Exportar CSV"><i data-lucide="download" width="14" height="14"></i></button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Cantidad</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead>
-            <tbody id="tbody-gastos"><tr><td colspan="7" class="empty-state">Cargando...</td></tr></tbody>
-          </table>
         </div>
       </div>
     </div>
@@ -810,13 +531,6 @@
           </div>
           <input type="hidden" id="filtro-orden" value="nuevo"/>
         </div>
-        <input type="date" id="filtro-desde" title="Fecha desde" onchange="renderTabla()"
-          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit"/>
-        <input type="date" id="filtro-hasta" title="Fecha hasta" onchange="renderTabla()"
-          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit"/>
-        <button class="btn-icon" onclick="exportarPedidosCSV()" title="Exportar CSV" style="width:38px;height:38px;flex-shrink:0">
-          <i data-lucide="download" width="15" height="15"></i>
-        </button>
         <button class="btn-primary" onclick="abrirNuevo()">
           <i data-lucide="plus" width="14" height="14"></i> Nuevo pedido
         </button>
@@ -875,15 +589,6 @@
               <input type="hidden" id="filtro-orden-m" value="nuevo"/>
             </div>
           </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px">Fechas</div>
-            <div style="display:flex;gap:8px">
-              <input type="date" id="filtro-desde-m" onchange="renderTabla()" title="Desde"
-                style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:0"/>
-              <input type="date" id="filtro-hasta-m" onchange="renderTabla()" title="Hasta"
-                style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:0"/>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -906,70 +611,24 @@
   <!-- PRODUCTOS -->
     <div class="page" id="page-productos">
       <div class="page-title">Productos</div>
-      <div class="page-sub">Catalogo de productos y categorias</div>
-      <div class="page-tabs">
-        <button class="page-tab active" id="tab-btn-productos" onclick="switchProdTab('productos')">Productos</button>
-        <button class="page-tab" id="tab-btn-categorias" onclick="switchProdTab('categorias')">Categorias</button>
+      <div class="page-sub">Catalogo de productos disponibles</div>
+      <div class="filtros-bar">
+        <input type="text" id="filtro-producto" placeholder="Buscar producto..."
+          style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
+          oninput="renderProductos()"/>
+        <button class="btn-primary" onclick="abrirNuevoProducto()">
+          <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
+        </button>
       </div>
-
-      <!-- Tab Productos -->
-      <div class="tab-content active" id="tab-productos">
-        <div class="filtros-bar">
-          <input type="text" id="filtro-producto" placeholder="Buscar producto..."
-            style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
-            oninput="renderProductos()"/>
-          <!-- Orden productos -->
-          <div class="cd-wrap" id="cd-pord-wrap" style="width:180px;flex-shrink:0">
-            <button type="button" class="cd-trigger" id="cd-pord-trigger" onclick="toggleCd('pord')" style="padding:8px 36px 8px 12px;font-size:0.875rem">
-              <span id="cd-pord-label">Más nuevo</span>
-              <i data-lucide="chevron-down" width="14" height="14"></i>
-            </button>
-            <div class="cd-menu" id="cd-pord-menu">
-              <div class="cd-option selected" onclick="selectOrdenProd('nuevo','Más nuevo')"><i data-lucide="arrow-down" width="12" height="12"></i> Más nuevo</div>
-              <div class="cd-option" onclick="selectOrdenProd('viejo','Más antiguo')"><i data-lucide="arrow-up" width="12" height="12"></i> Más antiguo</div>
-              <div class="cd-option" onclick="selectOrdenProd('nombre_az','Nombre A→Z')"><i data-lucide="arrow-down-a-z" width="12" height="12"></i> Nombre A→Z</div>
-              <div class="cd-option" onclick="selectOrdenProd('nombre_za','Nombre Z→A')"><i data-lucide="arrow-up-a-z" width="12" height="12"></i> Nombre Z→A</div>
-              <div class="cd-option" onclick="selectOrdenProd('caro','Más caro')"><i data-lucide="trending-up" width="12" height="12"></i> Más caro</div>
-              <div class="cd-option" onclick="selectOrdenProd('barato','Más barato')"><i data-lucide="trending-down" width="12" height="12"></i> Más barato</div>
-              <div class="cd-option" onclick="selectOrdenProd('costo_caro','Mayor costo prod.')"><i data-lucide="trending-up" width="12" height="12"></i> Mayor costo prod.</div>
-              <div class="cd-option" onclick="selectOrdenProd('costo_barato','Menor costo prod.')"><i data-lucide="trending-down" width="12" height="12"></i> Menor costo prod.</div>
-            </div>
-            <input type="hidden" id="filtro-orden-productos" value="nuevo"/>
-          </div>
-          <button class="btn-primary" onclick="abrirNuevoProducto()">
-            <i data-lucide="plus" width="14" height="14"></i> Nuevo producto
-          </button>
-        </div>
-        <div class="card tabla-desktop" style="padding:0">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Gramos / Tiempo</th><th>Costo prod.</th><th>Descripcion</th><th>Acciones</th></tr></thead>
-              <tbody id="tbody-productos"><tr><td colspan="8" class="empty-state">Cargando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="cards-mobile" id="cards-productos-mobile"></div>
-      </div>
-
-      <!-- Tab Categorias -->
-      <div class="tab-content" id="tab-categorias">
-        <div class="filtros-bar">
-          <input type="text" id="filtro-categoria" placeholder="Buscar categoria..."
-            style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.875rem;color:var(--text);outline:none;font-family:inherit;flex:1;min-width:160px"
-            oninput="renderCategorias()"/>
-          <button class="btn-primary" onclick="abrirNuevaCategoria()">
-            <i data-lucide="plus" width="14" height="14"></i> Nueva categoria
-          </button>
-        </div>
-        <div class="card" style="padding:0">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Nombre</th><th>Productos</th><th>Acciones</th></tr></thead>
-              <tbody id="tbody-categorias"><tr><td colspan="3" class="empty-state">Cargando...</td></tr></tbody>
-            </table>
-          </div>
+      <div class="card tabla-desktop" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Nombre</th><th>Categoria</th><th>Precio base</th><th>Descripcion</th><th>Acciones</th></tr></thead>
+            <tbody id="tbody-productos"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
         </div>
       </div>
+      <div class="cards-mobile" id="cards-productos-mobile"></div>
     </div>
 
   </div>
@@ -997,15 +656,6 @@
   </button>
   <button class="mobile-nav-item" id="mnav-productos" onclick="navegarA('productos')">
     <i data-lucide="box" width="20" height="20"></i> Productos
-  </button>
-  <button class="mobile-nav-item" id="mnav-estadisticas" onclick="navegarA('estadisticas')">
-    <i data-lucide="chart-no-axes-combined" width="20" height="20"></i> Estadisticas
-  </button>
-  <button class="mobile-nav-item" id="mnav-calculadora" onclick="navegarA('calculadora')">
-    <i data-lucide="calculator" width="20" height="20"></i> Calculadora
-  </button>
-  <button class="mobile-nav-item" id="mnav-gastos" onclick="navegarA('gastos')">
-    <i data-lucide="receipt" width="20" height="20"></i> Gastos
   </button>
   <button class="mobile-nav-item" onclick="abrirNuevo()" style="color:var(--accent)">
     <i data-lucide="plus-circle" width="22" height="22"></i> Nuevo
@@ -1134,8 +784,6 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="np-nombre" placeholder="Nombre del producto"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="np-categoria" placeholder="Ej: Herramientas"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="np-precio" placeholder="0" step="0.01"/></div>
-      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="np-gramos" min="0" step="0.1" placeholder="0"/></div>
-      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="np-tiempo" min="0" step="0.1" placeholder="0"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="np-descripcion" placeholder="Descripcion opcional..."></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -1158,8 +806,6 @@
       <div class="form-group full"><label>Nombre</label><input type="text" id="ep-nombre"/></div>
       <div class="form-group"><label>Categoria</label><input type="text" id="ep-categoria"/></div>
       <div class="form-group"><label>Precio base ($)</label><input type="number" id="ep-precio" step="0.01"/></div>
-      <div class="form-group"><label>Gramos de filamento</label><input type="number" id="ep-gramos" min="0" step="0.1"/></div>
-      <div class="form-group"><label>Tiempo de impresion (hs)</label><input type="number" id="ep-tiempo" min="0" step="0.1"/></div>
       <div class="form-group full"><label>Descripcion</label><textarea id="ep-descripcion"></textarea></div>
     </div>
     <div style="margin-top:20px">
@@ -1168,148 +814,6 @@
       </button>
     </div>
     <div class="msg-box" id="msg-editar-producto"></div>
-  </div>
-</div>
-
-
-<!-- MODAL NUEVA CATEGORIA -->
-<div class="modal-overlay" id="modal-nueva-cat">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Nueva categoria</span>
-      <button class="modal-close" onclick="cerrarModalNuevaCat()"><i data-lucide="x" width="18" height="18"></i></button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group full"><label>Nombre</label><input type="text" id="nc-nombre" placeholder="Nombre de la categoria"/></div>
-    </div>
-    <div style="margin-top:20px">
-      <button class="btn-primary" id="btn-nueva-cat" onclick="guardarNuevaCategoria()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
-        <i data-lucide="save" width="16" height="16"></i> Guardar categoria
-      </button>
-    </div>
-    <div class="msg-box" id="msg-nueva-cat"></div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR CATEGORIA -->
-<div class="modal-overlay" id="modal-editar-cat">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Editar categoria</span>
-      <button class="modal-close" onclick="cerrarModalEditarCat()"><i data-lucide="x" width="18" height="18"></i></button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group full"><label>Nombre</label><input type="text" id="ec-nombre"/></div>
-    </div>
-    <div style="margin-top:20px">
-      <button class="btn-primary" id="btn-editar-cat" onclick="guardarEdicionCategoria()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
-        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
-      </button>
-    </div>
-    <div class="msg-box" id="msg-editar-cat"></div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR GASTO -->
-<div class="modal-overlay" id="modal-editar-gasto">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Editar gasto</span>
-      <button class="modal-close" onclick="cerrarModalEditarGasto()"><i data-lucide="x" width="18" height="18"></i></button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group full"><label>Concepto</label><input type="text" id="eg-concepto"/></div>
-      <div class="form-group"><label>Categoria</label><input type="text" id="eg-categoria"/></div>
-      <div class="form-group"><label>Monto total ($)</label><input type="number" id="eg-monto" min="0" step="0.01"/></div>
-      <div class="form-group"><label>Cantidad</label><input type="number" id="eg-cantidad" min="0.01" step="0.01"/></div>
-      <div class="form-group"><label>Unidad</label><input type="text" id="eg-unidad"/></div>
-      <div class="form-group full"><label>Fecha</label><input type="date" id="eg-fecha"/></div>
-      <div class="form-group full"><label>Notas</label><input type="text" id="eg-descripcion"/></div>
-    </div>
-    <div style="margin-top:20px">
-      <button class="btn-primary" onclick="guardarEdicionGasto()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
-        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR FILAMENTO -->
-<div class="modal-overlay" id="modal-editar-filamento">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Editar filamento</span>
-      <button class="modal-close" onclick="cerrarModalEditarFilamento()"><i data-lucide="x" width="18" height="18"></i></button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Marca</label><input type="text" id="ef-marca"/></div>
-      <div class="form-group"><label>Color</label><input type="text" id="ef-color"/></div>
-      <div class="form-group"><label>Cantidad (kg)</label><input type="number" id="ef-kg" min="0.01" step="0.01"/></div>
-      <div class="form-group"><label>Precio total ($)</label><input type="number" id="ef-precio" min="0" step="0.01"/></div>
-      <div class="form-group full"><label>Fecha</label><input type="date" id="ef-fecha"/></div>
-    </div>
-    <div style="margin-top:20px">
-      <button class="btn-primary" onclick="guardarEdicionFilamento()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
-        <i data-lucide="save" width="16" height="16"></i> Guardar cambios
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CREADOR DE ESTADISTICAS -->
-<div class="modal-overlay" id="modal-estadistica">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="est-modal-titulo">Nueva estadistica</span>
-      <button class="modal-close" onclick="cerrarModalEst()"><i data-lucide="x" width="18" height="18"></i></button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Nombre</label><input type="text" id="est-nombre" placeholder="Ej: Ganancia neta"/></div>
-      <div class="form-group"><label>Vista</label>
-        <select id="est-vista" class="custom-select" style="width:100%" onchange="actualizarPreviewEst()">
-          <option value="numero">Numero</option>
-          <option value="barras">Barras por mes (ultimos 6)</option>
-          <option value="variable">Variable (para usar en formulas)</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group" style="margin-top:16px">
-      <label>Formula</label>
-      <div class="formula-display" id="est-formula-display"></div>
-    </div>
-    <div class="form-group" style="margin-top:14px">
-      <label>Operadores</label>
-      <div class="ops-row">
-        <button type="button" onclick="insertarToken({t:'op',v:'+'})">+</button>
-        <button type="button" onclick="insertarToken({t:'op',v:'-'})">−</button>
-        <button type="button" onclick="insertarToken({t:'op',v:'*'})">×</button>
-        <button type="button" onclick="insertarToken({t:'op',v:'/'})">÷</button>
-        <button type="button" onclick="insertarToken({t:'op',v:'('})">(</button>
-        <button type="button" onclick="insertarToken({t:'op',v:')'})">)</button>
-        <button type="button" onclick="borrarUltimoToken()" title="Borrar ultimo">←</button>
-        <button type="button" onclick="limpiarFormula()" title="Limpiar todo">Limpiar</button>
-      </div>
-    </div>
-    <div class="form-group" style="margin-top:14px">
-      <label>Variables (toca para insertar)</label>
-      <div class="est-btn-grid" id="est-vars-grid"></div>
-    </div>
-    <div class="form-group" style="margin-top:14px">
-      <label>Numero</label>
-      <div style="display:flex;gap:6px">
-        <input type="number" id="est-num" step="any" placeholder="Ej: 100" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.9rem;color:var(--text);outline:none;font-family:inherit;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();insertarNumero();}"/>
-        <button type="button" class="btn-primary" onclick="insertarNumero()">Insertar</button>
-      </div>
-    </div>
-    <div class="est-preview">
-      <span class="est-preview-label">Vista previa</span>
-      <span class="est-preview-value" id="est-preview-value">—</span>
-    </div>
-    <div style="margin-top:20px">
-      <button class="btn-primary" onclick="guardarEstadistica()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem">
-        <i data-lucide="save" width="16" height="16"></i> Guardar estadistica
-      </button>
-    </div>
   </div>
 </div>
 
@@ -1322,12 +826,6 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdWdldmFxdXBtcHd3YWJ3eG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNzU3MzQsImV4cCI6MjEwMjk1MTczNH0.kef8gHucLVGZgCb0H04_ygC-7DlI5LClaoRHn1rgXtE';
   const TABLA = 'pedidos';
   let pedidos = [];
-  let gastos = [];
-  let filamentos = [];
-  let estadisticasCustom = [];
-  let editandoEstId = null;
-  let editandoGastoId = null;
-  let editandoFilamentoId = null;
   let paginaActual = 'dashboard';
   let editandoId = null;
 
@@ -1366,7 +864,7 @@
     }
   }
 
-  async function actualizarAcceso(session) {
+  function actualizarAcceso(session) {
     const overlay = document.getElementById('auth-overlay');
     const userSession = document.getElementById('user-session');
     if (!session) {
@@ -1380,7 +878,6 @@
     const nombre = session.user.user_metadata?.full_name || email;
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
-    await Promise.all([cargarCategorias(), cargarConfigEstadisticas(), cargarConfiguracionCalculadora(), cargarGastos(), cargarFilamentos(), cargarEstadisticasCustom()]);
     navegarA('dashboard');
     cargarProductos();
     cargarPedidos();
@@ -1390,7 +887,7 @@
   async function recargar() {
     const btn = document.getElementById('btn-reload');
     btn.classList.add('spinning');
-    await Promise.all([cargarPedidos(), cargarProductos(), cargarGastos(), cargarFilamentos()]);
+    await Promise.all([cargarPedidos(), cargarProductos()]);
     setTimeout(() => btn.classList.remove('spinning'), 600);
   }
 
@@ -1413,7 +910,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + pagina).classList.add('active');
-    const idx = { dashboard: 0, pedidos: 1, productos: 2, estadisticas: 3, calculadora: 4, gastos: 5 };
+    const idx = { dashboard: 0, pedidos: 1 };
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems[idx[pagina]]) navItems[idx[pagina]].classList.add('active');
     const mnavId = 'mnav-' + pagina;
@@ -1423,34 +920,11 @@
     if (pagina === 'dashboard') renderDashboard();
     if (pagina === 'pedidos') renderTabla();
     if (pagina === 'productos') renderProductos();
-    if (pagina === 'estadisticas') renderEstadisticas();
-    if (pagina === 'calculadora') calcularPrecio();
-    if (pagina === 'gastos') renderGastos();
   }
 
   // ── UTILS ──
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function fmt(n) { return '$' + (n||0).toLocaleString('es-AR'); }
-  function fmtNum(n) { return (n ?? 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
-  // Parsea 'YYYY-MM-DD' en horario local (new Date() directo lo interpreta UTC y corre el dia en UTC-3)
-  function parseFecha(f) { if (!f) return null; const [y, m, d] = String(f).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); }
-
-  // ── TOASTS ──
-  let ultimoToast = { msg: '', t: 0 };
-  function toast(msg, tipo) {
-    const ahora = Date.now();
-    const ventana = tipo === 'err' ? 60000 : 5000;
-    if (ultimoToast.msg === msg && ahora - ultimoToast.t < ventana) return;
-    ultimoToast = { msg, t: ahora };
-    let wrap = document.querySelector('.toast-wrap');
-    if (!wrap) { wrap = document.createElement('div'); wrap.className = 'toast-wrap'; document.body.appendChild(wrap); }
-    const t = document.createElement('div');
-    t.className = 'toast ' + (tipo || '');
-    t.textContent = msg;
-    wrap.appendChild(t);
-    requestAnimationFrame(() => t.classList.add('show'));
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
-  }
   function fmtFecha(f) { if (!f) return '—'; const [y,m,d] = f.split('-'); return `${d}/${m}/${y}`; }
   function badgeClass(e) {
     return {'Pendiente':'badge-pendiente','Impreso':'badge-impreso','Listo para retirar':'badge-listo','Entregado':'badge-entregado','Cancelado':'badge-cancelado'}[e]||'badge-default';
@@ -1467,291 +941,13 @@
       pedidos = await apiFetch(`${TABLA}?order=id.desc`);
       if (paginaActual === 'dashboard') renderDashboard();
       if (paginaActual === 'pedidos') renderTabla();
-      if (paginaActual === 'estadisticas') renderEstadisticas();
-      if (paginaActual === 'gastos') renderGastos();
-    } catch(e) { console.error(e); toast('Error al cargar pedidos: ' + e.message, 'err'); }
+    } catch(e) { console.error(e); }
   }
 
 
-
-  // ── RANGO FACTURACIÓN (stock chart) ──
-  let rangoFacturacionActual = '6m';
-
-  function seleccionarRangoFact(key) {
-    const labels = { all: 'Todo el historial', '1y': '1 año', '6m': '6 meses', '3m': '3 meses', '1m': '1 mes', '1w': '1 semana' };
-    document.getElementById('cd-rango-fact-label').textContent = labels[key];
-    document.getElementById('rango-facturacion').value = key;
-    document.querySelectorAll('#cd-rango-fact-menu .cd-option').forEach(opt => opt.classList.remove('selected'));
-    document.querySelector(`#cd-rango-fact-menu .cd-option[onclick*="${key}"]`)?.classList.add('selected');
-    document.getElementById('cd-rango-fact-menu').classList.remove('open');
-    document.getElementById('cd-rango-fact-trigger').classList.remove('open');
-    rangoFacturacionActual = key;
-    if (paginaActual === 'dashboard') renderDashboard();
-    lucide.createIcons();
-  }
-
-  function obtenerRangoFechasFact(rango) {
-    const hoy = new Date();
-    hoy.setHours(0,0,0,0);
-    let inicio;
-    switch (rango) {
-      case '1w': inicio = new Date(hoy.getTime() - 6*24*60*60*1000); break;
-      case '1m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-1, hoy.getDate()); break;
-      case '3m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-3, hoy.getDate()); break;
-      case '6m': inicio = new Date(hoy.getFullYear(), hoy.getMonth()-6, hoy.getDate()); break;
-      case '1y': inicio = new Date(hoy.getFullYear()-1, hoy.getMonth(), hoy.getDate()); break;
-      case 'all': 
-      default: inicio = null; break;
-    }
-    return { inicio, fin: hoy };
-  }
-
-  function renderStockChart() {
-    const svg = document.getElementById('stock-chart');
-    const tooltip = document.getElementById('stock-tooltip');
-    if (!svg || !tooltip) return;
-    const rect = svg.getBoundingClientRect ? svg.getBoundingClientRect() : { width: 800, height: 220 };
-    const W = rect.width || svg.parentElement?.clientWidth || 800;
-    const H = rect.height || 220;
-    const { inicio, fin } = obtenerRangoFechasFact(rangoFacturacionActual);
-    
-    // Filtrar pedidos entregados en rango
-    const entregados = pedidos.filter(p => {
-      if (p.estado !== 'Entregado' || !p.fecha) return false;
-      const d = parseFecha(p.fecha);
-      return (!inicio || d >= inicio) && d <= fin;
-    });
-    
-    // Agrupar por día
-    const porDia = {};
-    entregados.forEach(p => {
-      const dia = p.fecha;
-      porDia[dia] = (porDia[dia] || 0) + (Number(p.precio_final) || 0);
-    });
-    
-    // Generar serie continua de días ACUMULADA (running total)
-    const serie = [];
-    const cursor = inicio ? new Date(inicio) : new Date(Math.min(...Object.keys(porDia).map(k => new Date(k))));
-    cursor.setHours(0,0,0,0);
-    const finCursor = new Date(fin);
-    let acumulado = 0;
-    while (cursor <= finCursor) {
-      const key = cursor.toISOString().split('T')[0];
-      const delDia = porDia[key] || 0;
-      acumulado += delDia;
-      serie.push({ fecha: key, valor: acumulado, delDia, rawDate: new Date(cursor) });
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    
-    if (serie.length === 0) {
-      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#8b90a7" font-size="14">Sin datos para este rango</text>';
-      return;
-    }
-    
-    // Configuración del gráfico
-    const padding = { top: 20, right: 60, bottom: 30, left: 60 };
-    const iW = W - padding.left - padding.right;
-    const iH = H - padding.top - padding.bottom;
-    
-    // Escalas
-    const maxV = Math.max(...serie.map(s => s.valor), 1);
-    const minV = Math.min(...serie.filter(s => s.valor > 0).map(s => s.valor), 0);
-    const rangeV = maxV - minV || maxV;
-    
-    // Generar path suave (Catmull-Rom spline para suavizado)
-    const points = serie.map((s, i) => ({
-      x: padding.left + (i / (serie.length - 1)) * iW,
-      y: padding.top + iH - ((s.valor - minV) / rangeV) * iH,
-      valor: s.valor,
-      fecha: s.fecha
-    }));
-    
-    // Catmull-Rom spline
-    function getSplinePath(pts) {
-      if (pts.length < 2) return `M${pts[0]?.x},${pts[0]?.y}`;
-      let path = `M${pts[0].x},${pts[0].y}`;
-      for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[i - 1] || pts[0];
-        const p1 = pts[i];
-        const p2 = pts[i + 1];
-        const p3 = pts[i + 2] || pts[pts.length - 1];
-        const cp1x = p1.x + (p2.x - p0.x) / 6;
-        const cp1y = p1.y + (p2.y - p0.y) / 6;
-        const cp2x = p2.x - (p3.x - p1.x) / 6;
-        const cp2y = p2.y - (p3.y - p1.y) / 6;
-        path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
-      }
-      return path;
-    }
-    
-    const linePath = getSplinePath(points);
-    const areaPath = linePath + ` L${points[points.length-1].x},${padding.top + iH} L${points[0].x},${padding.top + iH} Z`;
-    
-    // Eje Y labels (4 ticks)
-    const yTicks = 4;
-    let yLabels = '';
-    for (let i = 0; i <= yTicks; i++) {
-      const v = maxV - (i / yTicks) * rangeV;
-      const y = padding.top + (i / yTicks) * iH;
-      yLabels += `
-        <line x1="${padding.left}" y1="${y}" x2="${W - padding.right}" y2="${y}" stroke="#e8eaf0" stroke-width="0.5"/>
-        <text x="${padding.left - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#8b90a7">${v >= 1000000 ? '$' + (v/1000000).toFixed(1) + 'M' : v >= 1000 ? '$' + (v/1000).toFixed(0) + 'k' : '$' + Math.round(v)}</text>
-      `;
-    }
-    
-    // Eje X labels (adaptativos según rango)
-    const xLabelsCount = Math.min(6, serie.length);
-    let xLabels = '';
-    for (let i = 0; i < xLabelsCount; i++) {
-      const idx = Math.round(i * (serie.length - 1) / (xLabelsCount - 1));
-      const p = points[idx];
-      const d = new Date(serie[idx].fecha);
-      let label;
-      if (rangoFacturacionActual === '1w') label = d.toLocaleString('es-AR', { weekday: 'short' });
-      else if (rangoFacturacionActual === '1m') label = d.getDate();
-      else label = d.toLocaleString('es-AR', { month: 'short', day: 'numeric' });
-      xLabels += `<text x="${p.x}" y="${H - padding.bottom + 16}" text-anchor="middle" font-size="10" fill="#8b90a7">${label}</text>`;
-    }
-    
-    // Gradiente
-    const gradId = `stock-grad-${Math.random().toString(36).slice(2)}`;
-    
-    svg.innerHTML = `
-      <defs>
-        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#22c55e" stop-opacity="0.35"/>
-          <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
-        </linearGradient>
-      </defs>
-      ${yLabels}
-      ${xLabels}
-      <!-- Área -->
-      <path d="${areaPath}" fill="url(#${gradId})"/>
-      <!-- Línea -->
-      <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-    `;
-    
-    // Interacción hover/touch
-    const container = svg.parentElement;
-    let currentPoint = null;
-    
-    function showTooltip(e) {
-      const rect = svg.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-      // Encontrar punto más cercano
-      let bestIdx = 0;
-      let bestDist = Infinity;
-      points.forEach((p, i) => {
-        const d = Math.abs(p.x - (x - padding.left));
-        if (d < bestDist) { bestDist = d; bestIdx = i; }
-      });
-      if (bestDist > 30) { tooltip.style.opacity = '0'; return; }
-      const pt = points[bestIdx];
-      const seriePt = serie[bestIdx];
-      tooltip.innerHTML = `<strong>${fmt(pt.valor)}</strong> (acumulado)<br><span style="font-size:.7rem;color:#8b90a7">${fmt(seriePt.delDia)} hoy</span><br>${pt.fecha}`;
-      tooltip.style.left = `${p.x + padding.left + 10}px`;
-      tooltip.style.top = `${p.y + padding.top - 10}px`;
-      tooltip.style.opacity = '1';
-      currentPoint = bestIdx;
-    }
-    
-    function hideTooltip() { tooltip.style.opacity = '0'; currentPoint = null; }
-    
-    container.onmousemove = showTooltip;
-    container.onmouseleave = hideTooltip;
-    container.ontouchmove = (e) => { e.preventDefault(); showTooltip(e); };
-    container.ontouchend = hideTooltip;
-  }
-  const dashDefaultConfig = {
-    order: ['metricas', 'linea', 'donut', 'top', 'actividad'],
-    visible: { metricas: true, linea: true, donut: true, top: true, actividad: true },
-    meta: 0
-  };
-  const dashNombres = { metricas: 'Metricas', linea: 'Facturacion mensual', donut: 'Estado de pedidos', top: 'Productos mas vendidos', actividad: 'Actividad reciente' };
-  let dashConfig = (function () {
-    try {
-      const guardada = JSON.parse(localStorage.getItem('dashboard_config'));
-      if (guardada?.order && guardada?.visible) {
-        const faltan = dashDefaultConfig.order.filter(k => !guardada.order.includes(k));
-        return { ...dashDefaultConfig, order: [...guardada.order, ...faltan], visible: { ...dashDefaultConfig.visible, ...guardada.visible }, meta: Number(guardada.meta) || 0 };
-      }
-    } catch { }
-    return JSON.parse(JSON.stringify(dashDefaultConfig));
-  })();
-
-  function guardarDashConfig() { localStorage.setItem('dashboard_config', JSON.stringify(dashConfig)); }
-
-  function toggleDashConfig() {
-    document.getElementById('dash-config').classList.toggle('open');
-    renderDashConfig();
-  }
-
-  function renderDashConfig() {
-    const lista = document.getElementById('dash-config-list');
-    if (!lista) return;
-    lista.innerHTML = dashConfig.order.map((key, index) => `
-      <div class="stats-config-item">
-        <label><input type="checkbox" ${dashConfig.visible[key] ? 'checked' : ''} onchange="cambiarVisibilidadDash('${key}', this.checked)"/> ${dashNombres[key]}</label>
-        <div class="stats-order">
-          <button type="button" title="Subir" onclick="moverDash('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" title="Bajar" onclick="moverDash('${key}', 1)" ${index === dashConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
-        </div>
-      </div>`).join('')
-      + `<div class="stats-config-item" style="grid-column:1/-1">
-          <label for="dash-meta-input">Meta mensual de ganancia ($)</label>
-          <input type="number" id="dash-meta-input" min="0" step="1000" value="${dashConfig.meta || ''}" placeholder="Sin meta"
-            style="background:var(--card-bg);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:.82rem;color:var(--text);outline:none;font-family:inherit;width:140px"
-            onchange="guardarMetaDash(this.value)"/>
-        </div>`;
-  }
-
-  function guardarMetaDash(valor) {
-    dashConfig.meta = Math.max(0, parseFloat(valor) || 0);
-    guardarDashConfig();
-    if (paginaActual === 'dashboard') renderDashboard();
-  }
-
-  function cambiarVisibilidadDash(key, visible) {
-    dashConfig.visible[key] = visible;
-    guardarDashConfig();
-    aplicarDashLayout();
-  }
-
-  function moverDash(key, direction) {
-    const index = dashConfig.order.indexOf(key);
-    const next = index + direction;
-    if (index < 0 || next < 0 || next >= dashConfig.order.length) return;
-    [dashConfig.order[index], dashConfig.order[next]] = [dashConfig.order[next], dashConfig.order[index]];
-    guardarDashConfig();
-    renderDashConfig();
-    aplicarDashLayout();
-  }
-
-  function aplicarDashLayout() {
-    const grid = document.getElementById('dash-grid');
-    if (!grid) return;
-    dashConfig.order.forEach(key => {
-      const el = document.getElementById('dash-sec-' + key);
-      if (!el) return;
-      el.style.display = dashConfig.visible[key] ? '' : 'none';
-      grid.appendChild(el);
-    });
-    // Si la seccion companera de columna esta oculta, la visible ocupa todo el ancho
-    const pares = [['linea', 'donut'], ['top', 'actividad']];
-    pares.forEach(([a, b]) => {
-      const elA = document.getElementById('dash-sec-' + a);
-      const elB = document.getElementById('dash-sec-' + b);
-      if (!elA || !elB) return;
-      const spanA = dashConfig.visible[a] && !dashConfig.visible[b];
-      const spanB = dashConfig.visible[b] && !dashConfig.visible[a];
-      elA.style.gridColumn = spanA ? '1 / -1' : '';
-      elB.style.gridColumn = spanB ? '1 / -1' : '';
-    });
-  }
 
   // ── DASHBOARD ──
   function renderDashboard() {
-    aplicarDashLayout();
     if (!pedidos.length) return;
 
     const entregadosList = pedidos.filter(p => p.estado === 'Entregado');
@@ -1762,59 +958,78 @@
     const ticket     = entregados > 0 ? ingresos / entregados : 0;
     const totalUnidades = pedidos.reduce((s, p) => s + (p.cantidad||1), 0);
 
-    document.getElementById('m-ingresos').textContent = fmt(ingresos);
-    document.getElementById('m-total').textContent     = total;
-    document.getElementById('m-ticket').textContent    = fmt(Math.round(ticket));
-    document.getElementById('m-productos').textContent = productos.length;
+    document.getElementById('m-ingresos').textContent   = fmt(ingresos);
+    document.getElementById('m-ingresos-sub').innerHTML = `<i data-lucide="trending-up" width="12" height="12"></i> ${entregados} entregados`;
+    document.getElementById('m-total').textContent      = total;
+    document.getElementById('m-total-sub').innerHTML    = `<i data-lucide="trending-up" width="12" height="12"></i> ${entregados} entregados`;
+    document.getElementById('m-ticket').textContent     = fmt(Math.round(ticket));
+    document.getElementById('m-ticket-sub').innerHTML   = `<i data-lucide="trending-up" width="12" height="12"></i> ${totalUnidades} unidades`;
+    document.getElementById('m-productos').textContent  = productos.length;
+    const conPedidos = new Set(pedidos.map(p => p.producto)).size;
+    document.getElementById('m-productos-sub').innerHTML = `<i data-lucide="trending-up" width="12" height="12"></i> ${conPedidos} con pedidos`;
+    lucide.createIcons();
 
-    // Comparación vs mes anterior
+    // ── GRÁFICO DE LÍNEA (facturación mensual) ──
     const ahora = new Date();
-    const mesActual  = ahora.getMonth(), anioActual = ahora.getFullYear();
-    const mesPasado  = mesActual === 0 ? 11 : mesActual - 1;
-    const anioPasado = mesActual === 0 ? anioActual - 1 : anioActual;
-    const esEsteMes = p => { if (!p.fecha) return false; const d = parseFecha(p.fecha); return d.getMonth()===mesActual && d.getFullYear()===anioActual; };
-    const esMesAnt  = p => { if (!p.fecha) return false; const d = parseFecha(p.fecha); return d.getMonth()===mesPasado && d.getFullYear()===anioPasado; };
-
-    const ingEM = pedidos.filter(p => p.estado==='Entregado' && esEsteMes(p)).reduce((s,p)=>s+(p.precio_final||0),0);
-    const ingMA = pedidos.filter(p => p.estado==='Entregado' && esMesAnt(p)).reduce((s,p)=>s+(p.precio_final||0),0);
-    const pctIng = ingMA > 0 ? Math.round(((ingEM-ingMA)/ingMA)*100) : null;
-
-    const pedEM = pedidos.filter(esEsteMes).length;
-    const pedMA = pedidos.filter(esMesAnt).length;
-    const pctPed = pedMA > 0 ? Math.round(((pedEM-pedMA)/pedMA)*100) : null;
-
-    const entEM = pedidos.filter(p => p.estado==='Entregado' && esEsteMes(p));
-    const entMA = pedidos.filter(p => p.estado==='Entregado' && esMesAnt(p));
-    const tickEM = entEM.length > 0 ? entEM.reduce((s,p)=>s+(p.precio_final||0),0)/entEM.length : 0;
-    const tickMA = entMA.length > 0 ? entMA.reduce((s,p)=>s+(p.precio_final||0),0)/entMA.length : 0;
-    const pctTick = tickMA > 0 ? Math.round(((tickEM-tickMA)/tickMA)*100) : null;
-
-    const cats = new Set(productos.map(p => p.categoria).filter(Boolean)).size;
-
-    function subPct(pct) {
-      if (pct === null) return `<span style="color:var(--text-muted);font-size:0.72rem">Sin datos del mes anterior</span>`;
-      const up = pct >= 0;
-      return `<span style="color:${up?'var(--green)':'var(--red)'};font-size:0.75rem;font-weight:600">${up?'↑':'↓'} ${up?'+':''}${pct}% que el mes ant.</span>`;
+    const meses6 = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      meses6.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('es-AR', { month: 'short' }) });
     }
-
-    document.getElementById('m-ingresos-sub').innerHTML = subPct(pctIng);
-    document.getElementById('m-total-sub').innerHTML    = `<span style="color:var(--green);font-size:0.75rem;font-weight:600">(${pedEM} pedidos este mes)</span>`;
-    document.getElementById('m-ticket-sub').innerHTML   = subPct(pctTick);
-    document.getElementById('m-productos-sub').innerHTML = `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">${cats} categoría${cats!==1?'s':''}</span>`;
-    const gastosGeneralesMes = gastos.filter(g => esMesActual(g.fecha)).reduce((s, g) => s + (Number(g.monto) || 0), 0);
-    const gastosFilamentoMes = filamentos.filter(f => esMesActual(f.fecha)).reduce((s, f) => s + (Number(f.precio) || 0), 0);
-    const gananciaMes = ingEM - gastosGeneralesMes - gastosFilamentoMes;
-    const mGanancia = document.getElementById('m-ganancia');
-    mGanancia.textContent = fmt(gananciaMes);
-    mGanancia.className = 'metric-value' + (gananciaMes < 0 ? ' profit-negative' : '');
-    const meta = Number(dashConfig.meta) || 0;
-    document.getElementById('m-ganancia-sub').innerHTML = meta > 0
-      ? `<span style="font-size:0.75rem;font-weight:600;color:${gananciaMes >= meta ? 'var(--green)' : 'var(--text-muted)'}">${Math.round(gananciaMes / meta * 100)}% de la meta (${fmt(meta)})</span>`
-      : `<span style="color:var(--text-muted);font-size:0.75rem;font-weight:500">Gastos del mes: ${fmt(gastosGeneralesMes + gastosFilamentoMes)}</span>`;
-lucide.createIcons();
-
-    // ── STOCK CHART FACTURACIÓN ──
-    renderStockChart();
+    const facturacion = meses6.map(m =>
+      pedidos.filter(p => {
+        if (!p.fecha || p.estado !== 'Entregado') return false;
+        const pd = new Date(p.fecha);
+        return pd.getFullYear() === m.year && pd.getMonth() === m.month;
+      }).reduce((s, p) => s + (p.precio_final||0), 0)
+    );
+    const svgEl = document.getElementById('line-chart');
+    if (svgEl) {
+      const W = svgEl.parentElement.clientWidth - 40 || 400;
+      const H = 160;
+      const pad = { top: 16, right: 16, bottom: 28, left: 52 };
+      const iW = W - pad.left - pad.right;
+      const iH = H - pad.top - pad.bottom;
+      const maxF = Math.max(...facturacion, 1);
+      const pts = meses6.map((m, i) => {
+        const x = pad.left + (i / (meses6.length - 1)) * iW;
+        const y = pad.top + iH - (facturacion[i] / maxF) * iH;
+        return { x, y, v: facturacion[i], label: m.label };
+      });
+      const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      const areaD = pathD + ` L${pts[pts.length-1].x.toFixed(1)},${(pad.top+iH).toFixed(1)} L${pts[0].x.toFixed(1)},${(pad.top+iH).toFixed(1)} Z`;
+      // Eje Y labels
+      const yLabels = [0, 0.5, 1].map(f => ({
+        v: Math.round(maxF * f),
+        y: pad.top + iH - f * iH,
+      }));
+      svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svgEl.innerHTML = `
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#22c55e" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        ${yLabels.map(l => `
+          <line x1="${pad.left}" y1="${l.y.toFixed(1)}" x2="${(pad.left+iW).toFixed(1)}" y2="${l.y.toFixed(1)}" stroke="#e8eaf0" stroke-width="1"/>
+          <text x="${(pad.left-6).toFixed(1)}" y="${(l.y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#8b90a7">${l.v >= 1000 ? '$'+(l.v/1000).toFixed(0)+'k' : '$'+l.v}</text>
+        `).join('')}
+        <!-- Area -->
+        <path d="${areaD}" fill="url(#lineGrad)"/>
+        <!-- Line -->
+        <path d="${pathD}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <!-- Points -->
+        ${pts.map(p => `
+          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#fff" stroke="#22c55e" stroke-width="2"/>
+        `).join('')}
+        <!-- X labels -->
+        ${pts.map(p => `
+          <text x="${p.x.toFixed(1)}" y="${(pad.top+iH+16).toFixed(1)}" text-anchor="middle" font-size="10" fill="#8b90a7">${p.label}</text>
+        `).join('')}
+      `;
+    }
 
     // ── DONUT ──
     const donutStates = [
@@ -1906,746 +1121,16 @@ lucide.createIcons();
       </div>`).join('') || '<div class="empty-state">Sin pedidos</div>';
   }
 
-  const statsDefaultConfig = {
-    order: ['summary', 'monthly', 'states', 'top', 'rentabilidad', 'activity'],
-    visible: { summary: true, monthly: true, states: true, top: true, rentabilidad: true, activity: true }
-  };
-  let statsConfig = JSON.parse(JSON.stringify(statsDefaultConfig));
-
-  async function cargarConfigEstadisticas() {
-    try {
-      const filas = await apiFetch('configuracion_estadisticas?select=orden,visibles&limit=1');
-      const guardada = filas?.[0];
-      if (guardada?.orden && guardada?.visibles) {
-        const faltan = statsDefaultConfig.order.filter(k => !guardada.orden.includes(k));
-        statsConfig = {
-          order: [...guardada.orden, ...faltan],
-          visible: { ...statsDefaultConfig.visible, ...guardada.visibles }
-        };
-      }
-    } catch (e) { console.warn('No se pudo cargar la configuracion de estadisticas:', e); }
-    return statsConfig;
-  }
-
-  async function guardarConfigEstadisticas() {
-    try {
-      await apiFetch('configuracion_estadisticas', {
-        method: 'POST',
-        prefer: 'resolution=merge-duplicates,return=minimal',
-        body: JSON.stringify({ orden: statsConfig.order, visibles: statsConfig.visible })
-      });
-    } catch (e) { console.error('No se pudo guardar la configuracion de estadisticas:', e); }
-  }
-
-  function toggleStatsConfig() {
-    document.getElementById('stats-config').classList.toggle('open');
-    renderStatsConfig();
-  }
-
-  function renderStatsConfig() {
-    const nombres = { summary: 'Resumen general', monthly: 'Facturacion mensual', states: 'Estado de pedidos', top: 'Productos mas vendidos', rentabilidad: 'Productos mas rentables', activity: 'Actividad reciente' };
-    const lista = document.getElementById('stats-config-list');
-    if (!lista) return;
-    lista.innerHTML = statsConfig.order.map((key, index) => `
-      <div class="stats-config-item">
-        <label><input type="checkbox" ${statsConfig.visible[key] ? 'checked' : ''} onchange="cambiarVisibilidadStats('${key}', this.checked)"/> ${nombres[key]}</label>
-        <div class="stats-order">
-          <button type="button" title="Subir" onclick="moverStats('${key}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" title="Bajar" onclick="moverStats('${key}', 1)" ${index === statsConfig.order.length - 1 ? 'disabled' : ''}>↓</button>
-        </div>
-      </div>`).join('');
-  }
-
-  function cambiarVisibilidadStats(key, visible) {
-    statsConfig.visible[key] = visible;
-    guardarConfigEstadisticas();
-    renderEstadisticas();
-  }
-
-  function moverStats(key, direction) {
-    const index = statsConfig.order.indexOf(key);
-    const next = index + direction;
-    if (index < 0 || next < 0 || next >= statsConfig.order.length) return;
-    [statsConfig.order[index], statsConfig.order[next]] = [statsConfig.order[next], statsConfig.order[index]];
-    guardarConfigEstadisticas();
-    renderStatsConfig();
-    renderEstadisticas();
-  }
-
-  function renderEstadisticas() {
-    const content = document.getElementById('stats-content');
-    if (!content) return;
-    const ahora = new Date();
-    const entregados = pedidos.filter(p => p.estado === 'Entregado');
-    const facturacion = entregados.reduce((total, p) => total + (p.precio_final || 0), 0);
-    const ticket = entregados.length ? facturacion / entregados.length : 0;
-    const meses = [];
-    for (let i = 5; i >= 0; i--) {
-      const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-      const lista = pedidos.filter(p => {
-        if (!p.fecha) return false;
-        const fechaPedido = parseFecha(p.fecha);
-        return fechaPedido.getFullYear() === fecha.getFullYear() && fechaPedido.getMonth() === fecha.getMonth() && p.estado === 'Entregado';
-      });
-      meses.push({ nombre: fecha.toLocaleString('es-AR', { month: 'short' }), total: lista.reduce((sum, p) => sum + (p.precio_final || 0), 0) });
-    }
-    const maxMes = Math.max(...meses.map(m => m.total), 1);
-    const estados = ['Entregado', 'Impreso', 'Pendiente', 'Cancelado', 'Listo para retirar'];
-    const estadoColores = ['#22c55e', '#3b6ef6', '#f97316', '#ef4444', '#a855f7'];
-    const conteos = estados.map((estado, i) => ({ estado, color: estadoColores[i], total: pedidos.filter(p => p.estado === estado).length }));
-    const ranking = {};
-    pedidos.forEach(p => { if (p.producto) ranking[p.producto] = (ranking[p.producto] || 0) + (p.cantidad || 1); });
-    const top = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const bloques = {
-      summary: `<div class="stats-section stats-summary">
-        <div class="metric-card"><div class="metric-label">Facturacion entregada</div><div class="metric-value">${fmt(facturacion)}</div><div class="metric-sub">Total acumulado</div></div>
-        <div class="metric-card"><div class="metric-label">Pedidos totales</div><div class="metric-value">${pedidos.length}</div><div class="metric-sub">${pedidos.filter(p => p.fecha && parseFecha(p.fecha).getMonth() === ahora.getMonth() && parseFecha(p.fecha).getFullYear() === ahora.getFullYear()).length} este mes</div></div>
-        <div class="metric-card"><div class="metric-label">Ticket promedio</div><div class="metric-value">${fmt(Math.round(ticket))}</div><div class="metric-sub">Por pedido entregado</div></div>
-        <div class="metric-card"><div class="metric-label">Productos activos</div><div class="metric-value">${productos.length}</div><div class="metric-sub">${new Set(productos.map(p => p.categoria).filter(Boolean)).size} categorias</div></div>
-      </div>`,
-      monthly: `<div class="card stats-section"><div class="card-title">Facturacion mensual</div><div class="card-sub">Pedidos entregados en los ultimos 6 meses</div><div class="stats-month-list">${meses.map(m => `<div class="stats-month-row"><span>${m.nombre}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.round(m.total / maxMes * 100)}%"></div></div><strong>${fmt(m.total)}</strong></div>`).join('')}</div></div>`,
-      states: `<div class="card stats-section"><div class="card-title">Estado de pedidos</div><div class="card-sub">Distribucion actual del trabajo</div><div class="estado-list">${conteos.map(s => `<div class="estado-row"><div class="estado-top"><span class="estado-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${s.color};margin-right:7px"></span>${s.estado}</span><span class="estado-count">${s.total}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pedidos.length ? Math.round(s.total / pedidos.length * 100) : 0}%;background:${s.color}"></div></div></div>`).join('')}</div></div>`,
-      top: `<div class="card stats-section"><div class="card-title">Productos mas vendidos</div><div class="card-sub">Ordenados por unidades pedidas</div>${top.map(([nombre, total], i) => `<div class="top-prod-row"><div class="top-prod-rank" style="background:${['#3b6ef6','#22c55e','#f97316','#a855f7','#ef4444'][i]}">${i + 1}</div><div class="top-prod-info"><div class="top-prod-name">${esc(nombre)}</div><div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.round(total / (top[0]?.[1] || 1) * 100)}%;background:var(--accent)"></div></div></div><div class="top-prod-units">${total} u.</div></div>`).join('') || '<div class="empty-state">Sin datos</div>'}</div>`,
-      rentabilidad: (() => {
-        const filas = productos
-          .map(p => {
-            const costo = calcularCostoProduccion(p);
-            const precio = Number(p.precio_base) || 0;
-            if (!costo || !precio) return null;
-            return { nombre: p.nombre, ganancia: precio - costo, pct: (precio - costo) / precio * 100 };
-          })
-          .filter(Boolean)
-          .sort((a, b) => b.pct - a.pct)
-          .slice(0, 5);
-        if (!filas.length) return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">Margen entre precio base y costo de produccion</div><div class="empty-state">Completa precio base, gramos y tiempo de impresion en tus productos.</div></div>`;
-        const maxPct = filas[0].pct || 1;
-        return `<div class="card stats-section"><div class="card-title">Productos mas rentables</div><div class="card-sub">El porcentaje indica cuanto de cada venta queda como ganancia: si un producto muestra 60%, de cada $100 que cobras, $60 quedan para vos despues de descontar el costo de produccion (materiales, luz y desgaste de maquina).</div>${filas.map((r, i) => `
-          <div class="top-prod-row">
-            <div class="top-prod-rank" style="background:${['#22c55e', '#3b6ef6', '#f97316', '#a855f7', '#ef4444'][i]}">${i + 1}</div>
-            <div class="top-prod-info">
-              <div class="top-prod-name">${esc(r.nombre)}</div>
-              <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:${Math.max(4, Math.round(r.pct / maxPct * 100))}%;background:#22c55e"></div></div>
-            </div>
-            <div class="top-prod-units">${Math.round(r.pct)}%</div>
-            <div class="top-prod-monto">${fmt(Math.round(r.ganancia))}</div>
-          </div>`).join('')}</div>`;
-      })(),
-      activity: `<div class="card stats-section"><div class="card-title">Actividad reciente</div><div class="card-sub">Ultimos pedidos registrados</div>${pedidos.slice(0, 8).map(p => `<div class="act-row"><div class="act-info"><div class="act-cliente">${esc(p.cliente)}</div><div class="act-detalle">${esc(p.producto)} · ${fmtFecha(p.fecha)}</div></div><div class="act-right"><div class="act-monto">${fmt(p.precio_final)}</div><span class="badge ${badgeClass(p.estado)}">${esc(p.estado || '—')}</span></div></div>`).join('') || '<div class="empty-state">Sin pedidos</div>'}</div>`
-    };
-    content.innerHTML = statsConfig.order.filter(key => statsConfig.visible[key]).map(key => bloques[key]).join('') + renderCustomStats() || '<div class="empty-state">Selecciona al menos una estadistica para mostrar.</div>';
-    renderStatsConfig();
-    lucide.createIcons();
-  }
-
-  // ── ESTADISTICAS PERSONALIZADAS ──
-  const VARIABLES_STATS = [
-    ['facturacion', 'Facturacion entregada'],
-    ['ingresos_mensuales', 'Ingresos mensuales'],
-    ['pedidos', 'Pedidos totales'],
-    ['pedidos_entregados', 'Pedidos entregados'],
-    ['pedidos_pendientes', 'Pedidos pendientes'],
-    ['pedidos_en_progreso', 'Pedidos impresos (en progreso)'],
-    ['pedidos_listos', 'Pedidos listos para retirar'],
-    ['pedidos_cancelados', 'Pedidos cancelados'],
-    ['unidades', 'Unidades vendidas'],
-    ['unidades_entregadas', 'Unidades entregadas'],
-    ['ticket', 'Ticket promedio'],
-    ['gastos', 'Gastos generales'],
-    ['gastos_filamento', 'Gastos en filamento'],
-    ['kg_comprados', 'Kg de filamento comprados'],
-    ['prom_kg', 'Promedio $/kg'],
-    ['ganancia_neta', 'Ganancia neta'],
-    ['margen_pct', 'Margen %'],
-  ];
-
-  async function cargarEstadisticasCustom() {
-    try {
-      estadisticasCustom = await apiFetch('estadisticas_personalizadas?order=id.asc');
-    } catch (e) { console.error('Error cargando estadisticas personalizadas:', e); }
-  }
-
-  function ultimos6Meses() {
-    const meses = [];
-    const ahora = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-      meses.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('es-AR', { month: 'short' }) });
-    }
-    return meses;
-  }
-
-  // Resuelve variables personalizadas (pueden referenciarse entre si, con proteccion contra ciclos)
-  function resolverCustoms(base) {
-    const vals = { ...base };
-    let pendientes = estadisticasCustom.filter(e => e.vista === 'variable');
-    let progreso = true;
-    while (progreso && pendientes.length) {
-      progreso = false;
-      pendientes = pendientes.filter(est => {
-        const refs = est.formula.filter(t => t.t === 'var').map(t => t.v);
-        if (refs.some(r => !(r in vals))) return true;
-        const v = evaluarTokens(est.formula, vals);
-        vals['custom_' + est.id] = v === null ? 0 : v;
-        progreso = true;
-        return false;
-      });
-    }
-    pendientes.forEach(est => { vals['custom_' + est.id] = 0; });
-    return vals;
-  }
-
-  // Valores de las variables, opcionalmente filtrados a un mes {year, month}
-  function valoresStats(mes) {
-    const enRango = (fecha) => {
-      if (!mes || !fecha) return !mes;
-      const d = parseFecha(fecha);
-      return d.getFullYear() === mes.year && d.getMonth() === mes.month;
-    };
-    const peds = pedidos.filter(p => enRango(p.fecha));
-    const ents = peds.filter(p => p.estado === 'Entregado');
-    const fact = ents.reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
-    const gs = gastos.filter(g => enRango(g.fecha));
-    const fils = filamentos.filter(f => enRango(f.fecha));
-    const kg = fils.reduce((s, f) => s + (Number(f.kg) || 0), 0);
-    const precioFil = fils.reduce((s, f) => s + (Number(f.precio) || 0), 0);
-    const gastosGenerales = gs.reduce((s, g) => s + (Number(g.monto) || 0), 0);
-    const gananciaNeta = fact - gastosGenerales - precioFil;
-    const vars = {
-      facturacion: fact,
-      ingresos_mensuales: mes ? fact : (() => {
-        const ahora = new Date();
-        return pedidos.filter(p => p.estado === 'Entregado' && p.fecha && parseFecha(p.fecha).getFullYear() === ahora.getFullYear() && parseFecha(p.fecha).getMonth() === ahora.getMonth()).reduce((s, p) => s + (Number(p.precio_final) || 0), 0);
-      })(),
-      pedidos: peds.length,
-      pedidos_entregados: ents.length,
-      pedidos_pendientes: peds.filter(p => p.estado === 'Pendiente').length,
-      pedidos_en_progreso: peds.filter(p => p.estado === 'Impreso').length,
-      pedidos_listos: peds.filter(p => p.estado === 'Listo para retirar').length,
-      pedidos_cancelados: peds.filter(p => p.estado === 'Cancelado').length,
-      unidades: peds.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
-      unidades_entregadas: ents.reduce((s, p) => s + (Number(p.cantidad) || 1), 0),
-      ticket: ents.length ? fact / ents.length : 0,
-      gastos: gastosGenerales,
-      gastos_filamento: precioFil,
-      kg_comprados: kg,
-      prom_kg: kg > 0 ? precioFil / kg : 0,
-      ganancia_neta: gananciaNeta,
-      margen_pct: fact > 0 ? (gananciaNeta / fact) * 100 : 0,
-    };
-    return resolverCustoms(vars);
-  }
-
-  function evaluarTokens(tokens, valores) {
-    if (!tokens || !tokens.length) return null;
-    const expr = tokens.map(t => {
-      if (t.t === 'var') return '(' + (valores[t.v] ?? 0) + ')';
-      if (t.t === 'num') return '(' + t.v + ')';
-      return t.v;
-    }).join(' ');
-    if (!/^[\d\s+\-*/().]+$/.test(expr)) return null;
-    try {
-      const r = Function('"use strict";return (' + expr + ')')();
-      return Number.isFinite(r) ? r : null;
-    } catch { return null; }
-  }
-
-  function renderCustomStats() {
-    const visibles = estadisticasCustom.filter(est => est.vista !== 'variable');
-    if (!visibles.length) return '';
-    const meses = ultimos6Meses();
-    const formulaTexto = (est) => (est.formula || []).map(tokenLabel).join(' ') || '—';
-    const acciones = (est) => `<div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="btn-icon" onclick="abrirEditarEst(${est.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
-      <button class="btn-icon del" onclick="borrarEst(${est.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
-    </div>`;
-    return `<div class="stats-section"><div class="card-title" style="margin-bottom:10px">Estadisticas personalizadas</div>${visibles.map(est => {
-      if (est.vista === 'barras') {
-        const vals = meses.map(m => evaluarTokens(est.formula, valoresStats(m)) ?? 0);
-        const max = Math.max(...vals.map(Math.abs), 1);
-        return `<div class="card stats-section"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">${esc(formulaTexto(est))} · ultimos 6 meses</div></div>${acciones(est)}</div><div class="stats-month-list">${meses.map((m, i) => `<div class="stats-month-row"><span>${m.label}</span><div class="stats-month-bar"><div class="stats-month-fill" style="width:${Math.max(0, Math.round(vals[i] / max * 100))}%"></div></div><strong>${fmtNum(vals[i])}</strong></div>`).join('')}</div></div>`;
-      }
-      const val = evaluarTokens(est.formula, valoresStats(null));
-      return `<div class="card stats-section" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><div class="card-title">${esc(est.nombre)}</div><div class="card-sub">${esc(formulaTexto(est))}</div></div><div style="display:flex;align-items:center;gap:12px"><div style="font-size:1.8rem;font-weight:700">${val === null ? '—' : fmtNum(val)}</div>${acciones(est)}</div></div>`;
-    }).join('')}</div>`;
-  }
-
-  // ── MODAL CREADOR ──
-  let formulaEditando = [];
-
-  function abrirNuevaEst(tipo) {
-    editandoEstId = null;
-    formulaEditando = [];
-    document.getElementById('est-modal-titulo').textContent = tipo === 'variable' ? 'Nueva variable' : 'Nueva estadistica';
-    document.getElementById('est-nombre').value = '';
-    document.getElementById('est-vista').value = tipo === 'variable' ? 'variable' : 'numero';
-    document.getElementById('est-nombre').placeholder = tipo === 'variable' ? 'Ej: Gastos totales' : 'Ej: Ganancia neta';
-    renderGridVariables();
-    renderFormulaDisplay();
-    actualizarPreviewEst();
-    document.getElementById('modal-estadistica').classList.add('open');
-    lucide.createIcons();
-  }
-
-  function abrirEditarEst(id) {
-    const est = estadisticasCustom.find(x => x.id === id);
-    if (!est) return;
-    editandoEstId = id;
-    formulaEditando = JSON.parse(JSON.stringify(est.formula || []));
-    document.getElementById('est-modal-titulo').textContent = est.vista === 'variable' ? 'Editar variable' : 'Editar estadistica';
-    document.getElementById('est-nombre').value = est.nombre || '';
-    document.getElementById('est-vista').value = est.vista || 'numero';
-    renderGridVariables();
-    renderFormulaDisplay();
-    actualizarPreviewEst();
-    document.getElementById('modal-estadistica').classList.add('open');
-    lucide.createIcons();
-  }
-
-  function cerrarModalEst() { document.getElementById('modal-estadistica').classList.remove('open'); editandoEstId = null; formulaEditando = []; }
-  document.getElementById('modal-estadistica').addEventListener('click', function(e) { if(e.target===this) cerrarModalEst(); });
-
-  function renderGridVariables() {
-    const grid = document.getElementById('est-vars-grid');
-    if (!grid) return;
-    const customs = estadisticasCustom.filter(e => e.vista === 'variable');
-    grid.innerHTML = VARIABLES_STATS.map(([key, label]) => `<button type="button" onclick="insertarToken({t:'var',v:'${key}'})">${label}</button>`).join('')
-      + customs.map(e => `<button type="button" style="border-color:#bbf7d0;background:#f0fdf4;color:#15803d;font-weight:600" onclick="insertarToken({t:'var',v:'custom_${e.id}'})">${esc(e.nombre)}</button>`).join('');
-  }
-
-  function insertarToken(token) {
-    const ultimo = formulaEditando[formulaEditando.length - 1];
-    const esValor = t => t && (t.t === 'var' || t.t === 'num' || t.v === ')');
-    if (token.t === 'op') {
-      if (token.v === '(') { if (esValor(ultimo)) return; }
-      else if (token.v === ')') { if (!ultimo || ultimo.v === '(' || (ultimo.t === 'op' && ultimo.v !== ')')) return; }
-      else { if (!ultimo || (ultimo.t === 'op' && ultimo.v !== ')')) return; }
-    } else if (esValor({ t: token.t, v: token.v }) && esValor(ultimo)) return;
-    formulaEditando.push(token);
-    renderFormulaDisplay();
-    actualizarPreviewEst();
-  }
-
-  function insertarNumero() {
-    const v = parseFloat(document.getElementById('est-num').value);
-    if (!Number.isFinite(v)) return;
-    insertarToken({ t: 'num', v });
-    document.getElementById('est-num').value = '';
-  }
-
-  function borrarUltimoToken() { formulaEditando.pop(); renderFormulaDisplay(); actualizarPreviewEst(); }
-  function limpiarFormula() { formulaEditando = []; renderFormulaDisplay(); actualizarPreviewEst(); }
-
-  function tokenLabel(t) {
-    if (t.t === 'var') {
-      if (String(t.v).startsWith('custom_')) {
-        const est = estadisticasCustom.find(e => 'custom_' + e.id === t.v);
-        return est ? est.nombre : t.v;
-      }
-      return (VARIABLES_STATS.find(([k]) => k === t.v) || [t.v, t.v])[1];
-    }
-    if (t.t === 'num') return String(t.v);
-    return { '*': '×', '/': '÷' }[t.v] || t.v;
-  }
-
-  function renderFormulaDisplay() {
-    const el = document.getElementById('est-formula-display');
-    if (!el) return;
-    el.innerHTML = formulaEditando.length
-      ? formulaEditando.map(t => `<span class="formula-chip ${t.t === 'op' ? 'op' : ''}">${esc(tokenLabel(t))}</span>`).join('')
-      : 'Toca las variables y operadores para armar la formula.';
-  }
-
-  function actualizarPreviewEst() {
-    const val = evaluarTokens(formulaEditando, valoresStats(null));
-    document.getElementById('est-preview-value').textContent = val === null ? 'Formula incompleta' : fmtNum(val);
-  }
-
-  async function guardarEstadistica() {
-    const nombre = document.getElementById('est-nombre').value.trim();
-    if (!nombre) { alert('Ponle un nombre a la estadistica.'); return; }
-    const val = evaluarTokens(formulaEditando, valoresStats(null));
-    if (val === null) { alert('La formula esta incompleta o invalida.'); return; }
-    const datos = { nombre, formula: formulaEditando, vista: document.getElementById('est-vista').value };
-    try {
-      if (editandoEstId) {
-        await apiFetch(`estadisticas_personalizadas?id=eq.${editandoEstId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      } else {
-        await apiFetch('estadisticas_personalizadas', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      }
-      cerrarModalEst();
-      await cargarEstadisticasCustom();
-      if (paginaActual === 'estadisticas') renderEstadisticas();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
-  async function borrarEst(id) {
-    if (!confirm('Borrar esta estadistica?')) return;
-    try {
-      await apiFetch(`estadisticas_personalizadas?id=eq.${id}`, { method: 'DELETE' });
-      estadisticasCustom = estadisticasCustom.filter(x => x.id !== id);
-      if (paginaActual === 'estadisticas') renderEstadisticas();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
-  const calculatorFields = ['filamento', 'kwh', 'consumo', 'vida', 'repuestos', 'error', 'horas', 'minutos', 'gramos', 'insumos', 'multiplicador'];
-  const calculatorDefaults = { filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, horas: 0, minutos: 0, gramos: 0, insumos: 0, multiplicador: 4 };
-  let calcConfigGlobal = null;
-
-  function obtenerDatosCalculadora() {
-    return Object.fromEntries(calculatorFields.map(key => [key, parseFloat(document.getElementById(`calc-${key}`)?.value) || 0]));
-  }
-
-  function aplicarDatosCalculadora(datos) {
-    calculatorFields.forEach(key => {
-      const input = document.getElementById(`calc-${key}`);
-      if (input) input.value = datos[key] ?? calculatorDefaults[key];
-    });
-    calcularPrecio();
-  }
-
-  async function cargarConfiguracionCalculadora() {
-    try {
-      const filas = await apiFetch('configuracion_calculadora?select=configuracion&limit=1');
-      calcConfigGlobal = { ...calculatorDefaults, ...(filas?.[0]?.configuracion || {}) };
-    } catch (e) {
-      calcConfigGlobal = { ...calculatorDefaults };
-      console.warn('No se pudo cargar la configuracion de la calculadora:', e);
-    }
-    aplicarDatosCalculadora(calcConfigGlobal);
-  }
-
-  function calcularPrecio() {
-    const d = obtenerDatosCalculadora();
-    const tiempoHoras = d.horas + d.minutos / 60;
-    const material = d.gramos * d.filamento / 1000;
-    const luz = tiempoHoras * d.consumo / 1000 * d.kwh;
-    const desgaste = d.vida > 0 ? tiempoHoras * d.repuestos / d.vida : 0;
-    const subtotal = material + luz + desgaste + d.insumos;
-    const margenError = subtotal * d.error / 100;
-    const total = (subtotal + margenError) * Math.max(d.multiplicador || 1, 1);
-    const resultados = { material, luz, desgaste, error: margenError, insumos: d.insumos, total };
-    Object.entries(resultados).forEach(([key, value]) => {
-      const output = document.getElementById(`calc-resultado-${key}`);
-      if (output) output.textContent = fmt(value);
-    });
-  }
-
-  async function guardarCalculadora() {
-    const state = document.getElementById('calc-save-state');
-    try {
-      await apiFetch('configuracion_calculadora', {
-        method: 'POST',
-        prefer: 'resolution=merge-duplicates,return=minimal',
-        body: JSON.stringify({ configuracion: obtenerDatosCalculadora() })
-      });
-      calcConfigGlobal = { ...obtenerDatosCalculadora() };
-      if (paginaActual === 'productos') renderProductos();
-      state.textContent = 'Configuracion guardada en Supabase.';
-      state.style.color = 'var(--green)';
-    } catch (e) {
-      state.textContent = 'No se pudo guardar: ' + e.message;
-      state.style.color = 'var(--red)';
-    }
-  }
-
-  async function cargarGastos() {
-    try {
-      gastos = await apiFetch('gastos?order=fecha.desc,id.desc');
-      if (paginaActual === 'gastos') renderGastos();
-    } catch (e) { console.error('Error cargando gastos:', e); toast('Error al cargar gastos: ' + e.message, 'err'); }
-  }
-
-  function esMesActual(fecha) {
-    if (!fecha) return false;
-    const fechaGasto = parseFecha(fecha);
-    const ahora = new Date();
-    return fechaGasto.getMonth() === ahora.getMonth() && fechaGasto.getFullYear() === ahora.getFullYear();
-  }
-
-  function obtenerPromedioKg() {
-    const delMes = filamentos.filter(f => esMesActual(f.fecha));
-    const lista = delMes.length ? delMes : filamentos;
-    const kg = lista.reduce((s, f) => s + Number(f.kg || 0), 0);
-    const precio = lista.reduce((s, f) => s + Number(f.precio || 0), 0);
-    if (kg > 0) return precio / kg;
-    const v = parseFloat(document.getElementById('calc-filamento')?.value);
-    return Number.isFinite(v) && v > 0 ? v : null;
-  }
-
-  function renderGastos() {
-    const fechaInput = document.getElementById('gasto-fecha');
-    if (fechaInput && !fechaInput.value) fechaInput.value = new Date().toISOString().split('T')[0];
-    const filFechaInput = document.getElementById('fil-fecha');
-    if (filFechaInput && !filFechaInput.value) filFechaInput.value = new Date().toISOString().split('T')[0];
-    const totalGastos = gastos.reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
-    const gastosMes = gastos.filter(gasto => esMesActual(gasto.fecha)).reduce((sum, gasto) => sum + Number(gasto.monto || 0), 0);
-    const gastosFilamentoMes = filamentos.filter(f => esMesActual(f.fecha)).reduce((sum, f) => sum + Number(f.precio || 0), 0);
-    const facturacionTotal = pedidos.filter(pedido => pedido.estado === 'Entregado').reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
-    const facturacionMes = pedidos.filter(pedido => pedido.estado === 'Entregado' && esMesActual(pedido.fecha)).reduce((sum, pedido) => sum + Number(pedido.precio_final || 0), 0);
-    document.getElementById('gastos-total').textContent = fmt(totalGastos);
-    document.getElementById('gastos-mes').textContent = fmt(gastosMes + gastosFilamentoMes);
-    document.getElementById('gastos-facturacion').textContent = fmt(facturacionMes);
-    const rentabilidad = facturacionMes - (gastosMes + gastosFilamentoMes);
-    const rentabilidadEl = document.getElementById('gastos-rentabilidad');
-    rentabilidadEl.textContent = fmt(rentabilidad);
-    rentabilidadEl.className = 'metric-value ' + (rentabilidad >= 0 ? 'profit-positive' : 'profit-negative');
-    const promKg = obtenerPromedioKg();
-    document.getElementById('gastos-prom-kg').textContent = promKg !== null ? fmt(Math.round(promKg * 100) / 100) + '/kg' : '—';
-    document.getElementById('gastos-prom-kg-sub').textContent = filamentos.some(f => esMesActual(f.fecha)) ? '$/kg segun compras del mes' : (filamentos.length ? '$/kg segun todas las compras' : 'Sin compras registradas');
-
-    // Gastos por categoria (mes actual, incluye filamento)
-    const porCategoria = {};
-    gastos.filter(g => esMesActual(g.fecha)).forEach(g => {
-      const cat = (g.categoria || '').trim() || 'Sin categoria';
-      porCategoria[cat] = (porCategoria[cat] || 0) + (Number(g.monto) || 0);
-    });
-    if (gastosFilamentoMes > 0) porCategoria['Filamento'] = (porCategoria['Filamento'] || 0) + gastosFilamentoMes;
-    const catsGastos = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]);
-    const maxCat = catsGastos[0]?.[1] || 1;
-    const coloresCat = ['#3b6ef6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#0ea5e9', '#eab308', '#ec4899'];
-    const totalGastosMes = gastosMes + gastosFilamentoMes;
-    const catEl = document.getElementById('gastos-categorias');
-    if (catEl) {
-      catEl.innerHTML = catsGastos.length ? catsGastos.map(([cat, total], i) => `
-        <div class="estado-row">
-          <div class="estado-top">
-            <span class="estado-name">${esc(cat)}</span>
-            <span class="estado-count">${fmt(total)} (${Math.round(total / totalGastosMes * 100)}%)</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total / maxCat * 100)}%;background:${coloresCat[i % coloresCat.length]}"></div></div>
-        </div>`).join('') : '<div class="empty-state" style="padding:20px 0">Sin gastos este mes.</div>';
-    }
-
-    const tbody = document.getElementById('tbody-gastos');
-    if (!tbody) return;
-    const fg = (document.getElementById('filtro-gasto')?.value || '').toLowerCase();
-    const listaG = gastos.filter(g => !fg || [g.concepto, g.categoria, g.descripcion].some(x => (x || '').toLowerCase().includes(fg)));
-    tbody.innerHTML = listaG.length ? listaG.map(gasto => `
-      <tr>
-        <td>${fmtFecha(gasto.fecha)}</td>
-        <td class="td-cliente">${esc(gasto.concepto)}</td>
-        <td>${esc(gasto.categoria || '—')}</td>
-        <td>${Number(gasto.cantidad || 0).toLocaleString('es-AR')} ${esc(gasto.unidad || '')}</td>
-        <td class="td-monto">${fmt(Number(gasto.monto || 0))}</td>
-        <td style="font-size:.8rem;color:var(--text-muted)">${esc(gasto.descripcion || '')}</td>
-        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarGasto(${gasto.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarGasto(${gasto.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
-      </tr>`).join('') : (gastos.length ? '<tr><td colspan="7" class="empty-state">Sin resultados para la busqueda.</td></tr>' : '<tr><td colspan="7" class="empty-state">No hay gastos registrados.</td></tr>');
-    lucide.createIcons();
-  }
-
-  async function guardarGasto() {
-    const state = document.getElementById('gasto-save-state');
-    const concepto = document.getElementById('gasto-concepto').value.trim();
-    const monto = parseFloat(document.getElementById('gasto-monto').value);
-    if (!concepto || !Number.isFinite(monto) || monto < 0) {
-      state.textContent = 'Completa el concepto y un monto valido.';
-      state.style.color = 'var(--red)';
-      return;
-    }
-    const datos = {
-      concepto,
-      categoria: document.getElementById('gasto-categoria').value.trim(),
-      monto,
-      cantidad: parseFloat(document.getElementById('gasto-cantidad').value) || 1,
-      unidad: document.getElementById('gasto-unidad').value.trim() || 'unidad',
-      fecha: document.getElementById('gasto-fecha').value || new Date().toISOString().split('T')[0],
-      descripcion: document.getElementById('gasto-descripcion').value.trim()
-    };
-    const btn = document.getElementById('btn-guardar-gasto');
-    btn.disabled = true;
-    try {
-      await apiFetch('gastos', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      state.textContent = 'Gasto guardado en Supabase.';
-      state.style.color = 'var(--green)';
-      document.getElementById('gasto-concepto').value = '';
-      document.getElementById('gasto-monto').value = '';
-      document.getElementById('gasto-descripcion').value = '';
-      await cargarGastos();
-    } catch (e) {
-      state.textContent = 'No se pudo guardar: ' + e.message;
-      state.style.color = 'var(--red)';
-    } finally { btn.disabled = false; }
-  }
-
-  async function borrarGasto(id) {
-    if (!confirm('Borrar este gasto?')) return;
-    try {
-      await apiFetch(`gastos?id=eq.${id}`, { method: 'DELETE' });
-      gastos = gastos.filter(gasto => gasto.id !== id);
-      renderGastos();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
-  function abrirEditarGasto(id) {
-    const gasto = gastos.find(g => g.id === id);
-    if (!gasto) return;
-    editandoGastoId = id;
-    document.getElementById('eg-concepto').value = gasto.concepto || '';
-    document.getElementById('eg-categoria').value = gasto.categoria || '';
-    document.getElementById('eg-monto').value = gasto.monto ?? '';
-    document.getElementById('eg-cantidad').value = gasto.cantidad ?? 1;
-    document.getElementById('eg-unidad').value = gasto.unidad || 'unidad';
-    document.getElementById('eg-fecha').value = gasto.fecha || '';
-    document.getElementById('eg-descripcion').value = gasto.descripcion || '';
-    document.getElementById('modal-editar-gasto').classList.add('open');
-    lucide.createIcons();
-  }
-  function cerrarModalEditarGasto() { document.getElementById('modal-editar-gasto').classList.remove('open'); editandoGastoId = null; }
-  document.getElementById('modal-editar-gasto').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarGasto(); });
-
-  async function guardarEdicionGasto() {
-    if (!editandoGastoId) return;
-    const concepto = document.getElementById('eg-concepto').value.trim();
-    const monto = parseFloat(document.getElementById('eg-monto').value);
-    if (!concepto || !Number.isFinite(monto) || monto < 0) { alert('Completa el concepto y un monto valido.'); return; }
-    const datos = {
-      concepto,
-      categoria: document.getElementById('eg-categoria').value.trim(),
-      monto,
-      cantidad: parseFloat(document.getElementById('eg-cantidad').value) || 1,
-      unidad: document.getElementById('eg-unidad').value.trim() || 'unidad',
-      fecha: document.getElementById('eg-fecha').value || new Date().toISOString().split('T')[0],
-      descripcion: document.getElementById('eg-descripcion').value.trim()
-    };
-    try {
-      await apiFetch(`gastos?id=eq.${editandoGastoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      const idx = gastos.findIndex(g => g.id === editandoGastoId);
-      if (idx >= 0) gastos[idx] = { ...gastos[idx], ...datos };
-      cerrarModalEditarGasto();
-      renderGastos();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
-  // ── FILAMENTOS ──
-  function switchGastoTab(tab) {
-    document.getElementById('gtab-btn-general').classList.toggle('active', tab === 'general');
-    document.getElementById('gtab-btn-filamento').classList.toggle('active', tab === 'filamento');
-    document.getElementById('form-gasto-general').style.display = tab === 'general' ? '' : 'none';
-    document.getElementById('form-gasto-filamento').style.display = tab === 'filamento' ? '' : 'none';
-  }
-
-  async function cargarFilamentos() {
-    try {
-      filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc');
-      if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
-    } catch (e) { console.error('Error cargando filamentos:', e); toast('Error al cargar filamentos: ' + e.message, 'err'); }
-  }
-
-  function renderFilamentos() {
-    const tbody = document.getElementById('tbody-filamentos');
-    if (!tbody) return;
-    tbody.innerHTML = filamentos.length ? filamentos.map(f => {
-      const kg = Number(f.kg || 0);
-      const precio = Number(f.precio || 0);
-      return `
-      <tr>
-        <td>${fmtFecha(f.fecha)}</td>
-        <td class="td-cliente">${esc(f.marca || '—')}</td>
-        <td>${esc(f.color || '—')}</td>
-        <td>${kg.toLocaleString('es-AR')} kg</td>
-        <td class="td-monto">${fmt(precio)}</td>
-        <td>${kg > 0 ? fmt(Math.round((precio / kg) * 100) / 100) : '—'}</td>
-        <td><div class="expense-actions"><button class="btn-icon" onclick="abrirEditarFilamento(${f.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button><button class="btn-icon del" onclick="borrarFilamento(${f.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button></div></td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="7" class="empty-state">No hay filamentos registrados.</td></tr>';
-    lucide.createIcons();
-  }
-
-  async function guardarFilamento() {
-    const state = document.getElementById('filamento-save-state');
-    const marca = document.getElementById('fil-marca').value.trim();
-    const kg = parseFloat(document.getElementById('fil-kg').value);
-    const precio = parseFloat(document.getElementById('fil-precio').value);
-    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) {
-      state.textContent = 'Completa marca, kg (mayor a 0) y precio.';
-      state.style.color = 'var(--red)';
-      return;
-    }
-    const datos = {
-      marca,
-      color: document.getElementById('fil-color').value.trim(),
-      kg,
-      precio,
-      fecha: document.getElementById('fil-fecha').value || new Date().toISOString().split('T')[0]
-    };
-    const btn = document.getElementById('btn-guardar-filamento');
-    btn.disabled = true;
-    try {
-      await apiFetch('filamentos', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      state.textContent = 'Filamento guardado en Supabase.';
-      state.style.color = 'var(--green)';
-      document.getElementById('fil-marca').value = '';
-      document.getElementById('fil-color').value = '';
-      document.getElementById('fil-kg').value = '';
-      document.getElementById('fil-precio').value = '';
-      await cargarFilamentos();
-    } catch (e) {
-      state.textContent = 'No se pudo guardar: ' + e.message;
-      state.style.color = 'var(--red)';
-    } finally { btn.disabled = false; }
-  }
-
-  async function borrarFilamento(id) {
-    if (!confirm('Borrar este filamento?')) return;
-    try {
-      await apiFetch(`filamentos?id=eq.${id}`, { method: 'DELETE' });
-      filamentos = filamentos.filter(f => f.id !== id);
-      renderFilamentos();
-      renderGastos();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
-  function abrirEditarFilamento(id) {
-    const f = filamentos.find(x => x.id === id);
-    if (!f) return;
-    editandoFilamentoId = id;
-    document.getElementById('ef-marca').value = f.marca || '';
-    document.getElementById('ef-color').value = f.color || '';
-    document.getElementById('ef-kg').value = f.kg ?? '';
-    document.getElementById('ef-precio').value = f.precio ?? '';
-    document.getElementById('ef-fecha').value = f.fecha || '';
-    document.getElementById('modal-editar-filamento').classList.add('open');
-    lucide.createIcons();
-  }
-  function cerrarModalEditarFilamento() { document.getElementById('modal-editar-filamento').classList.remove('open'); editandoFilamentoId = null; }
-  document.getElementById('modal-editar-filamento').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarFilamento(); });
-
-  async function guardarEdicionFilamento() {
-    if (!editandoFilamentoId) return;
-    const marca = document.getElementById('ef-marca').value.trim();
-    const kg = parseFloat(document.getElementById('ef-kg').value);
-    const precio = parseFloat(document.getElementById('ef-precio').value);
-    if (!marca || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0) { alert('Completa marca, kg (mayor a 0) y precio.'); return; }
-    const datos = {
-      marca,
-      color: document.getElementById('ef-color').value.trim(),
-      kg,
-      precio,
-      fecha: document.getElementById('ef-fecha').value || new Date().toISOString().split('T')[0]
-    };
-    try {
-      await apiFetch(`filamentos?id=eq.${editandoFilamentoId}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify(datos) });
-      const idx = filamentos.findIndex(x => x.id === editandoFilamentoId);
-      if (idx >= 0) filamentos[idx] = { ...filamentos[idx], ...datos };
-      cerrarModalEditarFilamento();
-      renderFilamentos();
-      renderGastos();
-    } catch (e) { alert('Error: ' + e.message); }
-  }
-
   // ── TABLA / CARDS ──
   function renderTabla(lista) {
     const isMobile = window.innerWidth <= 640;
     const filtroCliente = isMobile ? (document.getElementById('filtro-cliente-m')?.value||'').toLowerCase() : (document.getElementById('filtro-cliente')?.value||'').toLowerCase();
     const filtroEstado  = isMobile ? (document.getElementById('filtro-estado-m')?.value||'') : (document.getElementById('filtro-estado')?.value||'');
     const filtroOrden = isMobile ? (document.getElementById('filtro-orden-m')?.value||'nuevo') : (document.getElementById('filtro-orden')?.value||'nuevo');
-    const desde = isMobile ? (document.getElementById('filtro-desde-m')?.value||'') : (document.getElementById('filtro-desde')?.value||'');
-    const hasta = isMobile ? (document.getElementById('filtro-hasta-m')?.value||'') : (document.getElementById('filtro-hasta')?.value||'');
     let data = (lista||pedidos).filter(p=>{
       const okC = !filtroCliente||(p.cliente||'').toLowerCase().includes(filtroCliente)||(p.producto||'').toLowerCase().includes(filtroCliente);
       const okE = !filtroEstado||p.estado===filtroEstado;
-      const okF = (!desde||(p.fecha||'')>=desde)&&(!hasta||(p.fecha||'')<=hasta);
-      return okC&&okE&&okF;
+      return okC&&okE;
     });
     // Ordenamiento
     data = [...data].sort((a, b) => {
@@ -2659,14 +1144,11 @@ lucide.createIcons();
         default:           return 0;
       }
     });
-    pedidosFiltradosActual = data;
 
     // Tabla desktop
-    const hayFiltros = !!(filtroCliente || filtroEstado || desde || hasta);
-    const msgVacio = hayFiltros ? 'Sin resultados para los filtros.' : 'No hay pedidos.';
     const tbody = document.getElementById('tbody-pedidos');
     if (!data.length) {
-      tbody.innerHTML=`<tr><td colspan="9" class="empty-state">${msgVacio}</td></tr>`;
+      tbody.innerHTML='<tr><td colspan="9" class="empty-state">No hay pedidos.</td></tr>';
     } else {
       tbody.innerHTML = data.map(p=>`
         <tr id="row-${p.id}">
@@ -2679,9 +1161,7 @@ lucide.createIcons();
           <td><span class="badge ${badgeClass(p.estado)}">${esc(p.estado||'—')}</span></td>
           <td>${fmtFecha(p.fecha)}</td>
           <td><div class="acciones">
-            <button class="btn-icon" onclick="avanzarEstado(${p.id})" title="Avanzar estado"><i data-lucide="chevron-right" width="13" height="13"></i></button>
             <button class="btn-icon" onclick="abrirEditar(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
-            <button class="btn-icon" onclick="duplicarPedido(${p.id})" title="Duplicar"><i data-lucide="copy" width="13" height="13"></i></button>
             <button class="btn-icon del" onclick="borrarPedido(${p.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
           </div></td>
         </tr>`).join('');
@@ -2690,7 +1170,7 @@ lucide.createIcons();
     // Cards mobile
     const mobile = document.getElementById('cards-pedidos-mobile');
     if (!data.length) {
-      mobile.innerHTML = `<div class="empty-state">${msgVacio}</div>`;
+      mobile.innerHTML = '<div class="empty-state">No hay pedidos.</div>';
     } else {
       mobile.innerHTML = data.map(p=>`
         <div class="pedido-card-mobile">
@@ -2700,9 +1180,7 @@ lucide.createIcons();
               <span class="badge ${badgeClass(p.estado)}">${esc(p.estado||'—')}</span>
             </div>
             <div class="pcm-acciones">
-              <button class="btn-icon" onclick="avanzarEstado(${p.id})" title="Avanzar estado"><i data-lucide="chevron-right" width="13" height="13"></i></button>
               <button class="btn-icon" onclick="abrirEditar(${p.id})"><i data-lucide="pencil" width="13" height="13"></i></button>
-              <button class="btn-icon" onclick="duplicarPedido(${p.id})" title="Duplicar"><i data-lucide="copy" width="13" height="13"></i></button>
               <button class="btn-icon del" onclick="borrarPedido(${p.id})"><i data-lucide="trash-2" width="13" height="13"></i></button>
             </div>
           </div>
@@ -2776,6 +1254,7 @@ lucide.createIcons();
     editandoId=id;
     document.getElementById('e-cliente').value         =p.cliente||'';
     document.getElementById('e-producto-display').textContent = p.producto||'Seleccionar producto...';
+    document.getElementById('e-producto').value = '';
     document.getElementById('e-producto').value        =p.producto||'';
     document.getElementById('e-cantidad').value        =p.cantidad||1;
     document.getElementById('e-precio-unitario').value =p.precio_unitario||'';
@@ -2826,128 +1305,7 @@ lucide.createIcons();
       pedidos=pedidos.filter(p=>p.id!==id);
       renderTabla();
       if(paginaActual==='dashboard') renderDashboard();
-    } catch(e){toast('Error: '+e.message,'err');}
-  }
-
-  // ── ACCIONES RAPIDAS ──
-  const ESTADOS_FLUJO = ['Pendiente', 'Impreso', 'Listo para retirar', 'Entregado'];
-  let pedidosFiltradosActual = [];
-
-  async function avanzarEstado(id) {
-    const p = pedidos.find(x => x.id === id);
-    if (!p) return;
-    const idx = ESTADOS_FLUJO.indexOf(p.estado);
-    if (idx < 0 || idx >= ESTADOS_FLUJO.length - 1) { toast('Este pedido no puede avanzar mas.', 'err'); return; }
-    const nuevo = ESTADOS_FLUJO[idx + 1];
-    try {
-      await apiFetch(`${TABLA}?id=eq.${id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ estado: nuevo }) });
-      p.estado = nuevo;
-      renderTabla();
-      if (paginaActual === 'dashboard') renderDashboard();
-      toast(`Pedido #${id} → ${nuevo}`, 'ok');
-    } catch (e) { toast('Error: ' + e.message, 'err'); }
-  }
-
-  async function duplicarPedido(id) {
-    const p = pedidos.find(x => x.id === id);
-    if (!p) return;
-    const copia = {
-      cliente: p.cliente, producto: p.producto,
-      cantidad: p.cantidad || 1, precio_unitario: p.precio_unitario || 0, precio_final: p.precio_final || 0,
-      estado: 'Pendiente', descripcion: p.descripcion || '',
-      fecha: new Date().toISOString().split('T')[0]
-    };
-    try {
-      await apiFetch(TABLA, { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(copia) });
-      toast(`Pedido #${id} duplicado.`, 'ok');
-      await cargarPedidos();
-    } catch (e) { toast('Error: ' + e.message, 'err'); }
-  }
-
-  // ── EXPORTAR CSV ──
-  function descargarCSV(nombre, filas) {
-    const csv = '\ufeff' + filas.map(f => f.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = nombre;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-
-  function exportarPedidosCSV() {
-    if (!pedidosFiltradosActual.length) { toast('No hay pedidos para exportar.', 'err'); return; }
-    descargarCSV('pedidos.csv', [
-      ['ID', 'Cliente', 'Producto', 'Cantidad', 'Precio unitario', 'Precio final', 'Estado', 'Fecha', 'Descripcion'],
-      ...pedidosFiltradosActual.map(p => [p.id, p.cliente, p.producto, p.cantidad || 1, p.precio_unitario, p.precio_final, p.estado, p.fecha, p.descripcion])
-    ]);
-    toast('Pedidos exportados.', 'ok');
-  }
-
-  function exportarGastosCSV() {
-    if (!gastos.length) { toast('No hay gastos para exportar.', 'err'); return; }
-    descargarCSV('gastos.csv', [
-      ['ID', 'Fecha', 'Concepto', 'Categoria', 'Cantidad', 'Unidad', 'Monto', 'Notas'],
-      ...gastos.map(g => [g.id, g.fecha, g.concepto, g.categoria, g.cantidad, g.unidad, g.monto, g.descripcion])
-    ]);
-    toast('Gastos exportados.', 'ok');
-  }
-
-  function exportarFilamentosCSV() {
-    if (!filamentos.length) { toast('No hay filamentos para exportar.', 'err'); return; }
-    descargarCSV('filamentos.csv', [
-      ['ID', 'Fecha', 'Marca', 'Color', 'Kg', 'Precio', '$/kg'],
-      ...filamentos.map(f => [f.id, f.fecha, f.marca, f.color, f.kg, f.precio, Number(f.kg) > 0 ? (Number(f.precio) / Number(f.kg)).toFixed(2) : ''])
-    ]);
-    toast('Filamentos exportados.', 'ok');
-  }
-
-  // ── BACKUP COMPLETO (JSON) ──
-  function exportarBackup() {
-    const backup = {
-      _app: 'Pedidos 3D', _exportado: new Date().toISOString(),
-      pedidos, productos, categorias, gastos, filamentos,
-      estadisticas_personalizadas: estadisticasCustom,
-      configuracion_calculadora: calcConfigGlobal,
-      configuracion_estadisticas: statsConfig,
-      dashboard_config: dashConfig,
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'pedidos3d_backup_' + new Date().toISOString().split('T')[0] + '.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('Backup descargado.', 'ok');
-  }
-
-  function importarBackup() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      try {
-        const datos = JSON.parse(await file.text());
-        if (datos._app !== 'Pedidos 3D') { toast('El archivo no es un backup de Pedidos 3D.', 'err'); return; }
-        const resumen = `${(datos.pedidos || []).length} pedidos, ${(datos.productos || []).length} productos, ${(datos.gastos || []).length} gastos, ${(datos.filamentos || []).length} filamentos, ${(datos.categorias || []).length} categorias`;
-        if (!confirm(`Importar backup?\n\n${resumen}\n\nSe agregaran como registros nuevos (no se borra nada).`)) return;
-        const sinId = ({ id, user_id, created_at, ...resto }) => resto;
-        const postear = async (tabla, filas) => {
-          for (const fila of filas) await apiFetch(tabla, { method: 'POST', prefer: 'return=minimal', body: JSON.stringify(sinId(fila)) });
-        };
-        await postear('categorias', datos.categorias || []);
-        await postear('productos', datos.productos || []);
-        await postear(TABLA, datos.pedidos || []);
-        await postear('gastos', datos.gastos || []);
-        await postear('filamentos', datos.filamentos || []);
-        await postear('estadisticas_personalizadas', datos.estadisticas_personalizadas || []);
-        toast('Backup importado. Recargando...', 'ok');
-        setTimeout(() => window.location.reload(), 1500);
-      } catch (e) { toast('Error importando: ' + e.message, 'err'); }
-    };
-    input.click();
+    } catch(e){alert('Error: '+e.message);}
   }
 
 
@@ -3036,20 +1394,6 @@ lucide.createIcons();
     }
   });
 
-  // Cerrar modal con Escape
-  document.addEventListener('keydown', function(e) {
-    if (e.key !== 'Escape') return;
-    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-    document.querySelectorAll('.cd-menu').forEach(m => m.classList.remove('open'));
-    document.querySelectorAll('.cd-trigger').forEach(t => t.classList.remove('open'));
-    editandoId = null;
-    editandoProductoId = null;
-    editandoGastoId = null;
-    editandoFilamentoId = null;
-    editandoCatNombre = null;
-    editandoEstId = null;
-  });
-
   // ── PRODUCTOS ──
   let productos = [];
   let editandoProductoId = null;
@@ -3057,90 +1401,36 @@ lucide.createIcons();
   async function cargarProductos() {
     try {
       productos = await apiFetch('productos?order=nombre.asc');
-      categorias = [...new Set([
-        ...categorias,
-        ...productos.map(p => (p.categoria || '').trim()).filter(Boolean)
-      ])].sort((a, b) => a.localeCompare(b, 'es'));
       if (paginaActual === 'productos') renderProductos();
-      if (document.getElementById('tab-categorias')?.classList.contains('active')) renderCategorias();
       if (paginaActual === 'dashboard') renderDashboard();
-      if (paginaActual === 'estadisticas') renderEstadisticas();
       // Actualizar dropdown de producto en modales
       renderDropdownProductos();
-    } catch(e) { console.error('Error cargando productos:', e); toast('Error al cargar productos: ' + e.message, 'err'); }
-  }
-
-  // Costo de produccion: filamento (promedio $/kg) + luz + desgaste + margen de error (config de la calculadora)
-  function calcularCostoProduccion(prod) {
-    const cfg = calcConfigGlobal || calculatorDefaults;
-    const promKg = obtenerPromedioKg();
-    const gramos = Number(prod?.gramos) || 0;
-    const horas = Number(prod?.tiempo_horas) || 0;
-    if (!gramos && !horas) return null;
-    const material = gramos / 1000 * (promKg || 0);
-    const luz = horas * (Number(cfg.consumo) || 0) / 1000 * (Number(cfg.kwh) || 0);
-    const desgaste = (Number(cfg.vida) || 0) > 0 ? horas * (Number(cfg.repuestos) || 0) / cfg.vida : 0;
-    const subtotal = material + luz + desgaste;
-    return subtotal * (1 + (Number(cfg.error) || 0) / 100);
-  }
-
-  function selectOrdenProd(value, label) {
-    document.getElementById('cd-pord-label').textContent = label;
-    const input = document.getElementById('filtro-orden-productos');
-    if (input) input.value = value;
-    document.querySelectorAll('#cd-pord-menu .cd-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.textContent.trim() === label);
-    });
-    document.getElementById('cd-pord-menu').classList.remove('open');
-    document.getElementById('cd-pord-trigger').classList.remove('open');
-    lucide.createIcons();
-    renderProductos();
+    } catch(e) { console.error('Error cargando productos:', e); }
   }
 
   function renderProductos(lista) {
     const filtro = (document.getElementById('filtro-producto')?.value||'').toLowerCase();
-    const orden = (lista ? 'nuevo' : (document.getElementById('filtro-orden-productos')?.value||'nuevo'));
-    let data = (lista||productos).filter(p =>
+    const data = (lista||productos).filter(p =>
       !filtro || (p.nombre||'').toLowerCase().includes(filtro) || (p.categoria||'').toLowerCase().includes(filtro)
     );
-    if (!lista) {
-      data = [...data].sort((a, b) => {
-        switch (orden) {
-          case 'nuevo':         return (b.id||0) - (a.id||0);
-          case 'viejo':         return (a.id||0) - (b.id||0);
-          case 'nombre_az':     return (a.nombre||'').localeCompare(b.nombre||'', 'es');
-          case 'nombre_za':     return (b.nombre||'').localeCompare(a.nombre||'', 'es');
-          case 'caro':          return (b.precio_base||0) - (a.precio_base||0);
-          case 'barato':        return (a.precio_base||0) - (b.precio_base||0);
-          case 'costo_caro':    return (calcularCostoProduccion(b)||0) - (calcularCostoProduccion(a)||0);
-          case 'costo_barato':  return (calcularCostoProduccion(a)||0) - (calcularCostoProduccion(b)||0);
-          default:              return 0;
-        }
-      });
-    }
 
     // Tabla desktop
     const tbody = document.getElementById('tbody-productos');
     if (tbody) {
       tbody.innerHTML = !data.length
-        ? '<tr><td colspan="7" class="empty-state">No hay productos.</td></tr>'
-        : data.map(p => {
-            const costo = calcularCostoProduccion(p);
-            return `
+        ? '<tr><td colspan="6" class="empty-state">No hay productos.</td></tr>'
+        : data.map(p => `
           <tr>
             <td class="td-id">${p.id}</td>
             <td class="td-cliente">${esc(p.nombre)}</td>
             <td>${esc(p.categoria||'—')}</td>
             <td class="td-monto">${p.precio_base ? fmt(p.precio_base) : '—'}</td>
-            <td style="white-space:nowrap">${p.gramos ? `${Number(p.gramos).toLocaleString('es-AR')} g` : '—'}<div style="font-size:.75rem;color:#8b90a7">${p.tiempo_horas ? `${p.tiempo_horas} hs` : ''}</div></td>
-            <td class="td-monto" style="color:var(--accent)">${costo !== null ? fmt(Math.round(costo)) : '—'}${costo !== null ? `<div style="font-size:.72rem;color:#8b90a7;font-weight:500">sugerido ${fmt(Math.round(costo * ((calcConfigGlobal || calculatorDefaults).multiplicador || 1)))}</div>` : ''}</td>
             <td style="font-size:0.8rem;color:#8b90a7;max-width:200px">${esc(p.descripcion||'')}</td>
             <td><div class="acciones">
               <button class="btn-icon" onclick="abrirEditarProducto(${p.id})" title="Editar"><i data-lucide="pencil" width="13" height="13"></i></button>
               <button class="btn-icon del" onclick="borrarProducto(${p.id})" title="Borrar"><i data-lucide="trash-2" width="13" height="13"></i></button>
             </div></td>
-          </tr>`;
-          }).join('');
+          </tr>`).join('');
     }
 
     // Cards mobile
@@ -3148,9 +1438,7 @@ lucide.createIcons();
     if (mobile) {
       mobile.innerHTML = !data.length
         ? '<div class="empty-state">No hay productos.</div>'
-        : data.map(p => {
-            const costo = calcularCostoProduccion(p);
-            return `
+        : data.map(p => `
           <div class="pedido-card-mobile">
             <div class="pcm-top">
               <div class="pcm-top-left">
@@ -3164,25 +1452,8 @@ lucide.createIcons();
             </div>
             <div class="pcm-cliente">${esc(p.nombre)}</div>
             ${p.precio_base ? `<div class="pcm-producto">${fmt(p.precio_base)}</div>` : ''}
-            ${costo !== null || p.gramos || p.tiempo_horas ? `
-            <div class="pcm-stats">
-              <div class="pcm-stat">
-                <div class="pcm-stat-label">Gramos</div>
-                <div class="pcm-stat-value">${p.gramos ? Number(p.gramos).toLocaleString('es-AR') + ' g' : '—'}</div>
-              </div>
-              <div class="pcm-stat">
-                <div class="pcm-stat-label">Tiempo</div>
-                <div class="pcm-stat-value">${p.tiempo_horas ? p.tiempo_horas + ' hs' : '—'}</div>
-              </div>
-              <div class="pcm-stat">
-                <div class="pcm-stat-label">Costo prod.</div>
-                <div class="pcm-stat-value highlight">${costo !== null ? fmt(Math.round(costo)) : '—'}</div>
-                ${costo !== null ? `<div style="font-size:.68rem;color:#8b90a7">sugerido ${fmt(Math.round(costo * ((calcConfigGlobal || calculatorDefaults).multiplicador || 1)))}</div>` : ''}
-              </div>
-            </div>` : ''}
             ${p.descripcion ? `<div class="pcm-desc">${esc(p.descripcion)}</div>` : ''}
-          </div>`;
-          }).join('');
+          </div>`).join('');
     }
     lucide.createIcons();
   }
@@ -3235,8 +1506,6 @@ lucide.createIcons();
   function abrirNuevoProducto() {
     ['np-nombre','np-categoria','np-descripcion'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('np-precio').value = '';
-    document.getElementById('np-gramos').value = '';
-    document.getElementById('np-tiempo').value = '';
     const msg = document.getElementById('msg-nuevo-producto');
     msg.className = 'msg-box'; msg.textContent = '';
     document.getElementById('modal-nuevo-producto').classList.add('open');
@@ -3255,8 +1524,6 @@ lucide.createIcons();
       nombre,
       categoria:   document.getElementById('np-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('np-precio').value) || 0,
-      gramos:      parseFloat(document.getElementById('np-gramos').value) || null,
-      tiempo_horas: parseFloat(document.getElementById('np-tiempo').value) || null,
       descripcion: document.getElementById('np-descripcion').value.trim(),
     };
     btn.disabled = true;
@@ -3277,8 +1544,6 @@ lucide.createIcons();
     document.getElementById('ep-nombre').value      = p.nombre || '';
     document.getElementById('ep-categoria').value   = p.categoria || '';
     document.getElementById('ep-precio').value      = p.precio_base || '';
-    document.getElementById('ep-gramos').value      = p.gramos ?? '';
-    document.getElementById('ep-tiempo').value      = p.tiempo_horas ?? '';
     document.getElementById('ep-descripcion').value = p.descripcion || '';
     const msg = document.getElementById('msg-editar-producto');
     msg.className = 'msg-box'; msg.textContent = '';
@@ -3299,8 +1564,6 @@ lucide.createIcons();
       nombre,
       categoria:   document.getElementById('ep-categoria').value.trim(),
       precio_base: parseFloat(document.getElementById('ep-precio').value) || 0,
-      gramos:      parseFloat(document.getElementById('ep-gramos').value) || null,
-      tiempo_horas: parseFloat(document.getElementById('ep-tiempo').value) || null,
       descripcion: document.getElementById('ep-descripcion').value.trim(),
     };
     btn.disabled = true;
@@ -3326,144 +1589,7 @@ lucide.createIcons();
     } catch(e) { alert('Error: ' + e.message); }
   }
 
-
-  // ── CATEGORÍAS ──
-  let categorias = [];
-  let editandoCatNombre = null;
-
-  async function cargarCategorias() {
-    try {
-      const filas = await apiFetch('categorias?select=id,nombre&order=nombre.asc');
-      categorias = [...new Set([
-        ...filas.map(fila => fila.nombre),
-        ...productos.map(p => (p.categoria || '').trim()).filter(Boolean)
-      ])].sort((a, b) => a.localeCompare(b, 'es'));
-    } catch (e) { console.error('Error cargando categorias:', e); }
-  }
-
-  function switchProdTab(tab) {
-    document.getElementById('tab-btn-productos').classList.toggle('active', tab==='productos');
-    document.getElementById('tab-btn-categorias').classList.toggle('active', tab==='categorias');
-    document.getElementById('tab-productos').classList.toggle('active', tab==='productos');
-    document.getElementById('tab-categorias').classList.toggle('active', tab==='categorias');
-    if (tab === 'categorias') { renderCategorias(); lucide.createIcons(); }
-    if (tab === 'productos')  { renderProductos(); }
-  }
-
-  function renderCategorias() {
-    const filtro = (document.getElementById('filtro-categoria')?.value||'').toLowerCase();
-    const data = categorias.filter(c => !filtro || c.toLowerCase().includes(filtro));
-    const tbody = document.getElementById('tbody-categorias');
-    if (!tbody) return;
-    if (!data.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay categorias.</td></tr>'; return; }
-    tbody.innerHTML = data.map(cat => {
-      const count = productos.filter(p => p.categoria === cat).length;
-      return `<tr>
-        <td class="td-cliente">${esc(cat)}</td>
-        <td style="color:var(--text-muted)">${count} producto${count!==1?'s':''}</td>
-        <td><div class="acciones">
-          <button class="btn-icon" onclick="abrirEditarCat('${cat.replace(/'/g,"\'")}')"><i data-lucide="pencil" width="13" height="13"></i></button>
-          <button class="btn-icon del" onclick="borrarCategoria('${cat.replace(/'/g,"\'")}')"><i data-lucide="trash-2" width="13" height="13"></i></button>
-        </div></td>
-      </tr>`;
-    }).join('');
-    lucide.createIcons();
-  }
-
-  // MODAL NUEVA CATEGORIA
-  function abrirNuevaCategoria() {
-    document.getElementById('nc-nombre').value = '';
-    const msg = document.getElementById('msg-nueva-cat');
-    msg.className = 'msg-box'; msg.textContent = '';
-    document.getElementById('modal-nueva-cat').classList.add('open');
-    lucide.createIcons();
-  }
-  function cerrarModalNuevaCat() { document.getElementById('modal-nueva-cat').classList.remove('open'); }
-  document.getElementById('modal-nueva-cat').addEventListener('click', function(e) { if(e.target===this) cerrarModalNuevaCat(); });
-
-  async function guardarNuevaCategoria() {
-    const msg = document.getElementById('msg-nueva-cat');
-    const btn = document.getElementById('btn-nueva-cat');
-    msg.className = 'msg-box'; msg.textContent = '';
-    const nombre = document.getElementById('nc-nombre').value.trim();
-    if (!nombre) { msg.textContent = 'El nombre es obligatorio.'; msg.className = 'msg-box err'; return; }
-    if (categorias.includes(nombre)) { msg.textContent = 'Esa categoria ya existe.'; msg.className = 'msg-box err'; return; }
-    btn.disabled = true;
-    try {
-      await apiFetch('categorias', { method: 'POST', prefer: 'return=minimal', body: JSON.stringify({ nombre }) });
-      categorias.push(nombre);
-      categorias.sort((a, b) => a.localeCompare(b, 'es'));
-      msg.textContent = 'Categoria creada.';
-      msg.className = 'msg-box ok';
-      renderCategorias();
-      setTimeout(cerrarModalNuevaCat, 800);
-    } catch(e) { msg.textContent = 'Error: ' + e.message; msg.className = 'msg-box err'; }
-    finally { btn.disabled = false; }
-  }
-
-  // MODAL EDITAR CATEGORIA
-  function abrirEditarCat(nombre) {
-    editandoCatNombre = nombre;
-    document.getElementById('ec-nombre').value = nombre;
-    const msg = document.getElementById('msg-editar-cat');
-    msg.className = 'msg-box'; msg.textContent = '';
-    document.getElementById('modal-editar-cat').classList.add('open');
-    lucide.createIcons();
-  }
-  function cerrarModalEditarCat() { document.getElementById('modal-editar-cat').classList.remove('open'); editandoCatNombre = null; }
-  document.getElementById('modal-editar-cat').addEventListener('click', function(e) { if(e.target===this) cerrarModalEditarCat(); });
-
-  async function guardarEdicionCategoria() {
-    const btn = document.getElementById('btn-editar-cat');
-    const msg = document.getElementById('msg-editar-cat');
-    msg.className = 'msg-box'; msg.textContent = '';
-    const nuevoNombre = document.getElementById('ec-nombre').value.trim();
-    if (!nuevoNombre || !editandoCatNombre) { msg.textContent = 'El nombre es obligatorio.'; msg.className = 'msg-box err'; return; }
-    btn.disabled = true;
-    try {
-      const prods = productos.filter(p => p.categoria === editandoCatNombre);
-      const categoria = (await apiFetch(`categorias?nombre=eq.${encodeURIComponent(editandoCatNombre)}&select=id`))?.[0];
-      if (categoria) await apiFetch(`categorias?id=eq.${categoria.id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ nombre: nuevoNombre }) });
-      await Promise.all(prods.map(p =>
-        apiFetch(`productos?id=eq.${p.id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ categoria: nuevoNombre }) })
-      ));
-      productos.forEach(p => { if (p.categoria === editandoCatNombre) p.categoria = nuevoNombre; });
-      const idx = categorias.indexOf(editandoCatNombre);
-      if (idx >= 0) categorias[idx] = nuevoNombre;
-      categorias.sort();
-      msg.textContent = `Renombrada. ${prods.length} producto${prods.length!==1?'s':''} actualizados.`;
-      msg.className = 'msg-box ok';
-      renderCategorias();
-      setTimeout(cerrarModalEditarCat, 900);
-    } catch(e) { msg.textContent = 'Error: ' + e.message; msg.className = 'msg-box err'; }
-    finally { btn.disabled = false; }
-  }
-
-  async function borrarCategoria(nombre) {
-    const count = productos.filter(p => p.categoria === nombre).length;
-    const confirmar = count > 0
-      ? `Borrar "${nombre}"? Los ${count} producto${count!==1?'s':''} quedarán sin categoria.`
-      : `Borrar "${nombre}"?`;
-    if (!confirm(confirmar)) return;
-    try {
-      const prods = productos.filter(p => p.categoria === nombre);
-      const categoria = (await apiFetch(`categorias?nombre=eq.${encodeURIComponent(nombre)}&select=id`))?.[0];
-      if (categoria) await apiFetch(`categorias?id=eq.${categoria.id}`, { method: 'DELETE' });
-      await Promise.all(prods.map(p =>
-        apiFetch(`productos?id=eq.${p.id}`, { method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ categoria: '' }) })
-      ));
-      productos.forEach(p => { if (p.categoria === nombre) p.categoria = ''; });
-      categorias = categorias.filter(c => c !== nombre);
-      renderCategorias();
-    } catch(e) { alert('Error: ' + e.message); }
-  }
-
-  setInterval(() => { cargarPedidos(); cargarGastos(); cargarFilamentos(); }, 30000);
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { if (paginaActual === 'dashboard') renderDashboard(); }, 250);
-  });
+  setInterval(cargarPedidos, 30000);
   iniciarApp();
   window.addEventListener('load', () => lucide.createIcons());
 </script>
