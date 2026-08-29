@@ -106,7 +106,7 @@
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     /* ── DASHBOARD GRAFANA ── */
     .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; min-height: 400px; grid-auto-flow: dense; }
-    .dashboard-widget { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; }
+    .dashboard-widget { position: relative; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); overflow: hidden; transition: box-shadow .15s; min-height: 120px; }
     .dashboard-widget:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
     .dashboard-widget .widget-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); cursor: move; user-select: none; }
     .dashboard-widget .widget-title { font-weight: 600; font-size: .85rem; }
@@ -3720,8 +3720,7 @@ lucide.createIcons();
     el.onmousedown = e => {
       if (!dashEditMode) return;
       if (e.target.closest('.resize-handle, .widget-actions')) return;
-      const rect = el.getBoundingClientRect();
-      dragState = { el, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      dragState = { el, startX: e.clientX, startY: e.clientY };
       document.body.style.userSelect = 'none';
     };
   }
@@ -3731,8 +3730,12 @@ lucide.createIcons();
       h.onmousedown = e => {
         e.stopPropagation();
         if (!dashEditMode) return;
-        const rect = el.getBoundingClientRect();
-        dragState = { el, handle: e.target.dataset.dir, startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height, startLeft: rect.left, startTop: rect.top };
+        const style = window.getComputedStyle(el);
+        const gridCol = parseInt(style.gridColumn?.split('/')[0]) || 1;
+        const gridRow = parseInt(style.gridRow?.split('/')[0]) || 1;
+        const gridColEnd = parseInt(style.gridColumn?.split('/')[1]) || gridCol + 1;
+        const gridRowEnd = parseInt(style.gridRow?.split('/')[1]) || gridRow + 1;
+        dragState = { el, handle: e.target.dataset.dir, startX: e.clientX, startY: e.clientY, startCol: gridCol, startRow: gridRow, startColEnd: gridColEnd, startRowEnd: gridRowEnd };
         document.body.style.userSelect = 'none';
       };
     });
@@ -3740,47 +3743,57 @@ lucide.createIcons();
 
   document.addEventListener('mousemove', e => {
     if (!dragState) return;
-    const { el, handle, startX, startY, startW, startH, startLeft, startTop } = dragState;
+    const { el, handle, startX, startY, startCol, startRow, startColEnd, startRowEnd } = dragState;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (handle) {
-      let nw = startW, nh = startH, nl = parseInt(el.style.left), nt = parseInt(el.style.top);
-      if (handle.includes('e')) nw = Math.max(200, startW + dx);
-      if (handle.includes('s')) nh = Math.max(120, startH + dy);
-      if (handle.includes('w')) { nw = Math.max(200, startW - dx); nl += startW - nw; }
-      if (handle.includes('n')) { nh = Math.max(120, startH - dy); nt += startH - nh; }
-      el.style.width = nw + 'px';
-      el.style.height = nh + 'px';
-      el.style.left = nl + 'px';
-      el.style.top = nt + 'px';
+      // Resize - calcular nuevas celdas basadas en movimiento del mouse
+      const cellWidth = 260; // ancho aproximado de celda + gap
+      const cellHeight = 160; // alto aproximado de celda + gap
+      let col = startCol, row = startRow, colEnd = startColEnd, rowEnd = startRowEnd;
+      if (handle.includes('e')) colEnd = Math.max(startCol + 1, startColEnd + Math.round(dx / cellWidth));
+      if (handle.includes('s')) rowEnd = Math.max(startRow + 1, startRowEnd + Math.round(dy / cellHeight));
+      if (handle.includes('w')) col = Math.max(1, startCol - Math.round(dx / cellWidth));
+      if (handle.includes('n')) row = Math.max(1, startRow - Math.round(dy / cellHeight));
+      // Limitar a grid de 12 columnas y 4 filas max
+      col = Math.max(1, Math.min(col, 12));
+      row = Math.max(1, Math.min(row, 12));
+      colEnd = Math.max(col + 1, Math.min(colEnd, 13));
+      rowEnd = Math.max(row + 1, Math.min(rowEnd, 5));
+      el.style.gridColumn = `${col} / ${colEnd}`;
+      el.style.gridRow = `${row} / ${rowEnd}`;
     } else {
-      el.style.left = (startLeft + dx) + 'px';
-      el.style.top = (startTop + dy) + 'px';
+      // Drag - mover widget a nueva posición en grid
+      const cellWidth = 260;
+      const cellHeight = 160;
+      const newCol = Math.max(1, Math.min(12, startCol + Math.round(dx / cellWidth)));
+      const newRow = Math.max(1, Math.min(12, startRow + Math.round(dy / cellHeight)));
+      const w = parseInt(el.style.gridColumn?.split('/')[1] || 3) - parseInt(el.style.gridColumn?.split('/')[0] || 1);
+      const h = parseInt(el.style.gridRow?.split('/')[1] || 2) - parseInt(el.style.gridRow?.split('/')[0] || 1);
+      el.style.gridColumn = `${newCol} / ${newCol + w}`;
+      el.style.gridRow = `${newRow} / ${newRow + h}`;
     }
   });
 
   document.addEventListener('mouseup', () => {
     if (dragState && !dragState.handle) {
+      // Guardar posición tras drag
       const el = dragState.el;
-      const x = Math.round(parseInt(el.style.left) / 260);
-      const y = Math.round(parseInt(el.style.top) / 160);
-      el.style.left = `${x * 260}px`;
-      el.style.top = `${y * 160}px`;
-      const w = Math.round(parseInt(el.style.width) / 260);
-      const h = Math.round(parseInt(el.style.height) / 160);
-      el.style.width = `${w * 260 - 16}px`;
-      el.style.height = `${h * 160 - 16}px`;
+      const col = parseInt(el.style.gridColumn?.split('/')[0] || 1);
+      const row = parseInt(el.style.gridRow?.split('/')[0] || 1);
+      const colEnd = parseInt(el.style.gridColumn?.split('/')[1] || col + 1);
+      const rowEnd = parseInt(el.style.gridRow?.split('/')[1] || row + 1);
       const wd = dashboardWidgets.find(w => w.id === el.dataset.id);
-      if (wd) { wd.x = x; wd.y = y; wd.w = Math.max(1, w); wd.h = Math.max(1, h); guardarWidgetEnSupabase(wd); }
+      if (wd) { wd.x = col - 1; wd.y = row - 1; wd.w = colEnd - col; wd.h = rowEnd - row; guardarWidgetEnSupabase(wd); }
     } else if (dragState && dragState.handle) {
+      // Guardar tamaño tras resize
+      const el = dragState.el;
+      const col = parseInt(el.style.gridColumn?.split('/')[0] || 1);
+      const row = parseInt(el.style.gridRow?.split('/')[0] || 1);
+      const colEnd = parseInt(el.style.gridColumn?.split('/')[1] || col + 1);
+      const rowEnd = parseInt(el.style.gridRow?.split('/')[1] || row + 1);
       const wd = dashboardWidgets.find(w => w.id === dragState.el.dataset.id);
-      if (wd) {
-        wd.w = Math.max(1, Math.round(parseInt(dragState.el.style.width) / 260));
-        wd.h = Math.max(1, Math.round(parseInt(dragState.el.style.height) / 160));
-        wd.x = Math.round(parseInt(dragState.el.style.left) / 260);
-        wd.y = Math.round(parseInt(dragState.el.style.top) / 160);
-        guardarWidgetEnSupabase(wd);
-      }
+      if (wd) { wd.w = colEnd - col; wd.h = rowEnd - row; wd.x = col - 1; wd.y = row - 1; guardarWidgetEnSupabase(wd); }
     }
     dragState = null;
     document.body.style.userSelect = '';
