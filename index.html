@@ -1186,7 +1186,8 @@
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
     await Promise.all([cargarCategorias(), cargarConfiguracionCalculadora(), cargarGastos()]);
-    navegarA('dashboard');
+    const paginaGuardada = localStorage.getItem('ultimaPagina') || 'dashboard';
+    navegarA(paginaGuardada);
     // Cargar en segundo plano sin bloquear la UI
     cargarProductos();
     cargarPedidos();
@@ -1227,6 +1228,7 @@
     const mel = document.getElementById(mnavId);
     if (mel) mel.classList.add('active');
     paginaActual = pagina;
+    localStorage.setItem('ultimaPagina', pagina);
     if (pagina === 'dashboard') renderDashboard();
     if (pagina === 'pedidos') renderTabla();
     if (pagina === 'productos') renderProductos();
