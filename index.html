@@ -1352,8 +1352,8 @@ pedidos = await apiFetch(`${TABLA}?order=id.desc`);
       const iW = W - pad.left - pad.right;
       const iH = H - pad.top - pad.bottom;
       const maxF = Math.max(...facturacion, 1);
-      const pts = meses6.map((m, i) => {
-        const x = pad.left + (i / (meses6.length - 1)) * iW;
+      const pts = meses.map((m, i) => {
+        const x = pad.left + (i / (meses.length - 1 || 1)) * iW;
         const y = pad.top + iH - (facturacion[i] / maxF) * iH;
         return { x, y, v: facturacion[i], label: m.label };
       });
