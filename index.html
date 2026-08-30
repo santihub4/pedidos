@@ -1679,7 +1679,7 @@ pedidos = await apiFetch(`${TABLA}?order=id.desc`);
   async function cargarFilamentos() {
     try {
       filamentos = await apiFetch('filamentos?order=fecha.desc,id.desc&limit=100');
-      if (paginaActual === 'gastos') { renderFilamentos(); renderGastos(); }
+      if (paginaActual === 'gastos') renderFilamentos();
     } catch (e) { console.error('Error cargando filamentos:', e); }
   }
 
