@@ -4,7 +4,7 @@ import type { Tables } from '../../lib/database.types'
 
 export type Item = Tables<'pedido_items'>
 export type Pedido = Tables<'pedidos'> & { pedido_items: Item[] }
-export type Producto = Pick<Tables<'productos'>, 'id' | 'nombre' | 'precio_base'>
+export type Producto = Pick<Tables<'productos'>, 'id' | 'nombre' | 'precio_base' | 'gramos' | 'tiempo_horas'>
 
 export function usePedidos() {
   return useQuery({
@@ -25,7 +25,7 @@ export function useProductosParaPedido() {
   return useQuery({
     queryKey: ['productos', 'para-pedido'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('productos').select('id, nombre, precio_base').order('nombre')
+      const { data, error } = await supabase.from('productos').select('id, nombre, precio_base, gramos, tiempo_horas').order('nombre')
       if (error) throw error
       return data as Producto[]
     },
@@ -50,7 +50,14 @@ export function useCambiarEstado() {
   })
 }
 
-export type ItemForm = { producto_id: number | null; descripcion: string; cantidad: number; precio_unitario: number }
+export type ItemForm = {
+  producto_id: number | null
+  descripcion: string
+  cantidad: number
+  precio_unitario: number
+  gramos: number | null // por unidad
+  horas: number | null // por unidad
+}
 export type PedidoForm = {
   cliente: string
   fecha: string

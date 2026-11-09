@@ -12,6 +12,7 @@ const CAMPOS_CONFIG: { k: keyof CalcConfig; label: string }[] = [
   { k: 'vida', label: 'Vida útil (horas)' },
   { k: 'repuestos', label: 'Repuestos en esa vida útil ($)' },
   { k: 'error', label: 'Margen por fallas (%)' },
+  { k: 'empaque', label: 'Empaque por pedido ($)' },
 ]
 
 type Pieza = { horas: number; minutos: number; gramos: number; insumos: number }

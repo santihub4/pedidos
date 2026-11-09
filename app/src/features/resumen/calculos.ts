@@ -1,4 +1,5 @@
 import type { Pedido } from '../pedidos/api'
+import { desglose, type CalcConfig } from '../../lib/pricing'
 
 type Gasto = { monto: number; fecha: string | null }
 type Compra = { precio: number; fecha: string | null }
@@ -65,4 +66,55 @@ export function topProductos(mes: string, pedidos: Pedido[], n = 5): Top[] {
     }
   }
   return [...m.values()].sort((a, b) => b.total - a.total).slice(0, n)
+}
+
+export type Produccion = {
+  entregados: number
+  conGramos: number // pedidos entregados con gramos cargados en todos sus productos
+  kgVendidos: number
+  horas: number
+  kgComprados: number
+  conCosto: number // pedidos con gramos u horas en todos sus productos
+  gananciaPromedio: number | null
+}
+
+/**
+ * Producción del mes, solo con los datos cargados: los pedidos sin gramos u horas
+ * no suman kilos ni entran en el promedio.
+ */
+export function produccion(
+  mes: string,
+  pedidos: Pedido[],
+  compras: { kg: number; fecha: string | null }[],
+  cfg: CalcConfig,
+  precioKg: number,
+): Produccion {
+  const entregados = pedidos.filter((p) => p.estado === 'Entregado' && ym(p.fecha) === mes)
+  let gramos = 0
+  let horas = 0
+  let conGramos = 0
+  const ganancias: number[] = []
+
+  for (const p of entregados) {
+    const items = p.pedido_items ?? []
+    for (const i of items) {
+      if (i.gramos != null) gramos += Number(i.gramos) * i.cantidad
+      if (i.horas != null) horas += Number(i.horas) * i.cantidad
+    }
+    if (items.length && items.every((i) => i.gramos != null)) conGramos++
+    if (items.length && items.every((i) => i.gramos != null || i.horas != null)) {
+      const costo = items.reduce((s, i) => s + desglose({ gramos: Number(i.gramos ?? 0), horas: Number(i.horas ?? 0) }, cfg, precioKg).costo * i.cantidad, 0)
+      ganancias.push(Number(p.precio_final ?? 0) - costo - cfg.empaque)
+    }
+  }
+
+  return {
+    entregados: entregados.length,
+    conGramos,
+    kgVendidos: gramos / 1000,
+    horas,
+    kgComprados: compras.filter((c) => ym(c.fecha) === mes).reduce((s, c) => s + Number(c.kg), 0),
+    conCosto: ganancias.length,
+    gananciaPromedio: ganancias.length ? ganancias.reduce((a, b) => a + b, 0) / ganancias.length : null,
+  }
 }

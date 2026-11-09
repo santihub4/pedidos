@@ -8,10 +8,11 @@ export type CalcConfig = {
   repuestos: number // $ en repuestos durante esa vida útil
   error: number // % de margen por fallas
   multiplicador: number // precio sugerido = costo × multiplicador
+  empaque: number // $ fijo por pedido: bolsita, sticker, etc.
 }
 
 export const CALC_DEFAULTS: CalcConfig = {
-  filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, multiplicador: 4,
+  filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, multiplicador: 4, empaque: 0,
 }
 
 export function leerConfig(json: unknown): CalcConfig {

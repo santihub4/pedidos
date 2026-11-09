@@ -28,7 +28,7 @@ if (DEMO) {
   queryClient.setQueryDefaults(['calculadora'], { staleTime: Infinity })
   queryClient.setQueryDefaults(['filamentos'], { staleTime: Infinity })
   queryClient.setQueryData(['categorias'], [{ id: 1, nombre: 'Hogar', user_id: 'demo', created_at: null }, { id: 2, nombre: 'Juguetes', user_id: 'demo', created_at: null }])
-  queryClient.setQueryData(['calculadora'], { filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, multiplicador: 4 })
+  queryClient.setQueryData(['calculadora'], { filamento: 20000, kwh: 140, consumo: 120, vida: 4320, repuestos: 150000, error: 5, multiplicador: 4, empaque: 300 })
   queryClient.setQueryData(['filamentos'], [
     { id: 1, kg: 1, precio: 22000, fecha: '2026-11-01', marca: 'Grilon', color: 'Negro', user_id: 'demo', created_at: null },
     { id: 2, kg: 2, precio: 41000, fecha: '2026-10-12', marca: 'Printalot', color: 'Blanco', user_id: 'demo', created_at: null },
@@ -49,7 +49,7 @@ if (DEMO) {
     precio_final: [5000, 9000, 42000, 25000, 18000, 15000, 30000][i],
     estado, descripcion: null, fecha: ['2026-11-01', '2026-11-02', '2026-11-03', '2026-10-04', '2026-10-05', '2026-09-06', '2026-11-07'][i],
     pedido_items: [
-      { id: i * 10, pedido_id: 100 - i, producto_id: i + 1, descripcion: nombres[i], cantidad: [1, 2, 10, 25, 1, 3, 1][i], precio_unitario: 5000, subtotal: null, user_id: 'demo', created_at: '' },
+      { id: i * 10, pedido_id: 100 - i, producto_id: i + 1, descripcion: nombres[i], cantidad: [1, 2, 10, 25, 1, 3, 1][i], precio_unitario: 5000, subtotal: null, user_id: 'demo', created_at: '', gramos: i === 6 ? 500 : null, horas: i === 6 ? 12 : null },
       ...(i === 2 ? [{ id: 99, pedido_id: 98, producto_id: 2, descripcion: 'Soporte auriculares', cantidad: 2, precio_unitario: 4500, subtotal: null, user_id: 'demo', created_at: '' }] : []),
     ],
   })))

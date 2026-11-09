@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { plata } from '../../lib/format'
 import { usePedidos } from '../pedidos/api'
 import { useGastos, etiquetaMes, mesActual } from '../gastos/api'
-import { useComprasFilamento } from '../costos/api'
+import { useComprasFilamento, useCostos } from '../costos/api'
 import { salir, useSession } from '../../auth/useSession'
-import { moverMes, resumenPorMes, topProductos, ultimosMeses, type Mes } from './calculos'
+import { moverMes, produccion, resumenPorMes, topProductos, ultimosMeses, type Mes } from './calculos'
 
 const corto = new Intl.DateTimeFormat('es-AR', { month: 'short' })
 const mesCorto = (ym: string) => {
@@ -60,6 +60,8 @@ export function ResumenPage() {
         <Barras serie={serie.filter((s) => meses.includes(s.mes))} elegido={mes} onElegir={setMes} />
       </section>
 
+      <Produccion mes={mes} />
+
       <section className="bloque">
         <h2 className="bloque-titulo">Lo más vendido en {etiquetaMes(mes).toLowerCase()}</h2>
         {top.length === 0 ? <p className="vacio">No hay pedidos entregados en este mes.</p> : (
@@ -85,6 +87,47 @@ export function ResumenPage() {
 
       <Cuenta />
     </main>
+  )
+}
+
+const kg = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 })
+const hs = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 })
+
+function Produccion({ mes }: { mes: string }) {
+  const { data: pedidos = [] } = usePedidos()
+  const { data: compras = [] } = useComprasFilamento()
+  const costos = useCostos()
+  if (!costos) return null
+  const p = produccion(mes, pedidos, compras, costos.cfg, costos.precioKg)
+  const dif = p.kgComprados - p.kgVendidos
+
+  return (
+    <section className="bloque">
+      <h2 className="bloque-titulo">Producción</h2>
+      <dl className="tiles num">
+        <Tile label="Filamento vendido" valor={`${kg.format(p.kgVendidos)} kg`} />
+        <Tile label="Filamento comprado" valor={`${kg.format(p.kgComprados)} kg`} />
+        <Tile label="Horas de impresión" valor={`${hs.format(p.horas)} h`} />
+        <Tile
+          label="Te deja cada venta"
+          valor={p.gananciaPromedio === null ? '—' : plata(p.gananciaPromedio)}
+          detalle={p.gananciaPromedio === null ? undefined : 'en promedio, descontando costos'}
+        />
+      </dl>
+      {(p.kgVendidos > 0 || p.kgComprados > 0) && Math.abs(dif) >= 0.01 && (
+        <p className="ayuda num">
+          {dif > 0
+            ? `Compraste ${kg.format(dif)} kg más de lo que vendiste.`
+            : `Vendiste ${kg.format(-dif)} kg más de lo que compraste: usaste filamento de meses anteriores.`}
+        </p>
+      )}
+      {p.entregados > 0 && (
+        <p className="ayuda">
+          Se calcula solo con los pedidos que tienen gramos y horas cargados: {p.conGramos} de {p.entregados} entregados este mes tienen gramos.
+          {costos.cfg.empaque === 0 && ' El costo de empaque está en $0; lo podés cargar en Calculadora → Costos fijos.'}
+        </p>
+      )}
+    </section>
   )
 }
 

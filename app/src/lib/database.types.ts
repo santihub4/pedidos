@@ -30,9 +30,9 @@ export type Database = {
         Relationships: []
       }
       pedido_items: {
-        Row: { cantidad: number; created_at: string; descripcion: string; id: number; pedido_id: number; precio_unitario: number; producto_id: number | null; subtotal: number | null; user_id: string }
-        Insert: { cantidad?: number; created_at?: string; descripcion: string; id?: never; pedido_id: number; precio_unitario?: number; producto_id?: number | null; subtotal?: number | null; user_id?: string }
-        Update: { cantidad?: number; created_at?: string; descripcion?: string; id?: never; pedido_id?: number; precio_unitario?: number; producto_id?: number | null; subtotal?: number | null; user_id?: string }
+        Row: { cantidad: number; created_at: string; descripcion: string; gramos: number | null; horas: number | null; id: number; pedido_id: number; precio_unitario: number; producto_id: number | null; subtotal: number | null; user_id: string }
+        Insert: { cantidad?: number; created_at?: string; descripcion: string; gramos?: number | null; horas?: number | null; id?: never; pedido_id: number; precio_unitario?: number; producto_id?: number | null; subtotal?: number | null; user_id?: string }
+        Update: { cantidad?: number; created_at?: string; descripcion?: string; gramos?: number | null; horas?: number | null; id?: never; pedido_id?: number; precio_unitario?: number; producto_id?: number | null; subtotal?: number | null; user_id?: string }
         Relationships: [
           { foreignKeyName: 'pedido_items_pedido_id_fkey'; columns: ['pedido_id']; isOneToOne: false; referencedRelation: 'pedidos'; referencedColumns: ['id'] },
           { foreignKeyName: 'pedido_items_producto_id_fkey'; columns: ['producto_id']; isOneToOne: false; referencedRelation: 'productos'; referencedColumns: ['id'] },

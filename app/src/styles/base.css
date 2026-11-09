@@ -301,7 +301,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .item {
   display: grid; align-items: center; gap: 0.4rem;
   grid-template-columns: 4rem auto 1fr auto;
-  grid-template-areas: 'nombre nombre nombre quitar' 'cant x precio subtotal';
+  grid-template-areas: 'nombre nombre nombre quitar' 'cant x precio subtotal' 'gramos gramos horas horas';
   padding-bottom: 0.5rem; border-bottom: 1px solid var(--linea);
 }
 .item-nombre { grid-area: nombre; }
@@ -309,6 +309,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .item-cant { grid-area: cant; }
 .item-x { grid-area: x; color: var(--tinta-suave); }
 .item-precio { grid-area: precio; }
+.item-gramos { grid-area: gramos; }
+.item-horas { grid-area: horas; }
+.item .item-gramos, .item .item-horas { font-size: max(16px, 0.9em); padding-block: 0.45rem; }
 .item-subtotal { grid-area: subtotal; font-weight: 600; text-align: right; min-width: 5.5rem; }
 
 /* Capas de estado: el pedido "se imprime" de pendiente a entregado */

@@ -9,7 +9,8 @@ import { ESTADOS } from './estados'
 type Props = { pedido: Pedido | null; clientes: string[]; onCerrar: () => void }
 
 const hoy = () => new Date().toISOString().slice(0, 10)
-const itemVacio = (): ItemForm => ({ producto_id: null, descripcion: '', cantidad: 1, precio_unitario: 0 })
+const itemVacio = (): ItemForm => ({ producto_id: null, descripcion: '', cantidad: 1, precio_unitario: 0, gramos: null, horas: null })
+const numONull = (v: string) => (v === '' ? null : Number(v))
 
 function formInicial(p: Pedido | null): PedidoForm {
   if (!p) {
@@ -25,7 +26,10 @@ function formInicial(p: Pedido | null): PedidoForm {
     sena_pagada: p.sena_pagada ?? false,
     sena_monto: Number(p.sena_monto ?? 0),
     items: p.pedido_items.length
-      ? p.pedido_items.map((i) => ({ producto_id: i.producto_id, descripcion: i.descripcion, cantidad: i.cantidad, precio_unitario: Number(i.precio_unitario) }))
+      ? p.pedido_items.map((i) => ({
+          producto_id: i.producto_id, descripcion: i.descripcion, cantidad: i.cantidad, precio_unitario: Number(i.precio_unitario),
+          gramos: i.gramos === null ? null : Number(i.gramos), horas: i.horas === null ? null : Number(i.horas),
+        }))
       : [itemVacio()],
   }
 }
@@ -63,7 +67,12 @@ export function PedidoSheet({ pedido, clientes, onCerrar }: Props) {
 
   function elegirProducto(i: number, texto: string) {
     const p = porNombre.get(texto.trim().toLowerCase())
-    if (p) setItem(i, { descripcion: p.nombre, producto_id: p.id, precio_unitario: Number(p.precio_base ?? 0) })
+    if (p) {
+      setItem(i, {
+        descripcion: p.nombre, producto_id: p.id, precio_unitario: Number(p.precio_base ?? 0),
+        gramos: p.gramos === null ? null : Number(p.gramos), horas: p.tiempo_horas === null ? null : Number(p.tiempo_horas),
+      })
+    }
     else setItem(i, { descripcion: texto, producto_id: null })
   }
 
@@ -158,6 +167,16 @@ export function PedidoSheet({ pedido, clientes, onCerrar }: Props) {
                 value={it.precio_unitario || ''} onChange={(e) => setItem(i, { precio_unitario: Number(e.target.value) })}
               />
               <span className="item-subtotal num">{plata(it.cantidad * it.precio_unitario)}</span>
+              <input
+                className="item-gramos num" type="number" inputMode="decimal" min={0} step="any" placeholder="Gramos c/u"
+                aria-label={`Gramos por unidad del producto ${i + 1}`}
+                value={it.gramos ?? ''} onChange={(e) => setItem(i, { gramos: numONull(e.target.value) })}
+              />
+              <input
+                className="item-horas num" type="number" inputMode="decimal" min={0} step="any" placeholder="Horas c/u"
+                aria-label={`Horas de impresión por unidad del producto ${i + 1}`}
+                value={it.horas ?? ''} onChange={(e) => setItem(i, { horas: numONull(e.target.value) })}
+              />
               <button
                 type="button" className="btn-icono" aria-label={`Quitar producto ${i + 1}`}
                 disabled={form.items.length === 1}
