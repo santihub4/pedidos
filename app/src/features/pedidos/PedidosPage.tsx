@@ -5,6 +5,7 @@ import { etiquetaMes } from '../gastos/api'
 import { usePedidos, useCambiarEstado, resumenItems, saldo, type Pedido } from './api'
 import { Capas } from './Capas'
 import { PedidoSheet } from './PedidoSheet'
+import { alerta, duracion, horasPedido, tomado } from './tiempos'
 import { ESTADOS, colorEstado, siguiente, type Estado } from './estados'
 
 const ACTIVOS = ['Pendiente', 'Impreso', 'Listo para retirar']
@@ -35,14 +36,25 @@ export function PedidosPage() {
 
   const visibles = useMemo(() => {
     const q = texto.trim().toLowerCase()
-    return (pedidos ?? []).filter((p) => {
+    const lista = (pedidos ?? []).filter((p) => {
       const okEstado = filtro === 'todos' || (filtro === 'activos' ? ACTIVOS.includes(p.estado) : p.estado === filtro)
       const okMes = !mes || (p.fecha ?? '').startsWith(mes)
       const okTexto = !q || p.cliente.toLowerCase().includes(q) ||
         p.pedido_items.some((i) => i.descripcion.toLowerCase().includes(q))
       return okEstado && okMes && okTexto
     })
+    // En la cola de impresión, el más viejo primero.
+    if (filtro === 'Pendiente') {
+      lista.sort((a, b) => (tomado(a)?.getTime() ?? 0) - (tomado(b)?.getTime() ?? 0))
+    }
+    return lista
   }, [pedidos, texto, filtro, mes])
+
+  const cola = useMemo(() => {
+    const pend = (pedidos ?? []).filter((p) => p.estado === 'Pendiente')
+    const h = pend.map(horasPedido)
+    return { pedidos: pend.length, horas: h.reduce((s, x) => s + x.horas, 0), sinHoras: h.filter((x) => !x.completo).length }
+  }, [pedidos])
   const totalVisibles = visibles.reduce((s, p) => s + (p.precio_final ?? 0), 0)
 
   const activos = (pedidos ?? []).filter((p) => ACTIVOS.includes(p.estado))
@@ -58,6 +70,9 @@ export function PedidosPage() {
       <div className="resumen num">
         <span><b>{activos.length}</b>en curso</span>
         <span><b>{plata(porCobrar)}</b>por cobrar</span>
+        <button type="button" className="resumen-boton" onClick={() => setFiltro('Pendiente')}>
+          <b>{duracion(cola.horas)}</b>por imprimir
+        </button>
       </div>
 
       <div className="filtros">
@@ -87,6 +102,13 @@ export function PedidosPage() {
         ))}
       </div>
 
+      {filtro === 'Pendiente' && !mes && !texto && cola.pedidos > 0 && (
+        <p className="ayuda num total-filtro">
+          Cola de impresión: {cola.pedidos} {cola.pedidos === 1 ? 'pedido' : 'pedidos'} · {duracion(cola.horas)} de impresión
+          {cola.sinHoras > 0 && ` (${cola.sinHoras} sin horas cargadas)`}. El más viejo primero.
+        </p>
+      )}
+
       {(mes || texto) && visibles.length > 0 && (
         <p className="ayuda num total-filtro">
           {visibles.length} {visibles.length === 1 ? 'pedido' : 'pedidos'} · {plata(totalVisibles)}
@@ -105,6 +127,8 @@ export function PedidosPage() {
         <ul className="lista">
           {visibles.map((p) => {
             const prox = siguiente(p.estado)
+            const al = alerta(p)
+            const hp = p.estado === 'Pendiente' ? horasPedido(p) : null
             return (
               <li key={p.id} className="pedido">
                 <Capas
@@ -118,6 +142,12 @@ export function PedidosPage() {
                     <span className="pedido-detalle">{resumenItems(p)} · {fecha(p.fecha)}</span>
                     {p.sena_pagada && ACTIVOS.includes(p.estado) && (
                       <span className="pedido-detalle num">Seña {plata(Number(p.sena_monto ?? 0))} · falta {plata(saldo(p))}</span>
+                    )}
+                    {al && (
+                      <span className={'pedido-tiempo num' + (al.tarde ? ' tarde' : '')}>
+                        {al.texto}
+                        {hp && hp.horas > 0 && ` · ${duracion(hp.horas)} de impresión${hp.completo ? '' : ' o más'}`}
+                      </span>
                     )}
                   </span>
                   <span>

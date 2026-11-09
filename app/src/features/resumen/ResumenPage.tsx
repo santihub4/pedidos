@@ -6,7 +6,8 @@ import { useGastos, etiquetaMes, mesActual } from '../gastos/api'
 import { useComprasFilamento, useCostos } from '../costos/api'
 import { CurvaDiasMes } from './CurvaDias'
 import { salir, useSession } from '../../auth/useSession'
-import { moverMes, produccion, resumenPorMes, topProductos, ultimosMeses, type Mes } from './calculos'
+import { moverMes, produccion, resumenPorMes, tiempos, topProductos, ultimosMeses, type Mes } from './calculos'
+import { duracion, PROMESA_HORAS } from '../pedidos/tiempos'
 
 const corto = new Intl.DateTimeFormat('es-AR', { month: 'short' })
 const mesCorto = (ym: string) => {
@@ -62,6 +63,8 @@ export function ResumenPage() {
       </section>
 
       <CurvaDiasMes mes={mes} />
+
+      <TiemposMes mes={mes} />
 
       <Produccion mes={mes} />
 
@@ -130,6 +133,26 @@ function Produccion({ mes }: { mes: string }) {
           {costos.cfg.empaque === 0 && ' El costo de empaque está en $0; lo podés cargar en Calculadora → Costos fijos.'}
         </p>
       )}
+    </section>
+  )
+}
+
+function TiemposMes({ mes }: { mes: string }) {
+  const { data: pedidos = [] } = usePedidos()
+  const t = tiempos(mes, pedidos, PROMESA_HORAS)
+  return (
+    <section className="bloque">
+      <h2 className="bloque-titulo">Tiempos</h2>
+      <dl className="tiles tiles-3 num">
+        <Tile label="Hasta dejarlo en el almacén" valor={t.preparacionHoras === null ? '—' : duracion(t.preparacionHoras)} detalle="en promedio" />
+        <Tile
+          label={`Dentro de las ${PROMESA_HORAS} h`}
+          valor={t.conPreparacion ? `${Math.round((t.dentroPromesa / t.conPreparacion) * 100)}%` : '—'}
+          detalle={t.conPreparacion ? `${t.dentroPromesa} de ${t.conPreparacion} pedidos` : undefined}
+        />
+        <Tile label="En el almacén hasta que lo retiran" valor={t.almacenHoras === null ? '—' : duracion(t.almacenHoras)} detalle="en promedio" />
+      </dl>
+      <p className="ayuda">Se mide desde que cargás el pedido hasta que lo pasás a "Listo para retirar" y después a "Entregado". Solo cuentan los pedidos cargados desde que se agregó esto.</p>
     </section>
   )
 }

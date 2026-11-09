@@ -39,7 +39,7 @@ export type Database = {
         ]
       }
       pedidos: {
-        Row: { cantidad: number | null; cliente: string; descripcion: string | null; estado: string; fecha: string | null; id: number; precio_final: number | null; precio_unitario: number | null; producto: string | null; sena_monto: number | null; sena_pagada: boolean | null; user_id: string }
+        Row: { creado_at: string | null; impreso_at: string | null; listo_at: string | null; entregado_at: string | null; cantidad: number | null; cliente: string; descripcion: string | null; estado: string; fecha: string | null; id: number; precio_final: number | null; precio_unitario: number | null; producto: string | null; sena_monto: number | null; sena_pagada: boolean | null; user_id: string }
         Insert: { cantidad?: number | null; cliente: string; descripcion?: string | null; estado?: string; fecha?: string | null; id?: number; precio_final?: number | null; precio_unitario?: number | null; producto?: string | null; sena_monto?: number | null; sena_pagada?: boolean | null; user_id?: string }
         Update: { cantidad?: number | null; cliente?: string; descripcion?: string | null; estado?: string; fecha?: string | null; id?: number; precio_final?: number | null; precio_unitario?: number | null; producto?: string | null; sena_monto?: number | null; sena_pagada?: boolean | null; user_id?: string }
         Relationships: []

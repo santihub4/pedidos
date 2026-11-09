@@ -114,6 +114,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .pedido-abrir > span { min-width: 0; }
 .pedido-cliente { display: block; font-weight: 700; }
 .pedido-detalle { display: block; color: var(--tinta-suave); font-size: 0.9rem; }
+.pedido-tiempo { display: block; font-size: 0.85rem; color: var(--tinta-suave); }
+.pedido-tiempo.tarde { color: var(--pendiente); font-weight: 600; }
+.pedido-tiempo.tarde::before { content: '● '; }
+.resumen-boton { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.resumen-boton b { text-decoration: underline; text-decoration-color: var(--linea); text-underline-offset: 4px; }
 .pedido-total { display: block; font-weight: 700; text-align: right; }
 .pedido-estado { display: block; font-size: 0.8rem; font-weight: 600; text-align: right; }
 .vacio { padding: 2.5rem 1rem; text-align: center; color: var(--tinta-suave); }
@@ -194,6 +199,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--linea); border: 1px solid var(--linea); border-radius: var(--radio); overflow: hidden; margin: 0 0 1.5rem; }
 @media (min-width: 640px) { .tiles { grid-template-columns: repeat(4, 1fr); } }
 .tile { background: var(--superficie); padding: 0.75rem 0.9rem; }
+@media (min-width: 640px) { .tiles-3 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 639px) { .tiles-3 .tile:last-child { grid-column: 1 / -1; } }
 .tile dt { font-size: 0.8rem; color: var(--tinta-suave); font-weight: 600; }
 .tile dd { margin: 0.15rem 0 0; font-size: 1.15rem; font-weight: 700; }
 .tile small { display: block; font-size: 0.75rem; font-weight: 400; color: var(--tinta-suave); }

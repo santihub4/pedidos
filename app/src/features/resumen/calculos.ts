@@ -181,3 +181,27 @@ export function curvaDias(pedidos: { estado: string; fecha: string | null }[], m
     meses: todos.length,
   }
 }
+
+export type Tiempos = {
+  conPreparacion: number // pedidos con fecha de carga y de "listo"
+  preparacionHoras: number | null // promedio de carga -> dejado en el almacén
+  dentroPromesa: number // cuántos se dejaron dentro de las 48 h
+  conAlmacen: number
+  almacenHoras: number | null // promedio de dejado en el almacén -> retirado
+}
+
+/** Tiempos de los pedidos entregados en el mes, solo los que tienen las fechas registradas. */
+export function tiempos(mes: string, pedidos: Pedido[], promesaHoras = 48): Tiempos {
+  const h = (a: string, b: string) => (new Date(b).getTime() - new Date(a).getTime()) / 3600_000
+  const delMes = pedidos.filter((p) => p.estado === 'Entregado' && ym(p.fecha) === mes)
+  const prep = delMes.filter((p) => p.creado_at && p.listo_at).map((p) => h(p.creado_at!, p.listo_at!))
+  const alm = delMes.filter((p) => p.listo_at && p.entregado_at).map((p) => h(p.listo_at!, p.entregado_at!))
+  const prom = (v: number[]) => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : null)
+  return {
+    conPreparacion: prep.length,
+    preparacionHoras: prom(prep),
+    dentroPromesa: prep.filter((x) => x <= promesaHoras).length,
+    conAlmacen: alm.length,
+    almacenHoras: prom(alm),
+  }
+}

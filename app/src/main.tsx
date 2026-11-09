@@ -47,9 +47,13 @@ if (DEMO) {
     id: 100 - i, user_id: 'demo', cliente: ['Lucía', 'Martín', 'Taller Rojas', 'Sofía', 'Diego', 'Ana', 'Pablo'][i],
     producto: nombres[i], cantidad: [1, 2, 10, 25, 1, 3, 1][i], precio_unitario: 5000,
     precio_final: [5000, 9000, 42000, 25000, 18000, 15000, 30000][i],
+    creado_at: i === 0 ? new Date(Date.now() - 3 * 86400_000).toISOString() : i === 6 ? '2026-11-07T10:00:00Z' : null,
+    impreso_at: null,
+    listo_at: i === 2 ? new Date(Date.now() - 9 * 86400_000).toISOString() : i === 6 ? '2026-11-08T16:00:00Z' : null,
+    entregado_at: i === 6 ? '2026-11-09T12:00:00Z' : null,
     estado, descripcion: null, fecha: ['2026-11-01', '2026-11-02', '2026-11-03', '2026-10-04', '2026-10-05', '2026-09-06', '2026-11-07'][i],
     pedido_items: [
-      { id: i * 10, pedido_id: 100 - i, producto_id: i + 1, descripcion: nombres[i], cantidad: [1, 2, 10, 25, 1, 3, 1][i], precio_unitario: 5000, subtotal: null, user_id: 'demo', created_at: '', gramos: i === 6 ? 500 : null, horas: i === 6 ? 12 : null },
+      { id: i * 10, pedido_id: 100 - i, producto_id: i + 1, descripcion: nombres[i], cantidad: [1, 2, 10, 25, 1, 3, 1][i], precio_unitario: 5000, subtotal: null, user_id: 'demo', created_at: '', gramos: i === 6 ? 500 : null, horas: i === 6 ? 12 : i === 0 ? 3.5 : null },
       ...(i === 2 ? [{ id: 99, pedido_id: 98, producto_id: 2, descripcion: 'Soporte auriculares', cantidad: 2, precio_unitario: 4500, subtotal: null, user_id: 'demo', created_at: '' }] : []),
     ],
   })))
