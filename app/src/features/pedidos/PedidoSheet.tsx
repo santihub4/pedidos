@@ -12,13 +12,18 @@ const hoy = () => new Date().toISOString().slice(0, 10)
 const itemVacio = (): ItemForm => ({ producto_id: null, descripcion: '', cantidad: 1, precio_unitario: 0 })
 
 function formInicial(p: Pedido | null): PedidoForm {
-  if (!p) return { cliente: '', fecha: hoy(), estado: 'Pendiente', descripcion: '', precio_final: 0, items: [itemVacio()] }
+  if (!p) {
+    return { cliente: '', fecha: hoy(), estado: 'Pendiente', descripcion: '', precio_final: 0, sena_pagada: true, sena_monto: 0, items: [itemVacio()] }
+  }
   return {
     cliente: p.cliente,
     fecha: p.fecha ?? hoy(),
     estado: p.estado,
     descripcion: p.descripcion ?? '',
     precio_final: Number(p.precio_final ?? 0),
+    // Los pedidos de antes de la seña quedan sin seña.
+    sena_pagada: p.sena_pagada ?? false,
+    sena_monto: Number(p.sena_monto ?? 0),
     items: p.pedido_items.length
       ? p.pedido_items.map((i) => ({ producto_id: i.producto_id, descripcion: i.descripcion, cantidad: i.cantidad, precio_unitario: Number(i.precio_unitario) }))
       : [itemVacio()],
@@ -42,8 +47,12 @@ export function PedidoSheet({ pedido, clientes, onCerrar }: Props) {
 
   useEffect(() => { dialogo.current?.showModal() }, [])
 
+  // La seña sigue al 50% del total hasta que la escribas a mano.
+  const [senaManual, setSenaManual] = useState(() => Boolean(pedido?.sena_pagada))
+
   const suma = useMemo(() => form.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0), [form.items])
   const total = totalManual ? form.precio_final : suma
+  const sena = form.sena_pagada ? (senaManual ? form.sena_monto : Math.round(total / 2)) : 0
   const porNombre = useMemo(() => new Map(productos.map((p) => [p.nombre.toLowerCase(), p])), [productos])
 
   const set = <K extends keyof PedidoForm>(k: K, v: PedidoForm[K]) => setForm((f) => ({ ...f, [k]: v }))
@@ -67,8 +76,12 @@ export function PedidoSheet({ pedido, clientes, onCerrar }: Props) {
     if (!form.cliente.trim()) return setError('Falta el nombre del cliente.')
     if (!items.length) return setError('Agregá al menos un producto.')
     if (items.some((i) => i.cantidad < 1)) return setError('La cantidad tiene que ser 1 o más.')
+    if (sena > total) return setError('La seña no puede ser mayor que el total.')
     try {
-      await guardar.mutateAsync({ id: pedido?.id ?? null, form: { ...form, cliente: form.cliente.trim(), items, precio_final: total } })
+      await guardar.mutateAsync({
+        id: pedido?.id ?? null,
+        form: { ...form, cliente: form.cliente.trim(), items, precio_final: total, sena_monto: sena },
+      })
       cerrar()
     } catch {
       setError('No se pudo guardar el pedido. Revisá la conexión y probá de nuevo.')
@@ -165,6 +178,21 @@ export function PedidoSheet({ pedido, clientes, onCerrar }: Props) {
             onChange={(e) => { setTotalManual(true); set('precio_final', Number(e.target.value)) }}
           />
         </label>
+
+        <div className="sena">
+          <label className="sena-check">
+            <input type="checkbox" checked={form.sena_pagada} onChange={(e) => set('sena_pagada', e.target.checked)} />
+            <span>Seña pagada</span>
+          </label>
+          {form.sena_pagada && (
+            <input
+              className="num" type="number" inputMode="decimal" min={0} step="any" aria-label="Monto de la seña"
+              value={sena || ''}
+              onChange={(e) => { setSenaManual(true); set('sena_monto', Number(e.target.value)) }}
+            />
+          )}
+          <span className="sena-falta num">Falta {plata(Math.max(total - sena, 0))}</span>
+        </div>
 
         <label className="campo">
           <span>Notas</span>

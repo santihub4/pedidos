@@ -57,7 +57,15 @@ export type PedidoForm = {
   estado: string
   descripcion: string
   precio_final: number
+  sena_pagada: boolean
+  sena_monto: number
   items: ItemForm[]
+}
+
+/** Lo que falta cobrar: total menos la seña, si la pagaron. */
+export function saldo(p: Pick<Pedido, 'precio_final' | 'sena_pagada' | 'sena_monto'>) {
+  const total = Number(p.precio_final ?? 0)
+  return p.sena_pagada ? Math.max(total - Number(p.sena_monto ?? 0), 0) : total
 }
 
 /** Crea (id null) o edita un pedido con sus ítems, todo en una transacción. */

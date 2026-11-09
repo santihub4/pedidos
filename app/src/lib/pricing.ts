@@ -26,14 +26,23 @@ export function leerConfig(json: unknown): CalcConfig {
 
 type Compra = { kg: number; precio: number; fecha: string | null }
 
-/** $ por kg promedio: compras del mes actual, o todas si no hay del mes. */
+/** Desde qué fecha (YYYY-MM-DD) se promedian las compras: los últimos 3 meses. */
+export function inicioPromedio(hoy = new Date()) {
+  const d = new Date(hoy.getFullYear(), hoy.getMonth() - 3, hoy.getDate())
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * $ por kg promedio (ponderado por kilos) de las compras de los últimos 3 meses.
+ * Si no hubo compras en ese período, usa la compra más reciente.
+ */
 export function precioKgPromedio(compras: Compra[], hoy = new Date()): number | null {
-  const delMes = compras.filter((c) => {
-    if (!c.fecha) return false
-    const [y, m] = c.fecha.split('-').map(Number)
-    return y === hoy.getFullYear() && m === hoy.getMonth() + 1
-  })
-  const lista = delMes.length ? delMes : compras
+  const desde = inicioPromedio(hoy)
+  let lista = compras.filter((c) => c.fecha && c.fecha >= desde)
+  if (!lista.length) {
+    const ultima = [...compras].filter((c) => c.fecha).sort((a, b) => b.fecha!.localeCompare(a.fecha!))[0]
+    lista = ultima ? [ultima] : []
+  }
   const kg = lista.reduce((s, c) => s + Number(c.kg || 0), 0)
   const precio = lista.reduce((s, c) => s + Number(c.precio || 0), 0)
   return kg > 0 ? precio / kg : null

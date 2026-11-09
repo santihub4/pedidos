@@ -7,7 +7,6 @@ import { useComprasFilamento, useConfigCalculadora } from '../costos/api'
 import { useGuardarProducto } from '../productos/api'
 
 const CAMPOS_CONFIG: { k: keyof CalcConfig; label: string }[] = [
-  { k: 'filamento', label: 'Filamento ($/kg)' },
   { k: 'kwh', label: 'Luz ($/kWh)' },
   { k: 'consumo', label: 'Consumo de la impresora (W)' },
   { k: 'vida', label: 'Vida útil (horas)' },
@@ -41,9 +40,11 @@ export function CalculadoraPage() {
   if (!cfg) return <main className="contenido"><h1 className="titulo">Calculadora</h1><p className="vacio">Cargando…</p></main>
 
   const horas = pieza.horas + pieza.minutos / 60
-  const d = desglose({ gramos: pieza.gramos, horas, insumos: pieza.insumos }, cfg, cfg.filamento)
-  const total = d.costo * Math.max(cfg.multiplicador || 1, 1)
+  // El filamento siempre sale del promedio de las compras de los últimos 3 meses.
   const promedio = precioKgPromedio(compras)
+  const precioKg = promedio ?? cfg.filamento
+  const d = desglose({ gramos: pieza.gramos, horas, insumos: pieza.insumos }, cfg, precioKg)
+  const total = d.costo * Math.max(cfg.multiplicador || 1, 1)
   const cambiada = guardada && JSON.stringify(guardada) !== JSON.stringify(cfg)
 
   const setP = (k: keyof Pieza, v: string) => setPieza((p) => ({ ...p, [k]: Number(v) || 0 }))
@@ -52,7 +53,10 @@ export function CalculadoraPage() {
   async function guardarConfig() {
     setAviso(null)
     try {
-      await guardar.mutateAsync(cfg!)
+      // Se guarda también el promedio actual, por si algún día no hay compras cargadas.
+      const nuevo = { ...cfg!, filamento: Math.round(precioKg) }
+      await guardar.mutateAsync(nuevo)
+      setCfg(nuevo)
       setAviso('Configuración guardada.')
     } catch {
       setAviso('No se pudo guardar la configuración. Probá de nuevo.')
@@ -76,6 +80,10 @@ export function CalculadoraPage() {
             <Num label="Insumos extra ($)" value={pieza.insumos} onChange={(v) => setP('insumos', v)} />
           </div>
           <Num label="Multiplicador de ganancia" value={cfg.multiplicador} onChange={(v) => setC('multiplicador', v)} />
+          <p className="ayuda num">
+            Filamento a {plata(precioKg)}/kg{' '}
+            {promedio ? '(promedio de tus compras de los últimos 3 meses)' : '(no hay compras cargadas: se usa el último precio guardado)'}
+          </p>
         </section>
 
         <section className="calc-resultado num" aria-label="Resultado" aria-live="polite">
@@ -99,12 +107,6 @@ export function CalculadoraPage() {
         </button>
         {verConfig && (
           <div className="calc-config-cuerpo">
-            {promedio && Math.round(promedio) !== Math.round(cfg.filamento) && (
-              <p className="ayuda">
-                Tus compras de filamento promedian {plata(promedio)}/kg.{' '}
-                <button type="button" className="link" onClick={() => setCfg({ ...cfg, filamento: Math.round(promedio) })}>Usar ese precio</button>
-              </p>
-            )}
             <div className="grilla-config">
               {CAMPOS_CONFIG.map(({ k, label }) => <Num key={k} label={label} value={cfg[k]} onChange={(v) => setC(k, v)} />)}
             </div>

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { plata, fecha } from '../../lib/format'
 import { etiquetaMes } from '../gastos/api'
-import { usePedidos, useCambiarEstado, resumenItems, type Pedido } from './api'
+import { usePedidos, useCambiarEstado, resumenItems, saldo, type Pedido } from './api'
 import { Capas } from './Capas'
 import { PedidoSheet } from './PedidoSheet'
 import { ESTADOS, colorEstado, siguiente, type Estado } from './estados'
@@ -46,7 +46,7 @@ export function PedidosPage() {
   const totalVisibles = visibles.reduce((s, p) => s + (p.precio_final ?? 0), 0)
 
   const activos = (pedidos ?? []).filter((p) => ACTIVOS.includes(p.estado))
-  const porCobrar = activos.reduce((s, p) => s + (p.precio_final ?? 0), 0)
+  const porCobrar = activos.reduce((s, p) => s + saldo(p), 0)
 
   return (
     <main className="contenido">
@@ -116,6 +116,9 @@ export function PedidosPage() {
                   <span>
                     <span className="pedido-cliente">{p.cliente}</span>
                     <span className="pedido-detalle">{resumenItems(p)} · {fecha(p.fecha)}</span>
+                    {p.sena_pagada && ACTIVOS.includes(p.estado) && (
+                      <span className="pedido-detalle num">Seña {plata(Number(p.sena_monto ?? 0))} · falta {plata(saldo(p))}</span>
+                    )}
                   </span>
                   <span>
                     <span className="pedido-total num">{plata(p.precio_final)}</span>

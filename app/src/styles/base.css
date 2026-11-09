@@ -223,7 +223,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .top-ir { color: var(--tinta-suave); z-index: 1; }
 .filtros { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
 @media (max-width: 520px) { .filtros { grid-template-columns: 1fr; } }
-.filtro-mes { width: auto; }
+.filtro-mes {
+  width: auto; appearance: none; cursor: pointer; padding-right: 2.4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23889097' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.95rem center; background-size: 12px 8px;
+}
 .total-filtro { margin: 0 0 0.6rem; }
 .top-nombre { font-weight: 600; z-index: 1; }
 .top-cant { color: var(--tinta-suave); z-index: 1; }
@@ -280,6 +284,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .campo-total input { font-size: 1.3rem; font-weight: 700; font-stretch: 112%; }
 .campo-total small { font-weight: 400; }
+
+/* Seña */
+.sena {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem 0.75rem;
+  padding: 0.7rem 0.8rem; background: var(--cama); border-radius: var(--radio-chico);
+}
+.sena-check { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer; }
+.sena-check input { width: 1.2rem; height: 1.2rem; accent-color: var(--primario); }
+.sena > input { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--linea); border-radius: var(--radio-chico); background: var(--superficie); min-width: 0; }
+.sena-falta { grid-column: 1 / -1; color: var(--tinta-suave); font-size: 0.9rem; }
 
 /* Ítems del pedido */
 .items { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
