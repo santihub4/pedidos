@@ -1,0 +1,42 @@
+/* Paleta: cama de impresión PEI, tinta, y estados como colores de filamento. */
+:root {
+  --cama: #e9ece6;
+  --superficie: #f6f7f4;
+  --linea: #d3d8cf;
+  --tinta: #1f2427;
+  --tinta-suave: #5c656b;
+  --primario: #0e6b66;
+  --primario-tinta: #ffffff;
+
+  --pendiente: #c98a12;
+  --impreso: #4058d8;
+  --listo: #2e8452;
+  --entregado: #7a8288;
+  --cancelado: #b3261e;
+
+  --radio: 10px;
+  --radio-chico: 6px;
+  --barra-alto: 64px;
+
+  --fuente: 'Archivo', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cama: #171b1d;
+    --superficie: #20262a;
+    --linea: #333b40;
+    --tinta: #e8ece6;
+    --tinta-suave: #9aa3a8;
+    --primario: #4fb3ab;
+    --primario-tinta: #0b1f1d;
+
+    --pendiente: #e3a63a;
+    --impreso: #8094f0;
+    --listo: #5cbf84;
+    --entregado: #8a9298;
+    --cancelado: #ef6a60;
+    color-scheme: dark;
+  }
+}
