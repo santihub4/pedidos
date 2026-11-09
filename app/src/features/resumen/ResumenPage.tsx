@@ -4,6 +4,7 @@ import { plata } from '../../lib/format'
 import { usePedidos } from '../pedidos/api'
 import { useGastos, etiquetaMes, mesActual } from '../gastos/api'
 import { useComprasFilamento, useCostos } from '../costos/api'
+import { CurvaDiasMes } from './CurvaDias'
 import { salir, useSession } from '../../auth/useSession'
 import { moverMes, produccion, resumenPorMes, topProductos, ultimosMeses, type Mes } from './calculos'
 
@@ -59,6 +60,8 @@ export function ResumenPage() {
         <h2 className="bloque-titulo">Cobrado por mes</h2>
         <Barras serie={serie.filter((s) => meses.includes(s.mes))} elegido={mes} onElegir={setMes} />
       </section>
+
+      <CurvaDiasMes mes={mes} />
 
       <Produccion mes={mes} />
 
