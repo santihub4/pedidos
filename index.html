@@ -1561,10 +1561,10 @@ pedidos = await apiFetch(`${TABLA}?order=id.desc`);
   async function guardarCalculadora() {
     const state = document.getElementById('calc-save-state');
     try {
-      await apiFetch('configuracion_calculadora', {
+      await apiFetch('configuracion_calculadora?on_conflict=user_id', {
         method: 'POST',
         prefer: 'resolution=merge-duplicates,return=minimal',
-        body: JSON.stringify({ configuracion: obtenerDatosCalculadora() })
+        body: JSON.stringify({ configuracion: obtenerDatosCalculadora(), updated_at: new Date().toISOString() })
       });
       calcConfigGlobal = { ...obtenerDatosCalculadora() };
       if (paginaActual === 'productos') renderProductos();
