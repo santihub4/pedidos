@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { plata } from '../../lib/format'
 import { usePedidos } from '../pedidos/api'
 import { useGastos, etiquetaMes, mesActual } from '../gastos/api'
@@ -65,10 +66,17 @@ export function ResumenPage() {
           <ol className="top">
             {top.map((t) => (
               <li key={t.nombre}>
-                <span className="top-nombre">{t.nombre}</span>
-                <span className="top-cant num">{t.cantidad} u.</span>
-                <span className="top-total num">{plata(t.total)}</span>
-                <span className="top-barra" style={{ width: `${(t.total / top[0].total) * 100}%` }} aria-hidden="true" />
+                <Link
+                  className="top-fila"
+                  to={`/pedidos?${new URLSearchParams({ estado: 'Entregado', mes, q: t.nombre })}`}
+                  aria-label={`Ver los pedidos de ${t.nombre} en ${etiquetaMes(mes).toLowerCase()}`}
+                >
+                  <span className="top-nombre">{t.nombre}</span>
+                  <span className="top-cant num">{t.cantidad} u.</span>
+                  <span className="top-total num">{plata(t.total)}</span>
+                  <span className="top-ir" aria-hidden="true">›</span>
+                  <span className="top-barra" style={{ width: `${(t.total / top[0].total) * 100}%` }} aria-hidden="true" />
+                </Link>
               </li>
             ))}
           </ol>
@@ -128,7 +136,7 @@ function Barras({ serie, elegido, onElegir }: { serie: Mes[]; elegido: string; o
           const h = (s.ingresos / max) * 46
           return (
             <rect key={s.mes} x={i * W + W * 0.15} width={W * 0.7} y={50 - h} height={h} rx="0.8"
-              className={'barra' + (s.mes === elegido ? ' elegida' : '')} />
+              className={'barra-mes' + (s.mes === elegido ? ' elegida' : '')} />
           )
         })}
       </svg>

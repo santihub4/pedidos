@@ -1,5 +1,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+html, body { overflow-x: clip; }
+/* 16px en campos: así el celular no hace zoom al tocarlos */
+input, select, textarea { font-size: max(16px, 1em); }
 body {
   margin: 0;
   background: var(--cama);
@@ -54,7 +57,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Estructura */
 .app { min-height: 100%; padding-bottom: calc(var(--barra-alto) + env(safe-area-inset-bottom)); }
 .contenido { max-width: 46rem; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
-.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1rem; margin-bottom: 1rem; }
+.cabecera > * { min-width: 0; }
 
 .barra {
   position: fixed; inset: auto 0 0 0;
@@ -178,6 +182,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Resumen */
 .selector-mes { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
 .selector-mes span { min-width: 9.5rem; text-align: center; }
+@media (max-width: 520px) {
+  .selector-mes { width: 100%; justify-content: space-between; }
+  .selector-mes span { min-width: 0; }
+}
 .ganancia { display: grid; gap: 0.1rem; margin: 0.5rem 0 1.25rem; }
 .ganancia-label { color: var(--tinta-suave); font-weight: 600; }
 .ganancia-valor { font-size: clamp(2.4rem, 9vw, 3.4rem); font-stretch: 125%; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
@@ -196,8 +204,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .barras-tooltip { font-size: 0.85rem; color: var(--tinta-suave); min-height: 1.3rem; margin-bottom: 0.25rem; }
 .barras-svg { width: 100%; height: 160px; display: block; }
 .barras-base { stroke: var(--linea); stroke-width: 0.4; vector-effect: non-scaling-stroke; }
-.barra { fill: color-mix(in srgb, var(--primario) 35%, var(--cama)); }
-.barra.elegida { fill: var(--primario); }
+.barra-mes { fill: color-mix(in srgb, var(--primario) 40%, var(--cama)); }
+.barra-mes.elegida { fill: var(--primario); }
 .barras-ejes { display: flex; }
 .barras-hit {
   flex: 1; border: 0; background: none; padding: 0.35rem 0; cursor: pointer;
@@ -206,7 +214,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .barras-hit.elegida { color: var(--tinta); font-weight: 700; }
 
 .top { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
-.top li { position: relative; display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem; padding: 0.55rem 0.75rem; background: var(--superficie); border-radius: var(--radio-chico); overflow: hidden; }
+.top-fila {
+  position: relative; display: grid; grid-template-columns: 1fr auto auto auto; gap: 0.75rem; align-items: center;
+  padding: 0.55rem 0.75rem; background: var(--superficie); border-radius: var(--radio-chico); overflow: hidden;
+  color: inherit; text-decoration: none;
+}
+.top-fila:hover { background: color-mix(in srgb, var(--cama) 50%, var(--superficie)); }
+.top-ir { color: var(--tinta-suave); z-index: 1; }
+.filtros { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
+@media (max-width: 520px) { .filtros { grid-template-columns: 1fr; } }
+.filtro-mes { width: auto; }
+.total-filtro { margin: 0 0 0.6rem; }
 .top-nombre { font-weight: 600; z-index: 1; }
 .top-cant { color: var(--tinta-suave); z-index: 1; }
 .top-total { font-weight: 700; z-index: 1; min-width: 5.5rem; text-align: right; }
