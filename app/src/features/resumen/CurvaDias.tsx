@@ -33,7 +33,7 @@ export function CurvaDiasMes({ mes }: { mes: string }) {
   const c = useMemo(() => curvaDias(pedidos, mes), [pedidos, mes])
   const [dia, setDia] = useState<number | null>(null)
 
-  const max = Math.max(...c.promedio, ...c.mes.filter((v): v is number => v !== null), 0.5)
+  const max = Math.max(c.maximo, ...c.mes.filter((v): v is number => v !== null), 0.5)
   const y = (v: number) => H - 4 - (v / max) * (H - 12)
   const nombreMes = etiquetaMes(mes)
   const i = dia === null ? null : dia - 1

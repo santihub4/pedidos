@@ -139,6 +139,7 @@ export type CurvaDias = {
   crudoPromedio: number[]
   crudoMes: (number | null)[]
   meses: number // cuántos meses entran en el promedio
+  maximo: number // pico más alto de cualquier mes: la escala es la misma para todos
 }
 
 /**
@@ -164,9 +165,15 @@ export function curvaDias(pedidos: { estado: string; fecha: string | null }[], m
     const meses = todos.filter((m) => diasValidos(m) >= d)
     return meses.length ? meses.reduce((s, m) => s + delDia(m, d), 0) / meses.length : 0
   })
-  const crudoMes = Array.from({ length: 31 }, (_, i) => (i + 1 <= diasValidos(mes) ? delDia(mes, i + 1) : null))
+  const serieDe = (m: string) => Array.from({ length: 31 }, (_, i) => (i + 1 <= diasValidos(m) ? delDia(m, i + 1) : null))
+  const crudoMes = serieDe(mes)
+  const maximo = Math.max(
+    ...(suavizar(crudoPromedio) as number[]),
+    ...todos.flatMap((m) => suavizar(serieDe(m)).filter((v): v is number => v !== null)),
+  )
 
   return {
+    maximo,
     promedio: suavizar(crudoPromedio) as number[],
     mes: suavizar(crudoMes),
     crudoPromedio,
